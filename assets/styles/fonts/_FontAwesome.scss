@@ -1,0 +1,28 @@
+/* FontAwesome */
+
+@font-face {
+    font-family: 'FontAwesomeSolid';
+    src: url('./fonts/FontAwesome/fa-solid-900.woff2') format('woff2'), /* Modern Browsers */
+        url('./fonts/FontAwesome/fa-solid-900.ttf') format('truetype'); /* Safari, Android, iOS */
+    font-weight: 400;
+    font-style: normal;
+    font-display: fallback;
+}
+
+@font-face {
+    font-family: 'FontAwesomeRegular';
+    src: url('./fonts/FontAwesome/fa-regular-400.woff2') format('woff2'), /* Modern Browsers */
+        url('./fonts/FontAwesome/fa-regular-400.ttf') format('truetype'); /* Safari, Android, iOS */
+    font-weight: 400;
+    font-style: normal;
+    font-display: fallback;
+}
+
+@font-face {
+    font-family: 'FontAwesomeBrands';
+    font-style: normal;
+    font-weight: 400;
+    font-display: block;
+    src: url('./fonts/FontAwesome/fa-brands-400.woff2') format('woff2'),
+        url('./fonts/FontAwesome/fa-brands-400.ttf') format('truetype');
+}

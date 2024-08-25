@@ -1,0 +1,94 @@
+@import '../abstracts';
+
+// Background videos
+div.background-video-wrapper.has-avatar {
+    opacity: 0.85;
+    width: 1080px;
+    height: 100%;
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    right: calc(50% - 830px);
+    overflow: hidden;
+    z-index: 0;
+    video {
+        min-width: 100%;
+        min-height: 100%;
+        z-index: -1;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        object-fit: cover;
+    }
+}
+// Keep, in case we need it later
+// div.background-video-wrapper {
+//     @include hero_height(video);
+//     width: 100%;
+//     display: inline-block;
+//     position: absolute;
+//     top: 0;
+//     left: 0;
+//     overflow: hidden;
+//     z-index: 0;
+//     height: 100%;
+//     video {
+//         min-width: 100%;
+//         min-height: 100%;
+//         z-index: -1;
+//         position: absolute;
+//         top: 50%;
+//         left: 50%;
+//         transform: translate(-50%, -50%);
+//         object-fit: cover;
+//     }
+// }
+
+// Video Controls
+div.do-controls-wrapper {
+    //display: none;
+    font-size: 1em;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 0 2.5px;
+    background: $translucent_navy;
+    z-index: 9;
+    button.do-control  {
+        display: inline-block;
+        margin: 2.5px;
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        &::after {
+            display: block;
+            width: 1.75em;
+            height: 1.75em;
+            padding: 0.25em;
+            @include font(icon);
+            color: $white;
+            line-height: 1.25em;
+            //border: 1px $white solid;
+            //border-radius: $small_border_radius;
+        }
+        &.play::after {
+            content: '\f04b';
+        }
+        &.pause::after {
+            content: '\f04c';
+        }
+        &.forward::after {
+            content: '\f04e';
+        }
+        &.rewind::after {
+            content: '\f04a';
+        }
+        > span {
+            display: none;
+        }
+    }
+}
+header.has-video-controls > div.do-controls-wrapper {
+    display: inline-block;
+}

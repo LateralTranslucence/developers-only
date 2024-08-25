@@ -1,0 +1,82 @@
+@import 'assets/styles/abstracts';
+
+section.panel-type-timeline {
+    @include panel_border_radius;
+    header.panel-header, div.panel-copy-wrapper {
+        text-align: center;
+    }
+    ul.timeline {
+        > li {
+            text-align: center;
+            background-color: transparent;
+            padding: 1.5em;
+            div.block-content-wrapper {
+                padding: 0;
+            }
+            figure.year {
+                display: inline;
+                @include font(bold);
+                font-size: 4.5em;
+                line-height: 1em;
+            }
+            h3 {
+                @include font(medium);
+                font-size: 0.875em;
+            }
+            @include max-320 {
+                font-size: 0.875em;
+            }
+        }
+    }
+    // Colors
+    &.color-blue {
+        ul.timeline > li { 
+            figure.stat {
+                color: $white;
+            }
+            h3 {
+                color: $white;
+            }
+        }
+    }
+    &.color-navy {
+        ul.timeline > li { 
+            figure.stat {
+                color: $teal;
+            }
+            h3 {
+                color: $teal;
+            }
+        }
+    }
+    &.color-teal  {
+        ul.timeline > li { 
+            figure.stat {
+                color: $navy;
+            }
+            h3 {
+                color: $navy;
+            }
+        }
+    }
+    &.color-white  {
+        ul.timeline > li { 
+            figure.stat {
+                color: $blue;
+            }
+            h3 {
+                color: $navy;
+            }
+        }
+    }
+    &.color-yellow  {
+        ul.timeline > li { 
+            figure.stat {
+                color: $blue;
+            }
+            h3 {
+                color: $navy;
+            }
+        }
+    }
+}

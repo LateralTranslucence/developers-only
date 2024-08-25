@@ -1,0 +1,45 @@
+@import '../abstracts';
+
+ul.accordion {
+    margin: 0;
+    li {
+        display: block;
+        padding: 0;
+        margin-bottom: 1em;
+        border: 1px $light_blue solid;
+        background-color: $translucent_navy;
+        text-align: left;
+        > a.accordion-title {
+            padding: 1em 3em 1em 1em;
+            background-color: $navy;
+            position: relative;
+            color: $white;
+            h3 { 
+                font-size: 1.25em;
+                color: $white;
+                margin: 0;
+                @include max-768 { 
+                    font-size: 1em; 
+                }
+                &::after {
+                    display: none;
+                }
+            }
+            &::before {
+                @include font(icon);
+                content: '\f0da';
+                background-image: none;
+                position: absolute;
+                right: 1em;
+                top: calc(50% - .7em);
+            }
+        }
+        div.accordion-content { 
+            padding: 1em;
+            margin-top: 0;
+        }
+        &.uk-open > a.accordion-title::before { 
+            content: '\f068'; 
+        }
+    }
+}

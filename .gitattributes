@@ -1,0 +1,5 @@
+*.map -diff
+*.css -diff
+*.svg -diff
+build/* -diff
+package-lock.json

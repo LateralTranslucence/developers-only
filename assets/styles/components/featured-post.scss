@@ -1,0 +1,138 @@
+@import 'assets/styles/abstracts';
+
+section.panel-type-featured-post {
+    div.panel-inner-wrapper {
+        padding: 7.5%;
+        margin: 50px auto;
+        border-radius: $xlarge_border_radius;
+        background-image: var(--background-image);
+        background-size: cover;
+        background-position: 50% 50%;
+        background-repeat: no-repeat;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        min-height: 600px;
+        display: flex;
+        align-items: center;
+        @include max-600 {
+            background-image: var(--mobile-background-image);
+        }
+        &::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            background-image: linear-gradient(90deg, $navy 0%, $navy 30%, $transparent 75%);
+        }
+    }
+    div.featured-post-wrapper {
+        width: 50%;
+        color: $white;
+        position: relative;
+        z-index: 99;
+        h3::before {
+            color: $teal;
+        }
+    }
+    @include max-800 {
+        div.panel-inner-wrapper {
+            &::after {
+                background-image: linear-gradient(90deg, $navy 0%, $navy 40%, $transparent 85%);
+            }
+        }
+        div.featured-post-wrapper {
+            width: 75%;
+        }
+    }
+    @include max-600 {
+        div.featured-post-wrapper {
+            width: 100%;
+        }
+    }
+}
+
+header#hero.has-featured {
+    div.hero-container {
+        //display: block;
+        //div.hero-text-wrapper {
+            //width: 100%;
+            div.featured-post-wrapper {
+                display: grid;
+                grid-template-columns: [left] 47.5% [right] 47.5% [end];
+                grid-template-rows: [one] auto [two] auto [three] 1fr [four] auto [end];
+                column-gap: 5%;
+                justify-content: stretch;
+                width: 100%;
+                height: 100%;
+                position: relative;
+                overflow: hidden;
+                border-radius: $xlarge_border_radius;
+                box-shadow: $block_shadow;
+                grid-column: one / end;
+                grid-row: three / end;
+                h3 {
+                    grid-column: left / right;
+                    grid-row: one / two;
+                    margin-bottom: 1em;
+                    margin-left: 1em;
+                    margin-top: 1.25em;
+                    text-align: left;
+                }
+                div.featured-excerpt {
+                    width: auto;
+                    max-width: none;
+                    margin-bottom: 0;
+                    margin-left: 2em;
+                    margin-top: 0;
+                    grid-column: left / right;
+                    grid-row: two / three;
+                }
+                p.featured-cta {
+                    grid-column: left / right;
+                    grid-row: three / end;
+                    margin-left: 2em;
+                    margin-bottom: 3em;
+                    > a.text-button {
+                        padding: 0;
+                    }
+                }
+                span.do-image-wrapper {
+                    grid-column: right / end;
+                    grid-row: one / end;
+                    border-radius: 0;
+                    height: 100%;
+                    figure.do-image {
+                        height: 100%;
+                        border-radius: 0px 23px 0px 0px;
+                    }
+                }
+                @include max-900 {
+                    grid-template-columns: [left] 100% [end];
+                    grid-column-gap: 0;
+                    h3 {
+                        grid-row: two / three;
+                        margin: 1.25em 1em 1em;
+                    }
+                    div.featured-excerpt {
+                        grid-row: three / four;
+                        margin: 0 1.5em;
+                    }
+                    p.featured-cta {
+                        grid-row: four / end;
+                        margin-left: 1.5em;
+                    }
+                    span.do-image-wrapper {
+                        grid-column: left / end;
+                        grid-row: one / two;
+                        width: 100% !important;
+                    }
+                }
+            }
+        //}
+    }
+}

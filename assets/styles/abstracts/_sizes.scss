@@ -1,0 +1,28 @@
+// Sizes
+$large: 10px;
+$xlarge: 23px;
+$panel_border_radius: 0 0 0 50px;
+$tiny_border_radius: 1px;
+$small_border_radius: 4px;
+$large_border_radius: $large $large 0 $large;
+$xlarge_border_radius: $xlarge $xlarge 0px $xlarge;
+
+// Button Sizes
+$button_border_width: 2px;
+$button_border_radius: $xlarge $xlarge 0 $xlarge;
+
+// Opacity
+$hover_opacity: 0.5;
+
+// Block shadow
+$block_shadow: 0 3px 12px $very_translucent_navy;
+$block_shadow_hover: 0 3px 12px $translucent_navy;
+
+// Max Screen Width
+$max_screen_width: 1280px;
+
+// Global Header height
+$heading_height: 89px;
+
+// Admin bar height
+$admin_bar_height: 32px;

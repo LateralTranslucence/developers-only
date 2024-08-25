@@ -1,0 +1,192 @@
+@import 'assets/styles/abstracts';
+
+section.panel-type-logo-gallery-circle {
+    overflow: visible;
+    background-color: $white;
+    color: $navy;
+    div.panel-inner-wrapper {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 640px;
+        align-items: center;
+        header.panel-header, div.panel-copy-wrapper {
+            display: block;
+            width: 30%;
+            margin-bottom: 1.25em;
+            text-align: center;
+            position: relative;
+            z-index: 9;
+        }
+    }
+    ul.logo-gallery {
+        width: 100%;
+        height: 500px;
+        position: absolute;
+        margin: 0;
+        padding: 0;
+        > li {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-width: 15%;
+            height: 50px;
+            margin: 0;
+            padding: 0;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            border-radius: 0;
+            &:nth-child(1) {
+                top: 5%;
+                left: 50%;
+            }
+            &:nth-child(2) {
+                top: 25%;
+                left: 75%;
+            }
+            &:nth-child(3) {
+                top: 50%;
+                left: 90%;
+            }
+            &:nth-child(4) {
+                top: 75%;
+                left: 75%;
+            }
+            &:nth-child(5) {
+                top: 95%;
+                left: 50%;
+            }
+            &:nth-child(6) {
+                top: 75%;
+                left: 25%;
+            }
+            &:nth-child(7) {
+                top: 50%;
+                left: 10%;
+            }
+            &:nth-child(8) {
+                top: 25%;
+                left: 25%;
+            }
+            span.do-image-wrapper, figure.do-image {
+                border-radius: 0;
+                margin: 0 !important; // override more specific selector
+                max-width: 100% !important; // override more specific selector
+            }
+            figure.do-image {
+                padding-top: 50px !important; // override inline style
+                background-size: contain;
+            }
+            a:hover span.do-image-wrapper figure.do-image {
+                transform: none;
+                opacity: $hover_opacity;
+            }
+            &.has-description {
+                cursor: pointer;
+                p {
+                    display: none;
+                    width: 185px;
+                    padding: 5px 10px;
+                    margin: 0;
+                    position: absolute;
+                    bottom: 100%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    font-size: 0.875em;
+                    @include font(medium);
+                    line-height: 1.25em;
+                    color: $navy;
+                    text-align: center;
+                    background-color: $white;
+                    border-radius: $small_border_radius;
+                    z-index: 999;
+                    &::after {
+                        content: '\f0d7';
+                        @include font(icon);
+                        height: 0.5em;
+                        font-size: 2.5em;
+                        color: $white;
+                        position: absolute;
+                        bottom: -0.25em;
+                        left: 50%;
+                        transform: translateX(-50%);
+                    }
+                }
+                &:hover p {
+                    display: block;
+                }
+            }
+        }
+    }
+    @include max-900 {
+        div.panel-inner-wrapper {
+            font-size: 0.875em;
+        }
+    }
+    @include max-768 {
+        div.panel-inner-wrapper {
+            display: block;
+            height: auto;
+            header.panel-header, div.panel-copy-wrapper {
+                display: block;
+                width: 100%;
+            }
+        }
+        ul.logo-gallery {
+            height: auto;
+            position: static;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            > li {
+                height: auto;
+                max-width: 200px;
+                margin: 0;
+                padding: 1em;
+                position: static;
+                transform: none;
+            }
+        }
+    }
+}
+
+section.panel.panel-type-logo-gallery-wall {
+    header.panel-header {
+        text-align: center;
+    }
+    ul.logo-gallery.logos {
+        width: 100%;
+        margin: 4em 0 0 0;
+        padding: 0;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        li {
+            //list-style: none;
+            //width: 25%;
+            margin: 0 0 2em 0;
+            padding: 1em;
+            display: flex;
+            align-items: center;
+            span.do-image-wrapper, figure.do-image {
+                border-radius: 0;
+                margin: 0 auto;
+            }
+            span.do-image-wrapper {
+                max-width: 200px;
+            }
+            figure.do-image {
+                padding-top: 50px !important;
+                background-size: contain;
+                background-position: 50%;
+                max-width: 100%;
+            }
+            a:hover span.do-image-wrapper figure.do-image {
+                transform: none;
+                opacity: $hover_opacity;
+            }
+        }
+    }
+}

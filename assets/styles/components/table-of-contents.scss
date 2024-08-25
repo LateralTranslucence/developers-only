@@ -1,0 +1,162 @@
+@import 'assets/styles/abstracts';
+
+html.do-toc {
+    scroll-padding-top: 0;
+    header#hero, section.panel {
+        padding-left: 45px;
+        @include max-600 {
+            padding-left: 0;
+        }
+    }
+}
+nav#do-table-of-contents {
+    display: block;
+    width: auto;
+    height: 100%;
+    padding-top: $heading_height;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: rgba(0,0,0,0.7);
+    box-shadow: -3px 0 5px $translucent_navy;
+    z-index: 9;
+    @include max-600 {
+        display: none;
+    }
+    li#do-toc-toggle, li#do-toc-download > a {
+        display: inline-block;
+        width: 45px;
+        height: 45px;
+        padding: 5px;
+        cursor: pointer;
+        position: relative;
+        &::before {
+            content: '\f03a';
+            display: inline-block;
+            width: 100%;
+            height: 100%;
+            font-size: 1em;
+            @include font(icon);
+            color: $white;
+            line-height: 2em;
+            text-align: center;
+            border: 2px #fff solid;
+            border-radius: 30px;
+        }
+        > span {
+            display: none;
+            left: 60px !important;
+        }
+        &:hover, &.show {
+            > span {
+                display: block;
+            }
+        }
+    }
+    li#do-toc-download {
+        padding: 0;
+        > a::before {
+            content: '\f019';
+        }
+    }
+    ul {
+        margin: 0 0 35px 0;
+        padding: 0;
+        list-style: none;
+        li {
+            margin: 0;
+            padding: 10px;
+            a.do-toc-label {
+                position: relative;
+                width: 27px;
+                height: 27px;
+                display: block;
+                &::before {
+                    content: '';
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    background-color: var(--toc-color);
+                    border: 3px $navy solid;
+                    border-radius: 22px;
+                }
+                &:hover {
+                    &::before {
+                        border-color: $white;
+                    }
+                    span {
+                        display: block;
+                    }
+                }
+            }
+        }
+    }
+    a.do-toc-label > span, li#do-toc-toggle > span {
+        display: none;
+        width: 185px;
+        padding: 5px 10px;
+        position: absolute;
+        top: 50%;
+        left: 50px;
+        transform: translateY(-50%);
+        font-size: 0.85em;
+        @include font(bold);
+        color: $navy;
+        text-align: center;
+        background-color: $white;
+        border: 2px $navy solid;
+        border-radius: $small_border_radius;
+        &::before {
+            content: '\f0d9';
+            @include font(icon);
+            height: 1em;
+            font-size: 2.5em;
+            line-height: 1em;
+            color: $navy;
+            position: absolute;
+            top: 50%;
+            right: calc(100% - 4px);
+            transform: translateY(-50%);
+        }
+    }
+    &.open {
+        width: 250px;
+        overflow-y: auto;
+        span, li#do-toc-toggle > span {
+            display: inline-block !important; // override to prevent a ridiculous selector
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            color: $white;
+            text-align: left;
+            left: 30px !important;
+            line-height: 1.25em;
+            &::before {
+                display: none;
+            }
+        }
+        li#do-toc-toggle, li#do-toc-download > a {
+            > span {
+                left: 40px !important;
+            }
+        }
+        li#do-toc-toggle {
+            &::before {
+                content: '\f00d';
+                font-size: 1.5em;
+                line-height: 1.25em;
+            }
+        }
+        li#do-toc-download > a {
+            > span {
+                font-size: 1.25em;
+            }
+        }
+    }
+}
+
+body.admin-bar {
+    nav#do-table-of-contents {
+        margin-top: $admin_bar_height;
+    }
+}

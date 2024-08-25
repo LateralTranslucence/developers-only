@@ -1,0 +1,20 @@
+@import 'assets/styles/abstracts';
+
+div.client-details {
+    border-radius: $large_border_radius;
+    box-shadow: $block_shadow;
+    padding: 1.5em;
+    h2 {
+        display: none;
+    }
+    p {
+        font-size: 0.875em;
+        span.company-stat {
+            @include font(medium);
+            text-transform: uppercase;
+        }
+    }
+    span.solution {
+        display: block;
+    }
+}

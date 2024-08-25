@@ -1,0 +1,19 @@
+@import 'assets/styles/abstracts';
+
+main.single-do_customer_story {
+    ul#challenge-solution-results {
+        border-radius: $large_border_radius;
+        margin: 2.5em 0;
+        padding: 1.5em;
+        @include background_piece(true);
+        > li {
+            width: 100%;
+            border-radius: 0;
+        }
+        h2 {
+            @include font(medium);
+            font-size: 1.563em; // 25px;
+            margin-bottom: 0;
+        }
+    }
+}

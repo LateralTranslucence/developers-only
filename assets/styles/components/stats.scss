@@ -1,0 +1,128 @@
+@import 'assets/styles/abstracts';
+
+section.panel-type-stats {
+    header.panel-header, div.panel-copy-wrapper {
+        text-align: left;
+    }
+    div.panel-copy-wrapper {
+        margin-left: 0;
+        max-width: 550px;
+    }
+    &.stats-plain {
+        @include panel_border_radius;
+        header.panel-header, div.panel-copy-wrapper {
+            text-align: center;
+        }
+    }
+    &.panel, &.has-avatar {
+        background-position: calc(50% + 350px) 0;
+    }
+    ul.stats {
+        > li {
+            background-color: transparent;
+            div.block-content-wrapper {
+                padding: 1.5em;
+            }
+            .stat, span.before-text, span.after-text {
+                display: inline;
+                line-height: 1em;
+            }
+            h3 {
+                @include font(medium);
+                font-size: 0.875em;
+            }
+            @include max-320 {
+                font-size: 0.875em;
+            }
+        }
+        &.card {
+            > li {
+                color: $white;
+                &::before {
+                    background-color: $navy;
+                }
+                a {
+                    color: $teal;
+                }
+                span.do-image-wrapper {
+                    margin: 0 !important; // overrides more specific block style
+                }
+                .stat {
+                    @include font(light);
+                    font-size: 3em;
+                }
+                span.before-text, span.after-text {
+                    @include font(light);
+                    font-size: 2.25em;
+                }
+            }
+        }
+        //Plain
+        &.plain {
+            > li {
+                text-align: center;
+                span.do-image-wrapper {
+                    margin: 0 auto !important; // overrides important above
+                }
+                .stat, span.before-text, span.after-text {
+                    @include font(bold);
+                    font-size: 3em;
+                }
+                span.before-text, span.after-text {
+                    font-size: 2.25em;
+                }
+            }
+        }
+    }
+    // Colors
+    &.color-blue {
+        ul.stats.plain > li { 
+            .stat, span.before-text, span.after-text {
+                color: $white;
+            }
+            h3 {
+                color: $white;
+            }
+        }
+    }
+    &.color-navy {
+        ul.stats.plain > li { 
+            .stat, span.before-text, span.after-text {
+                color: $teal;
+            }
+            h3 {
+                color: $teal;
+            }
+        }
+    }
+    &.color-teal  {
+        ul.stats.plain > li { 
+            .stat, span.before-text, span.after-text {
+                color: $navy;
+            }
+            h3 {
+                color: $navy;
+            }
+        }
+    }
+    &.color-white  {
+        ul.stats.plain > li { 
+            .stat, span.before-text, span.after-text {
+                color: $blue;
+            }
+            h3 {
+                color: $navy;
+            }
+        }
+    }
+    &.color-yellow  {
+        ul.stats.plain > li { 
+            .stat, span.before-text, span.after-text {
+                color: $blue;
+            }
+            h3 {
+                color: $navy;
+            }
+        }
+    }
+}

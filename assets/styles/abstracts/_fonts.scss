@@ -1,0 +1,29 @@
+// Font mixin
+@mixin font($type, $important: false) {
+    @if $type == icon {
+        font-family: 'FontAwesomeSolid';
+    }
+    @if $type == brand {
+        font-family: 'FontAwesomeBrands';
+    }
+    @if $type == regular {
+        font-family: neue-haas-grotesk-text, sans-serif if($important, !important, null);
+        font-weight: 400;
+    }
+    @if $type == light {
+        font-family: neue-haas-grotesk-display, sans-serif if($important, !important, null);
+        font-weight: 400;
+    }
+    @if $type == roman {
+        font-family: neue-haas-grotesk-display, sans-serif if($important, !important, null);
+        font-weight: 500;
+    }
+    @if $type == medium {
+        font-family: neue-haas-grotesk-display, sans-serif if($important, !important, null);
+        font-weight: 600;
+    }
+    @if $type == bold {
+        font-family: neue-haas-grotesk-display, sans-serif if($important, !important, null);
+        font-weight: 700;
+    }
+}

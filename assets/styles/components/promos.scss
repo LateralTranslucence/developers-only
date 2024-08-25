@@ -1,0 +1,230 @@
+@import 'assets/styles/abstracts';
+
+section.panel-type-promos {
+    div.panel-inner-wrapper {
+        header {
+            display: none;
+        }
+        div.panel-copy-wrapper {
+            display: none;
+        }
+        ul.blocks {
+            display: grid;
+            li {
+                width: 100%;
+                padding: 0;
+                > a.block-link > span {
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    position: relative;
+                    span.do-image-wrapper, figure.do-image, figure.do-video {
+                        height: 100%;
+                    }
+                    // span.do-image-wrapper, figure.do-video {
+                    //     max-height: 350px;
+                    //     padding-left: 50%;
+                    // }
+                    figure.do-video, span.do-video-wrapper {
+                        border-radius: 0 $large_border_radius $large_border_radius 0;
+                    }
+                    h3 {
+                        font-size: 1.5em;
+                        color: $white;
+                        display: flex;
+                        justify-content: center;
+                        flex-direction: column;
+                        padding: 25px;
+                        margin: 0;
+                        background: $navy;
+                        position: absolute;
+                        bottom: 0;
+                        @include max-1024 {
+                            font-size: 1.25em;
+                        }
+                        @include max-900 {
+                            font-size: 1em;
+                        }
+                        @include max-400 {
+                            font-size: 0.85em;
+                        }
+                        &::after {
+                            display: none;
+                        }
+                    }
+                }
+            }
+            &.one {
+                grid-template-columns: [left] 100% [end];
+                li {
+                    grid-column: left / end;
+                    grid-row: one / end;
+                    width: 70%;
+                    margin-bottom: 0;
+                    figure.do-image.cinema_600 {
+                        padding-top: 56.25% !important;
+                    }
+                }
+            }
+            &.two {
+                column-gap: 20px;
+                li {
+                    &:nth-child(1) {
+                        grid-column: left / right;
+                        grid-row: one / end;
+                    }
+                    &:nth-child(2) {
+                        grid-column: right / end;
+                        grid-row: one / end;
+                    }
+                }
+            }
+            &.three {
+                grid-template-rows: [one] 1fr [two] 1fr [end];
+                column-gap: 20px;
+                row-gap: 20px;
+                li {
+                    &:nth-child(1) {
+                        grid-column: left / right;
+                        grid-row: one / end;
+                        > a.block-link > span {
+                            display: grid;
+                            grid-template-columns: [left] 100% [end];
+                            grid-template-rows: [one] 1fr [two] auto [end];
+                            column-gap: 0;
+                            grid-row-gap: 0;
+                            span.do-image-wrapper {
+                                grid-column: left / end;
+                                grid-row: one / two;
+                                border-radius: $large_border_radius $large_border_radius 0 0;
+                                figure.do-image {
+                                    padding-top: 65%;
+                                    border-radius: $large_border_radius $large_border_radius 0 0;
+                                }
+                            }
+                            h3 {
+                                grid-column: left / end;
+                                grid-row: two / end;
+                                width: 100%;
+                                min-height: 30%;
+                                border-radius: 0 0 $large_border_radius $large_border_radius;
+                                position: static;
+                            }
+                        }
+                    }
+                    &:nth-child(2) {
+                        grid-row: one / two;
+                    }
+                    &:nth-child(3) {
+                        grid-row: two / end;
+                    }
+                    &:nth-child(2), &:nth-child(3) {
+                        grid-column: right / end;
+                    }
+                }
+            }
+            &.one, &.two {
+                grid-template-rows: [one] 100% [end];
+            }
+            &.two, &.three {
+                grid-template-columns: [left] 50% [right] 50% [end];
+            }
+            &.one li, &.two li, &.three li:nth-child(2), &.three li:nth-child(3) {
+                span.do-image-wrapper{
+                    width: 52% !important; // override inline style
+                    border-radius: 0 $large_border_radius $large_border_radius 0;
+                    transform: translate(92.5%);
+                    figure.do-image {
+                        border-radius: 0 $large_border_radius $large_border_radius 0;
+                        padding-top: 80%;
+                    }
+                }
+                h3 {
+                    width: 50%;
+                    height: 100%;
+                    border-radius: $large_border_radius 0 0 $large_border_radius;
+                    transform: translate(-0.25%); 
+                }
+            }
+            @include max-900 {
+                &.one li {
+                    width: 100%;
+                    > a.block-link > span h3 {
+                        font-size: 1.25em;
+                    }
+                }
+                &.two, &.three {
+                    column-gap: 10px;
+                }
+                &.three {
+                    row-gap: 10px;
+                }
+            }
+            @include max-768 {
+                &.one li > a.block-link > span h3 {
+                    font-size: 1em;
+                }
+                &.two, &.three {
+                    grid-template-columns: [left] 100% [end];
+                    li:nth-child(1), li:nth-child(2), li:nth-child(3) { // weird selector to override above
+                        grid-column: left / end;
+                        > a.block-link > span {
+                            span.do-image-wrapper {
+                                width: 42% !important; // override inline style
+                                transform: translate(139%);
+                                figure.do-image {
+                                    padding-top: 65%;
+                                }
+                            }
+                            h3 {
+                                width: 60%;
+                            }
+                        }
+                    }
+                    li:nth-child(1) {
+                        grid-row: one / two;
+                    }
+                    li:nth-child(2) {
+                        grid-row: two / three;
+                    }
+                }
+                &.two {
+                    grid-template-rows: [one] 1fr [two] 1fr [end];
+                    row-gap: 10px;
+                }
+                &.three {
+                    grid-template-rows: [one] 1fr [two] 1fr [three] 1fr [end];
+                    li:nth-child(1) { // weird selector to override above
+                        > a.block-link > span {
+                             display: block;
+                            span.do-image-wrapper {
+                                right: 0;
+                                position: absolute;
+                                border-radius: 0 $large_border_radius $large_border_radius 0;
+                                transform: none;
+                                figure.do-image {
+                                    border-radius: 0 $large_border_radius $large_border_radius 0;
+                                }
+                            }
+                            h3 {
+                                height: 100%;
+                                left: 0;
+                                border-radius: $large_border_radius 0 0 $large_border_radius;
+                                position: absolute;
+                            }
+                        }
+                    }
+                    li:nth-child(3) {
+                        grid-column: left / end;
+                        grid-row: three / end;
+                    }
+                }
+            }
+            @include max-480 {
+                &.one li > a.block-link > span h3 {
+                    font-size: 0.75em; 
+                }
+            }
+        }
+    }
+}

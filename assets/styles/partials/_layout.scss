@@ -1,0 +1,95 @@
+// Layout
+.columns-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    .left-column, .right-column {
+        width: 50%;
+    }
+}
+.container {
+    @include container;
+}
+
+main#content {
+    min-height: calc(100vh - 100px); // - header height
+}
+
+// Columns
+article#content-wrapper {
+    position: relative;
+    &.one-column {
+        margin-bottom: 4em;
+        section#main-content {
+            width: 100%;
+            max-width: 900px;
+        }
+    }
+    &.two-column {
+        display: flex;
+        flex-direction: row;
+        > *:nth-child(1) {
+            width: 65%;
+        }
+        > *:nth-child(2) {
+            width: 35%;
+        }
+        // Right Rail
+        &.right-rail {
+            > *:nth-child(1) {
+                padding: 0;
+            }
+            > *:nth-child(2) {
+                padding: 0 0 0 5%;
+            }
+        }
+        // Left Rail
+        &.left-rail {
+            flex-direction: row-reverse;
+            > *:nth-child(1) {
+                padding: 0;
+            }
+            > *:nth-child(2) {
+                padding: 0 5% 0 0;
+            }
+        }
+        @include max-900 {
+            &.right-rail, &.left-rail {
+                flex-direction: column;
+                > *:nth-child(1) {
+                    width: 100%;
+                    padding-left: 0;
+                    padding-right: 0;
+                }
+                > *:nth-child(2) {
+                    width: 100%;
+                    border: none;
+                    padding: 25px;
+                    margin-top: 50px;
+                }
+            }
+        }
+    }
+}
+
+// Background colors
+.color-blue {
+    background-color: $blue;
+    color: $white;
+}
+.color-navy {
+    background-color: $navy;
+    color: $white;
+}
+.color-teal {
+    background-color: $teal;
+    color: $navy;
+}
+.color-white {
+    background-color: $white;
+    color: $navy;
+}
+.color-yellow {
+    background-color: $yellow;
+    color: $navy;
+}

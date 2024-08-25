@@ -1,0 +1,125 @@
+@import 'assets/styles/abstracts';
+
+aside#hero-promo {
+    grid-column: one / end;
+    grid-row: three / end;
+    margin-top: 1em;
+    min-height: 115px;
+    div.hero-promo-wrapper {
+        display: grid;
+        grid-template-columns: [left] 200px [right] 1fr [end];
+        grid-template-rows: [one] auto [two] 1fr [end];
+        column-gap: 1.25em;
+        justify-content: stretch;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        border-radius: $xlarge_border_radius;
+        background-color: $translucent_light_blue;
+        backdrop-filter: blur(7px);
+        div.text-wrapper {
+            grid-column: right / end;
+            grid-row: one / two;
+            align-self: center;
+            margin: 1em 1em 1em 0;
+            text-align: left;
+            h2 {
+                color: $white;
+                font-size: 1em;
+                margin-bottom: 0;
+                &.has-pretitle {
+                    &:before {
+                        color: $teal;
+                    }
+                }
+            }
+        }
+        span.do-image-wrapper {
+            grid-column: left / right;
+            grid-row: one / end;
+            border-radius: 0;
+            background-color: $teal;
+            height: 100%;
+            width: 100% !important;
+            figure.do-image {
+                height: 100%;
+                background-position: 50% 50%;
+                padding-top: 0 !important;
+                background-size: cover;
+            }
+            &.mask-overlay {
+                padding: 1.25em;
+                figure.do-image {
+                    background-color: $navy;
+                    background-image: none;
+                    mask-image: var(--background-image);
+                    mask-repeat: no-repeat;
+                    mask-position: 50% 50%;
+                    mask-size: contain;
+                    &.do-icon {
+                        mask-image: var(--icon-navy);
+                    }
+                }
+            }
+        }
+        div.date-countdown {
+            grid-column: right / end;
+            grid-row: two / end;
+            display: flex;
+            max-width: 600px;
+            margin: 0 1em 1em 0;
+            flex-direction: row;
+            justify-content: space-between;
+            span.number-wrapper {
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+                text-align: center;
+                span.number {
+                    color: $white;
+                    font-size: 1.875em;
+                    @include font(medium);
+                }
+                span.label {
+                    color: $white;
+                    font-size: 0.75em;
+                }
+            }
+        }
+        span.do-cta {
+            grid-column: right / end;
+            grid-row: two / end;
+            margin: 0 1em 1em 0;
+        }
+        @include max-480 {
+            grid-template-columns: [left] 100% [end];
+            grid-template-rows: [one] 200px [two] auto [three] 1fr [end];
+            grid-column-gap: 0;
+            grid-row-gap: 1em;
+            span.do-image-wrapper {
+                grid-column: left / end;
+                grid-row: one / two;
+                width: 100% !important;
+                &.mask-overlay {
+                    figure.do-image {
+                        mask-image: var(--mobile-background-image);
+                    }
+                }
+            }
+            div.text-wrapper {
+                margin: 0 1em 1em 1em;
+                grid-column: left / end;
+                grid-row: two / three;
+            }
+            div.date-countdown, span.do-cta {
+                grid-column: left / end;
+                grid-row: three / end;
+                margin: 0 1em 1em 1em;
+            }
+        }
+        @include max-400 {
+            grid-template-rows: [one] 150px [two] auto [three] 1fr [end];
+        }
+    }
+}

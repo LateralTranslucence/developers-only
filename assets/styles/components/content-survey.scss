@@ -1,0 +1,54 @@
+@import 'assets/styles/abstracts';
+
+#content-survey {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    h2 {
+        font-size: 1em;
+        color: $black;
+        margin: 0;
+        @include font(medium);
+    }
+    button {
+        font-size: 1em;
+        background: transparent;
+        border: none;
+        margin: 0 10px;
+        cursor: pointer;
+        @include font(medium);
+        &:hover {
+            opacity: $hover_opacity;
+        }
+        &::before {
+            margin-right: 0.25em;
+        }
+    }
+}
+section#content-survey {
+    font-size: 1.5em;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    div.panel-inner-wrapper {
+        padding: 0;
+        display: flex;
+        justify-content: center;
+    }
+    header.panel-header {
+        margin: 0 1em 0 0;
+    }
+    @include max-768 {
+        font-size: 1.25em;
+        padding: 15px;
+    }
+    @include max-600 {
+        font-size: 1.15em;
+    }
+    @include max-480 {
+        font-size: 1em;
+        div.panel-inner-wrapper {
+            display: block;
+            text-align: center;
+        }
+    }
+}

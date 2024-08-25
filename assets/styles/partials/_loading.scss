@@ -1,0 +1,30 @@
+// Loading
+.loading {
+    position: relative;
+    opacity: 0.5;
+    &::before {
+        content: '\f021' !important;
+        animation-name: spin;
+        animation-duration: 5000ms;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+        display: block !important;
+        width: 90px;
+        height: 90px;
+        @include font(icon);
+        font-size: 90px;
+        line-height: 1;
+        text-align: center;
+        color: $teal;
+        position: absolute !important;
+        top: 100px;
+        left: calc(50% - 45px);
+        z-index: 9999 !important;
+        background: transparent !important;
+        opacity: 1 !important;
+    }
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
