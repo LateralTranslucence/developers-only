@@ -1,5 +1,5 @@
-const { useEffect, useState } = wp.element;
 import React from 'react';
+const { useEffect, useState } = wp.element;
 import { useParams } from 'react-router-dom';
 import AOS from 'aos';
 import { DoBackToTop } from 'src/utils/display';
@@ -14,22 +14,19 @@ interface LayoutProps {
     postType?: string;
     slug?: string;
 }
-const Layout: React.FC<LayoutProps> = ( { iframe = false, postType = '', slug = '' } ) => {
-    const { postTypeParam, slugParam } = useParams();
-    const finalSlug: string = slug ? slug : ( slugParam ? slugParam : '' );
-    const finalPostType: string = postType ? postType : ( postTypeParam ? postTypeParam : '' );
+const Layout: React.FC<LayoutProps> = ( { iframe = false, postType: propPostType = '', slug: propSlug = '' } ) => {
+    const { postType: paramPostType, slug: paramSlug } = useParams();
+    const finalPostType: string = propPostType || paramPostType || '';
+    const finalSlug: string = propSlug || paramSlug || '';
+    const finalIframe: boolean = iframe || false;
     const [ mainElementClasses, setMainElementClasses ] = useState<string>( '' );
-    const finalIframe: boolean = iframe ? iframe : false;
     const layoutClasses = ( classes: Array<string> ) => {
         if ( finalIframe ) {
             classes.push( 'iframe' );
         }
-        const classesString: string = classes.join( ' ' );
-        setMainElementClasses( classesString );
+        setMainElementClasses( classes.join( ' ' ) );
     }
     
-    const queryString: string = window.location.search.replace( '?', '' );
-
     useEffect( () => {
         new DoBackToTop();
         AOS.init( {
@@ -49,16 +46,16 @@ const Layout: React.FC<LayoutProps> = ( { iframe = false, postType = '', slug = 
                         postType={ finalPostType } 
                         slug={ finalSlug } 
                         layoutClassesFunction={ layoutClasses }
-                        queryString={ queryString } />
+                        queryString={ window.location.search.replace( '?', '' ) } />
                 </main>
             : <>
-                <Header color={ finalSlug === 'home' ? 'dark' : 'light' } />
+                <Header />
                 <main id="content" className={ mainElementClasses }>
                     <TemplateLoader 
                         postType={ finalPostType } 
                         slug={ finalSlug } 
                         layoutClassesFunction={ layoutClasses }
-                        queryString={ queryString } />
+                        queryString={ window.location.search.replace( '?', '' ) } />
                 </main>
                 <Footer />
             </> }

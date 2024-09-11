@@ -1,7 +1,7 @@
 import React from 'react';
 import { doLength } from 'src/utils/helpers';
 import FieldError from 'src/components/forms/FieldError';
-import FormFieldProps from 'src/utils/types/FormFieldProps';
+import { FormFieldProps } from 'src/utils/types/FormFieldProps';
 
 const SelectList: React.FC<FormFieldProps> = ( { field, error = false, callback } ) => {
     const currentValue: string | Array<string> = doLength( field.current_value ) ? field.current_value : [];

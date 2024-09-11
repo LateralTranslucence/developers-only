@@ -1,12 +1,12 @@
 import React, { HTMLAttributes, AnchorHTMLAttributes, ReactNode, MouseEventHandler } from 'react';
 import { Link } from 'react-router-dom';
-import CTASettings from 'src/utils/types/CTASettings';
+import { CTASettings } from 'src/utils/types/CTASettings';
 import { doLength, doTrimChar, doURLType, doVideoEmbedURL } from 'src/utils/helpers';
 import { DoModal } from 'src/utils/display';
 import 'assets/styles/components/buttons.scss';
 import 'assets/styles/components/modals.scss';
-import TagType from 'src/utils/types/TagType';
-import CustomAttributes from 'src/utils/types/CustomAttributes';
+import { TagType } from 'src/utils/types/TagType';
+import { CustomAttributes } from 'src/utils/types/CustomAttributes';
 
 const CTA: React.FC<CTASettings> = ( { 
     url, 

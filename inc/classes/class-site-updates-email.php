@@ -2,8 +2,9 @@
 /**
  * Site Updates Email class
  */
+include locate_template( '/inc/classes/post-types/class-email-subscriber.php' );
 
- class DO_Site_Updates_Email {
+class DO_Site_Updates_Email {
  	private $message_options;
  	private $preferences_options;
 
@@ -38,51 +39,7 @@
 
 	// Create subscriber post type
 	public function post_type() {
-		$subscriber_args = [
-			'rewrite' => false,
-		];
-	    $subscribers = new DO_Custom_Post_Type( 'do_email_subscriber', $subscriber_args );
-	    $subscribers->settings( [
-			'display_name' => 'Site Updates Subscribers',
-            'post_title' => 'Email',
-            'show_in_menu' => 'edit.php?post_type=do_form',
-			'noindex' => TRUE,
-			'public' => FALSE,
-			'has_archive' => FALSE,
-        ] );
-	    $subscribers->meta_fields( [
-            //'Name' => 'text',
-            'Email' => 'text',
-            'Active' => 'binary',
-            'Frequency' => [
-				'type' => 'select',
-				'options' => [
-					'daily' => [
-						'label' => 'Daily',
-						'value' => 'daily',
-					],
-					'weekly' => [
-						'label' => 'Weekly',
-						'value' => 'weekly',
-					],
-					'monthly' => [
-						'label' => 'Monthly',
-						'value' => 'monthly',
-					],
-					'unsubscribe' => [
-						'label' => 'Unsubscribed',
-						'value' => 'unsubscribe',
-					],
-				],
-			],
-			'Subjects' => new DO_CPT_Form_Field( 'select_multiple', 'do_subject', 'post_title', 'post_name' ),
-			'Data' => 'read_only_serialized',
-			'Date Subscribed' => 'date_time',
-			'Date Last Updated' => 'date_time',
-			'Date Last Email' => 'date_time',
-			'Date Unsubscribed' => 'date_time',
-        ] );
-	    $subscribers->admin_fields( [ 'Title', 'Frequency', 'Date Last Email', 'Active' ] );
+		$email_subscriber = DO_Email_Subscriber::get_instance();
 	}
 	// Create email options page
 	public function email_options() {

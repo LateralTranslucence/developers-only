@@ -951,7 +951,7 @@ class DO_Custom_Post_Type {
                                 $class = 'binary-false';
                                 break;
                         }
-                        echo '<span class="do-binary"><a href="javascript:void(0);" class="do-binary-toggle ' . $class . '"><img src="' . get_template_directory_uri() . '/admin/images/' . $image . '" border="0"></a></span>';
+                        echo '<span class="do-binary"><a href="javascript:void(0);" class="do-binary-toggle ' . $class . '"><img src="' . get_template_directory_uri() . '/assets/images/admin/' . $image . '" border="0"></a></span>';
                     }
                     // Everything else
                     else if ( ( is_array( $meta_value ) && count( $meta_value ) ) || ( is_string( $meta_value ) && strlen( $meta_value ) ) ) {
@@ -1523,7 +1523,7 @@ class DO_Custom_Post_Type {
             }
             // Add fields
             $data->data = do_api_custom_data( $post, $this->post_type_details );
-            $data->data = do_object_to_array( $data->data );
+            $data->data = do_array_from_object( $data->data );
             
             return $data;
         }, 10, 3 );

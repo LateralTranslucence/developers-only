@@ -1,9 +1,13 @@
 <?php
-// Blogs
-class DO_Blog {
-    public function __construct() {
-        $blog = new DO_Custom_Post_Type( 'do_blog' );
-        $blog->settings( [
+class DO_Blog extends DO_Custom_Post_Type {
+    protected function post_type(): string {
+        return 'do_blog';
+    }
+    protected function post_type_args(): array {
+        return [];
+    }
+    protected function settings(): array {
+        return [
             'post_title' => 'Title',
             'post_name' => 'Title',
             'post_thumbnail' => 'Image',
@@ -36,28 +40,33 @@ class DO_Blog {
                 'Resources' => '/resources/',
                 'Blog' => '/blog/',
             ],
-        ] );
-        $blog->meta_fields( [
-            'Title' => 'text',
-            'Image' => 'media',
-            'Image Credit' => 'varchar',
-            'SEO Image' => 'media',
-            'Description' => 'html',
-            'Content' => 'wp_editor',
-            'Author' => 'varchar',
-            'Hidden' => 'binary',
-        ], 'Blog Post' );
-        if ( class_exists( 'DO_Subject' ) && class_exists( 'DO_Region' ) ) {
-            $blog->meta_fields( [
-                'Subject' => new DO_CPT_Form_Field( 'checkbox', 'do_subject', 'post_title', 'post_name' ),
-                'Region' => new DO_CPT_Form_Field( 'checkbox', 'do_region', 'post_title', 'post_name' ),
-            ], 'Taxonomy' );
-        }
-        $blog->meta_fields( [
-            'Custom CTA Hide Panel' => 'binary',
-            'Custom CTA' => 'do_cta_callback',
-        ], 'Custom CTA' );
-        $blog->admin_fields( [ 'Title', 'Subject', 'Hidden', 'post_date' ] );
+        ];
+    }
+    // [ 'BoxName' => [ ... ] ]
+    protected function meta_fields(): array {
+        return [
+            'Blog Post' => [
+                'Title' => 'text',
+                'Image' => 'media',
+                'Image Credit' => 'varchar',
+                'SEO Image' => 'media',
+                'Description' => 'html',
+                'Content' => 'wp_editor',
+                'Author' => 'varchar',
+                'Hidden' => 'binary',
+            ],
+            // 'Taxonomy' => [
+            //     'Subject' => new DO_CPT_Form_Field( 'checkbox', 'do_subject', 'post_title', 'post_name' ),
+            //     'Region' => new DO_CPT_Form_Field( 'checkbox', 'do_region', 'post_title', 'post_name' ),
+            // ],
+            'Custom CTA' => [
+                'Custom CTA Hide Panel' => 'binary',
+                'Custom CTA' => 'do_cta_callback',
+            ],
+        ];
+    }
+    protected function admin_fields(): array {
+        return [ 'Title', 'Subject', 'Hidden', 'post_date' ];
     }
 }
-$do_blog = new DO_Blog();
+$DO_Blog = DO_Blog::get_instance();

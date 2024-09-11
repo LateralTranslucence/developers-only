@@ -1,8 +1,8 @@
-import BackgroundSettings from 'src/utils/types/BackgroundSettings';
-import CustomAttributes from 'src/utils/types/CustomAttributes';
+import { BackgroundProps } from 'src/utils/types/BackgroundProps';
+import { CustomAttributes } from 'src/utils/types/CustomAttributes';
 import { Media, MediaItem, MediaType } from 'src/utils/types/Media';
 
-const doBackgroundImage = ( settings: BackgroundSettings = {}, classes: Array<string> = [] ): CustomAttributes => {
+const doBackgroundImage = ( settings: BackgroundProps = {}, classes: Array<string> = [] ): CustomAttributes => {
     const allMedia: Media | undefined = settings.media;
     const backgroundMedia: MediaItem | undefined = allMedia ? allMedia.background as MediaItem : undefined;
     const backgroundOverlay: boolean = settings.overlay as boolean;

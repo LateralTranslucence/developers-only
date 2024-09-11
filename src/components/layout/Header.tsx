@@ -3,7 +3,7 @@
  *
  */
 import React from 'react';
-import CTASettings from 'src/utils/types/CTASettings';
+import { CTASettings } from 'src/utils/types/CTASettings';
 import CTA from 'src/components/shared/CTA';
 import HeaderPromo from 'src/components/layout/HeaderPromo';
 import Logo from 'src/components/shared/Logo';
@@ -12,10 +12,7 @@ import SearchForm from 'src/components/layout/SearchForm';
 import 'assets/styles/components/sites-menu.scss';
 import 'assets/styles/components/header.scss';
 
-interface HeaderProps {
-    color: string;
-}
-const Header: React.FC<HeaderProps> = ( { color = 'light' } ) => {
+const Header: React.FC = () => {
     // CTA settings
     const ctaSettings: CTASettings = {
         url: 'contact',
@@ -35,7 +32,7 @@ const Header: React.FC<HeaderProps> = ( { color = 'light' } ) => {
                     <Menu name="social-nav" />
                 </div>
             </aside>
-            <header id="do-header" className={ color }>
+            <header id="do-header">
                 <nav id="do-navbar-main" className="container">
                     <Logo id="do-navbar-logo" />
                     <div id="do-navbar-menu">

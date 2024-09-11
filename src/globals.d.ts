@@ -8,6 +8,7 @@ declare global {
         wp: {
             element: typeof React;
         };
+        hbspt: Record<string, any>;
     }
     const wp: {
         element: typeof React;

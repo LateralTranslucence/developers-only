@@ -1,12 +1,12 @@
 import React from 'react';
 import { doLength } from 'src/utils/helpers';
-import RenderDOForm from 'src/components/shared/RenderDOForm';
+import RenderForm from 'src/components/shared/RenderForm';
 import RenderHubspotForm from 'src/components/shared/RenderHubspotForm';
 import 'assets/styles/components/forms.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
+import { PanelProps } from 'src/utils/types/PanelProps';
 
-const Form: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Form: React.FC<PanelProps> = ( { 
+    post,
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -19,15 +19,15 @@ const Form: React.FC<PanelLoaderProps> = ( {
     };
     const queryString = window.location.search;
     const formData = new URLSearchParams( queryString );
-    const formID = data.fields[ formFieldKeys.form ];
-    const hubspotFormOptionsString = doLength( data.fields[ formFieldKeys.hubspotForm ] ) ? data.fields[ formFieldKeys.hubspotForm ] : {};
+    const formID = post.fields[ formFieldKeys.form ];
+    const hubspotFormOptionsString = doLength( post.fields[ formFieldKeys.hubspotForm ] ) ? post.fields[ formFieldKeys.hubspotForm ] : {};
     return (
         <div className="panel-form-wrapper">
             { doLength( hubspotFormOptionsString ) ? 
                 <RenderHubspotForm options={ hubspotFormOptionsString } formID={ pageID + '-form' } />
             : null }
             { doLength( formID ) ?
-                <RenderDOForm formID={ formID } formData={ formData } /> 
+                <RenderForm formID={ formID } panelID={ panelID } /> 
             : null }
         </div>
     );

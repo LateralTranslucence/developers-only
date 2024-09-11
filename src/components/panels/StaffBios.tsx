@@ -3,12 +3,12 @@ import { doConvertNumberToWords } from 'src/utils/helpers';
 import PartialTemplateLoader from 'src/loaders/PartialTemplateLoader';
 import 'assets/styles/components/blocks.scss';
 import 'assets/styles/components/staff-bios.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import MetaFieldKeyMap from 'src/utils/types/MetaFieldKeyMap';
-import Post from 'src/utils/types/Post';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { MetaFieldKeyMap } from 'src/utils/types/MetaFieldKeyMap';
+import { Post } from 'src/utils/types/Post';
 
-const StaffBios: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const StaffBios: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -18,7 +18,7 @@ const StaffBios: React.FC<PanelLoaderProps> = ( {
     const biosFieldKeys: MetaFieldKeyMap = {
         bios: panelPrefix + '_staff' + panelSuffix,
     }
-    const bios: Array<Post> = data.fields[ biosFieldKeys.bios ];
+    const bios: Array<Post> = post.fields[ biosFieldKeys.bios ];
     const panelPerRow: number = 3;
 
     if ( bios ) {

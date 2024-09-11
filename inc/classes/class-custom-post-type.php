@@ -2,6 +2,7 @@
 /* Class for creating custom post types */
 
 abstract class DO_Custom_Post_Type {
+    private static array $instances = [];
     private $admin_fields,
             $aftersave_callback,
             $all_meta_fields,
@@ -58,15 +59,16 @@ abstract class DO_Custom_Post_Type {
      * Class constructor
      *
      * */
-    public function __construct() {
+    private function __construct() {
         //echo "__construct \n";
-        if ( ! strlen( $post_type ) ) {
-            trigger_error( 'Missing argument: $post_type - DO_Custom_Post_Type( $post_type, $args = [] )' );
+        $this->post_type = strtolower( str_replace( ' ', '_', $this->post_type() ) );
+        
+        if ( ! strlen( $this->post_type ) ) {
+            trigger_error( 'Post Type is undefined.' );
             return;
         }
 
         // Set variables
-        $this->post_type = strtolower( str_replace( ' ', '_', $this->post_type() ) );
         $this->post_type_args = $this->post_type_args();
         $post_type_array = explode( '_', $this->post_type );
         
@@ -101,8 +103,10 @@ abstract class DO_Custom_Post_Type {
 
         // Set meta fields
         $meta_fields_array = $this->meta_fields();
-        foreach ( $meta_fields_array as $box_name => $meta_fields ) {
-            $this->set_meta_fields( $meta_fields, ( is_int( $box_name ) ? '' : $box_name ) );
+        if ( $meta_fields_array ) {
+            foreach ( $meta_fields_array as $box_name => $meta_fields ) {
+                $this->set_meta_fields( $meta_fields, ( is_int( $box_name ) ? '' : $box_name ) );
+            }
         }
 
         // Set admin fields
@@ -152,6 +156,22 @@ abstract class DO_Custom_Post_Type {
 
         // Admin Scripts
         add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
+
+        // Execute the child class construct() method, if it exists
+        if ( method_exists( $this, 'construct' ) ) {
+            $this->construct();
+        }
+    }
+
+    public static function get_instance(): DO_Custom_Post_Type {
+        $class = get_called_class();
+        
+        // Check if instance already exists
+        if ( ! isset( self::$instances[ $class ] ) ) {
+            self::$instances[ $class ] = new static();
+        }
+        
+        return self::$instances[ $class ];
     }
 
     /*
@@ -244,6 +264,7 @@ abstract class DO_Custom_Post_Type {
             // Gated
             case 'gated':
                 if ( $setting_value ) {
+                    do_var_dump($this);exit;
                     new DO_Gated( $this );
                 }
                 break;
@@ -432,13 +453,13 @@ abstract class DO_Custom_Post_Type {
 
         $this->post_type_details = new stdClass();
         
-        $this->post_type_details->breadcrumbs = $breadcrumbs;
+        $this->post_type_details->breadcrumbs = $this->breadcrumbs;
         $this->post_type_details->is_landing_page = $this->is_landing_page;
         $this->post_type_details->meta_prefix = $this->meta_prefix;
         $this->post_type_details->meta_fields = [];
         $this->post_type_details->post_content = $this->post_content;
         $this->post_type_details->post_excerpt = $this->post_excerpt;
-        $this->post_type_details->post_file = $this->bonus_fields['post_file'];
+        $this->post_type_details->post_file = isset( $this->bonus_fields['post_file'] ) ? $this->bonus_fields['post_file'] : null;
         $this->post_type_details->post_name = $this->post_type_post_name;
         $this->post_type_details->post_thumbnail = $this->post_thumbnail;
         $this->post_type_details->post_title = $this->post_title_array;
@@ -528,7 +549,6 @@ abstract class DO_Custom_Post_Type {
             'rest_base' => $this->post_type_rest_slug,
             'show_in_admin_bar' => $this->show_in_admin_bar,
         ];
-
         // Set visibility based on $this->current_user_can
         if ( $this->current_user_can ) {
             $default_args['show_in_nav_menus'] = TRUE;
@@ -553,7 +573,8 @@ abstract class DO_Custom_Post_Type {
             // Given args
             $this->post_type_args
         );
-
+        do_var_dump($this->post_type);
+        do_var_dump($args);
         // Register the post type
         register_post_type( $this->post_type, $args );
 
@@ -871,7 +892,7 @@ abstract class DO_Custom_Post_Type {
     // Admin Display
     public function display_admin_fields( $admin_fields = [] ) {
         //echo "admin_fields \n";
-        if ( ! is_admin() || ! count( $admin_fields ) ) {
+        if ( ! is_admin() || ! $admin_fields || ! count( $admin_fields ) ) {
             return;
         }
         // Vars
@@ -994,7 +1015,7 @@ abstract class DO_Custom_Post_Type {
                                 $class = 'binary-false';
                                 break;
                         }
-                        echo '<span class="do-binary"><a href="javascript:void(0);" class="do-binary-toggle ' . $class . '"><img src="' . get_template_directory_uri() . '/admin/images/' . $image . '" border="0"></a></span>';
+                        echo '<span class="do-binary"><a href="javascript:void(0);" class="do-binary-toggle ' . $class . '"><img src="' . get_template_directory_uri() . '/assets/images/admin/' . $image . '" border="0"></a></span>';
                     }
                     // Everything else
                     else if ( ( is_array( $meta_value ) && count( $meta_value ) ) || ( is_string( $meta_value ) && strlen( $meta_value ) ) ) {
@@ -1569,7 +1590,7 @@ abstract class DO_Custom_Post_Type {
             }
             // Add fields
             $data->data = do_api_custom_data( $post, $this->post_type_details );
-            $data->data = do_object_to_array( $data->data );
+            $data->data = do_array_from_object( $data->data );
             
             return $data;
         }, 10, 3 );

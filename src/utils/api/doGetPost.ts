@@ -16,7 +16,7 @@ const doGetPost: ( postType: string, slug: string, queryString?: string ) => Pro
             totalPages: response.headers.get( 'x-wp-totalpages' ),
             totalPosts: response.headers.get( 'x-wp-total' ),
             allHeaders: response.headers,
-            json,
+            json: Array.isArray( json ) ? json[0] : json,
         }
 
         return result;

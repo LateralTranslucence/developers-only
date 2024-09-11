@@ -5,11 +5,11 @@ import CTA from 'src/components/shared/CTA';
 import Heading from 'src/components/shared/Heading';
 import MediaLoader from 'src/components/shared/MediaLoader';
 import 'assets/styles/components/blocks.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import CTASettings from 'src/utils/types/CTASettings';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { CTASettings } from 'src/utils/types/CTASettings';
 
-const Blocks:React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Blocks:React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -24,16 +24,16 @@ const Blocks:React.FC<PanelLoaderProps> = ( {
         cta: panelPrefix + '_cta' + panelSuffix,
     };
     // Block object
-    const blocks: Record<string, any> =  data.fields[ blocksFieldKeys.blocks ] ? data.fields[ blocksFieldKeys.blocks ] : {};
+    const blocks: Record<string, any> = post.fields[ blocksFieldKeys.blocks ] ? post.fields[ blocksFieldKeys.blocks ] : {};
 
     // Block Style
-    const blockStyle: string = data.fields[ blocksFieldKeys.blockStyle ] ? data.fields[ blocksFieldKeys.blockStyle ] : 'card';
+    const blockStyle: string = post.fields[ blocksFieldKeys.blockStyle ] ? post.fields[ blocksFieldKeys.blockStyle ] : 'card';
 
     // CTAs
-    const cta: Array<CTASettings> = data.fields[ blocksFieldKeys.cta ] ? data.fields[ blocksFieldKeys.cta ] : [];
+    const cta: Array<CTASettings> = post.fields[ blocksFieldKeys.cta ] ? post.fields[ blocksFieldKeys.cta ] : [];
 
     // Number of posts per row, or initially visible if slider (defaults to 3)
-    const panelPerRow: number = data.fields[ blocksFieldKeys.perRow ] && ! isNaN( data.fields[ blocksFieldKeys.perRow ] ) ? Number( data.fields[ blocksFieldKeys.perRow ] ) : 3;
+    const panelPerRow: number = post.fields[ blocksFieldKeys.perRow ] && ! isNaN( post.fields[ blocksFieldKeys.perRow ] ) ? Number( post.fields[ blocksFieldKeys.perRow ] ) : 3;
 
     const BlockContent: React.FC<Record<string, any>> = ( { block } ) => {
         return (

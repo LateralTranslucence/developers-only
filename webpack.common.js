@@ -10,7 +10,7 @@ const newRules = [
         exclude: /node_modules/,
     },
     {
-        test: /\/assets\/scss\/\.(s[ac]|c)ss$/i,
+        test: /\/assets\/styles\/\.(s[ac]|c)ss$/i,
         use: [
             MiniCssExtractPlugin.loader,
             'css-loader',
@@ -27,9 +27,9 @@ module.exports = {
     },
     entry: { 
         main: './src/index.tsx', 
-        styles: './assets/scss/developers-only.scss', 
-        admin: './assets/scss/do-admin.scss',
-        wplogin: './assets/scss/do-login.scss',
+        styles: './assets/styles/developers-only.scss', 
+        admin: './assets/styles/do-admin.scss',
+        wplogin: './assets/styles/do-login.scss',
     },
     externals: {
         'react': 'React',
@@ -49,9 +49,9 @@ module.exports = {
         // Clean the output directory before emit.
         clean: true, 
         // `filename` provides a template for naming your bundles (remember to use `[name]`)
-        filename: '[name].bundle.ts?v=' + new Date().getTime(),
+        filename: '[name].bundle.js?v=' + new Date().getTime(),
         // `chunkFilename` provides a template for naming code-split bundles (optional)
-        chunkFilename: '[name].bundle.ts?v=' + new Date().getTime(),
+        chunkFilename: '[name].bundle.js?v=' + new Date().getTime(),
         // `path` is the folder where Webpack will place your bundles
         path: path.resolve( __dirname, './build' ),
     },
@@ -62,6 +62,13 @@ module.exports = {
             // `...`,
             new CssMinimizerPlugin(),
         ],
+    },
+    resolve: {
+        alias: {
+          src: path.resolve(__dirname, 'src'),
+          assets: path.resolve(__dirname, 'assets'),
+        },
+        extensions: ['.js', '.jsx', '.ts', '.tsx', '.scss'], // Add other relevant file extensions here
     },
 };
 

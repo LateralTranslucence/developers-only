@@ -19,7 +19,6 @@ class DO_Gated {
     }
 
     public function post_type_modifications() {
-        global $do_landing_page;
         $this->cpt_object->settings( [
             'dynamic_interface' => [
                 'settings' => [
@@ -29,7 +28,7 @@ class DO_Gated {
                     'dynamic_meta_box_title_field' => 'Thanks Panel Title',
                 ],
                 'field_configuration' => [
-                    'Thanks Panel Type' => $do_landing_page->panel_fields( FALSE, 'Thanks' ),
+                    'Thanks Panel Type' => DO_Landing_Page::panel_fields( FALSE, 'Thanks' ),
                 ],
             ],
             'notes' => [
@@ -48,7 +47,7 @@ class DO_Gated {
             'Thank You Page Title' => 'text',
             'Thank You Page Copy' => 'wp_editor',
         ], 'Thank You Page' );
-        $this->cpt_object->meta_fields( $do_landing_page->panel( FALSE, 'Thanks' ), 'Thank You Page Custom Panel' );
+        $this->cpt_object->meta_fields( DO_Landing_Page::panel( FALSE, 'Thanks' ), 'Thank You Page Custom Panel' );
     }
 
     public function thank_you_rewrite() {

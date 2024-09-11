@@ -3,13 +3,14 @@ import { doLength } from 'src/utils/helpers';
 import MediaLoader from 'src/components/shared/MediaLoader';
 import Gated from 'src/components/shared/Gated';
 import 'assets/styles/components/report.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import MetaFieldKeyMap from 'src/utils/types/MetaFieldKeyMap';
-import Post from 'src/utils/types/Post';
-import Media from 'src/utils/types/Media';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { MetaFieldKeyMap } from 'src/utils/types/MetaFieldKeyMap';
+import { Post } from 'src/utils/types/Post';
+import { Media } from 'src/utils/types/Media';
+import { GatedProps } from 'src/utils/types/GatedProps';
 
-const Report: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Report: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -24,18 +25,21 @@ const Report: React.FC<PanelLoaderProps> = ( {
     };
 
     // The Report
-    const report: Post = data.fields[ reportFieldKeys.post ][0] ? data.fields[ reportFieldKeys.post ][0] : {};
+    const report: Post = post.fields[ reportFieldKeys.post ][0] ? post.fields[ reportFieldKeys.post ][0] : {};
 
     if ( report ) {
         // Media
-        const customMedia: Media = data.fields[ reportFieldKeys.customMedia ] ? data.fields[ reportFieldKeys.customMedia ] : {};
+        const customMedia: Media = post.fields[ reportFieldKeys.customMedia ] ? post.fields[ reportFieldKeys.customMedia ] : {};
         const media: Media = doLength( customMedia ) ? customMedia : report.post_thumbnail;
 
         // Gated props
-        const gated: Record<string, any> = {
+        const gated: GatedProps = {
             post: report,
             pageID: pageID,
             panelID: panelID,
+            panelNumber: panelNumber,
+            panelPrefix: panelPrefix,
+            panelSuffix: panelSuffix,
         }
         
         return (

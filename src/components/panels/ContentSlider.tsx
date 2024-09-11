@@ -4,10 +4,10 @@ import CTA from 'src/components/shared/CTA';
 import Image from 'src/components/shared/Image';
 import SliderNav from 'src/components/shared/SliderNav';
 import 'assets/styles/components/content-slider.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
+import { PanelProps } from 'src/utils/types/PanelProps';
 
-const ContentSlider:React.FC<PanelLoaderProps> = ( { 
-    data, 
+const ContentSlider:React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -17,7 +17,7 @@ const ContentSlider:React.FC<PanelLoaderProps> = ( {
     const contentSliderFieldKeys: Record<string, any> = {
         'content_slider': panelPrefix + '_content_slider' + panelSuffix,
     };
-    const contentSliderItems: Array<Record<string, any>> = data.fields[ contentSliderFieldKeys.content_slider ] ? data.fields[ contentSliderFieldKeys.content_slider ] : [];
+    const contentSliderItems: Array<Record<string, any>> = post.fields[ contentSliderFieldKeys.content_slider ] ? post.fields[ contentSliderFieldKeys.content_slider ] : [];
 
     return (
         <div className="panel-slider-wrapper" uk-slider="center: true">

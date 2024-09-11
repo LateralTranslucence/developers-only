@@ -9,5 +9,4 @@ export { default as DoMobileMenu } from 'src/utils/display/DoMobileMenu';
 export { default as DoModal } from 'src/utils/display/DoModal';
 export { default as DoSearch } from 'src/utils/display/DoSearch';
 export { default as DoSelectList } from 'src/utils/display/DoSelectList';
-export { default as DoTableOfContents } from 'src/utils/display/DoTableOfContents';
 export { default as DoVideosInTabs } from 'src/utils/display/DoVideosInTabs';

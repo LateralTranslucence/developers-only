@@ -1,7 +1,7 @@
 import React from 'react';
 import { Suspense, lazy } from 'react';
 import { ComponentLoaderMap } from 'src/utils/types/ComponentLoaderMap';
-import { PanelLoaderProps } from 'src/utils/types/PanelLoaderProps';
+import { PanelProps } from 'src/utils/types/PanelProps';
 const Accordion = lazy( () => import( 'src/components/panels/Accordion' ) );
 const Archive = lazy( () => import( 'src/components/panels/Archive' ) );
 const Blocks = lazy( () => import( 'src/components/panels/Blocks' ) );
@@ -63,7 +63,7 @@ const components: ComponentLoaderMap = {
     'timeline': Timeline,
     'videos': Videos,
 }
-const PanelLoader: React.FC<PanelLoaderProps> = ( props ) => {
+const PanelLoader: React.FC<PanelProps> = ( props ) => {
     const ComponentName: React.FC<any> | null = props.name ? components[ props.name ] : null;
 
     if ( ComponentName ) {

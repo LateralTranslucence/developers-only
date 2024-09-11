@@ -1,15 +1,18 @@
 import React from 'react';
 const { useEffect, useState } = wp.element;
 import { doConvertNumberToWords, doLength } from 'src/utils/helpers';
-import { getArchivePosts } from 'src/utils/api';
+import { doGetArchivePosts } from 'src/utils/api';
 import PartialTemplateLoader from 'src/loaders/PartialTemplateLoader';
 import SliderNav from 'src/components/shared/SliderNav';
 import 'assets/styles/components/posts.scss';
 import 'assets/styles/components/blocks.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { Post } from 'src/utils/types/Post';
+import { APIResult } from 'src/utils/types/APIResult';
+import { SearchQueryArgs } from 'src/utils/types/SearchQueryArgs';
 
-const Archive:React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Archive:React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -28,33 +31,33 @@ const Archive:React.FC<PanelLoaderProps> = ( {
         modal: panelPrefix + '_modal' + panelSuffix,
     };
     // Post type posts
-    const panelPostType: string = data.fields[ archiveFieldKeys.postType ] ? data.fields[ archiveFieldKeys.postType ] : 'any';
-    const panelPostSubject: Array<string> = data.fields[ archiveFieldKeys.subject ];
-    const panelPostRegion: Array<string> = data.fields[ archiveFieldKeys.region ];
-    const panelPostsViewType: string = data.fields[ archiveFieldKeys.viewType ] ? data.fields[ archiveFieldKeys.viewType ] : 'block';
-    const panelPostsModal: boolean = Boolean( data.fields[ archiveFieldKeys.modal ] );
-    const panelPostsOrderbys: string = data.fields[ archiveFieldKeys.postOrder ];
-    const panelPerRow: number = data.fields[ archiveFieldKeys.perRow ] && typeof data.fields[ archiveFieldKeys.perRow ] === 'number' ? Number( data.fields[ archiveFieldKeys.perRow ] ) : 3;
-    const panelPostsMax: number = data.fields[ archiveFieldKeys.maxPosts ] ? data.fields[ archiveFieldKeys.maxPosts ] : panelPerRow * 3;
-    const panelPostArgs: Record<string, any> = {
+    const panelPostType: string = post.fields[ archiveFieldKeys.postType ] ? post.fields[ archiveFieldKeys.postType ] : 'any';
+    // const panelPostSubject: Array<string> = post.fields[ archiveFieldKeys.subject ];
+    // const panelPostRegion: Array<string> = post.fields[ archiveFieldKeys.region ];
+    const panelPostsViewType: string = post.fields[ archiveFieldKeys.viewType ] ? post.fields[ archiveFieldKeys.viewType ] : 'block';
+    const panelPostsModal: boolean = Boolean( post.fields[ archiveFieldKeys.modal ] );
+    const panelPostsOrderbys: string = post.fields[ archiveFieldKeys.postOrder ];
+    const panelPerRow: number = post.fields[ archiveFieldKeys.perRow ] && typeof post.fields[ archiveFieldKeys.perRow ] === 'number' ? Number( post.fields[ archiveFieldKeys.perRow ] ) : 3;
+    const panelPostsMax: number = post.fields[ archiveFieldKeys.maxPosts ] ? post.fields[ archiveFieldKeys.maxPosts ] : panelPerRow * 3;
+    const panelPostArgs: SearchQueryArgs = {
         post_type: panelPostType,
         posts_per_page: panelPostsMax,
-        orderby: panelPostsOrderbys,
+        orderby: panelPostsOrderbys, 
     };
-    // Subject Filter
-    if ( panelPostSubject ) {
-        panelPostArgs.subject = panelPostSubject;
-    }
-    // Region Filter
-    if ( panelPostRegion ) {
-        panelPostArgs.region = panelPostRegion;
-    }
+    // // Subject Filter
+    // if ( panelPostSubject ) {
+    //     panelPostArgs.subject = panelPostSubject;
+    // }
+    // // Region Filter
+    // if ( panelPostRegion ) {
+    //     panelPostArgs.region = panelPostRegion;
+    // }
     // Get the posts
-    const [ posts, setPosts ] = useState<Object>( [] );   
+    const [ posts, setPosts ] = useState<Array<Post>>( [] );   
     useEffect( () => {
         async function fetchData() {
-            await getArchivePosts( panelPostArgs ).then( ( data: any ) => {
-                setPosts( data.json );
+            await doGetArchivePosts( panelPostArgs ).then( ( data: APIResult ) => {
+                setPosts( data.json as Array<Post> );
             } );
         }
         fetchData();
@@ -62,13 +65,13 @@ const Archive:React.FC<PanelLoaderProps> = ( {
 
     
     // Slider
-    const panelSlider: boolean = Boolean( data.fields[ archiveFieldKeys.slider ] );
+    const panelSlider: boolean = Boolean( post.fields[ archiveFieldKeys.slider ] );
 
     // Post list
-    const PostList: React.FC<Record<string, any>> = ( { posts } )  => {
+    const PostList: React.FC<{ posts: Array<Post> }> = ( { posts } )  => {
         return (
             <ul className={ 'blocks post ' + ( panelSlider ? 'uk-slider-items ' : '' ) + doConvertNumberToWords( panelPerRow ) + ( panelPostsViewType == 'block' ? '' :  ' ' + panelPostsViewType + '-block' ) + ( panelPostsModal ? ' do-modals' : '' ) }>
-                { posts.map( ( post: Record<string, any>, index: number ) => {
+                { posts.map( ( post: Post, index: number ) => {
                     return <PartialTemplateLoader key={ index } index={ index } type={ panelPostsViewType } post={ post } perRow={ panelPerRow } panelSlider = { panelSlider } />
                 } ) }
             </ul>

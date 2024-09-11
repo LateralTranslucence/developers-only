@@ -1,10 +1,11 @@
 import { WPAPIEndpoint } from 'src/globalVariables';
 import { Post } from 'src/utils/types/Post';
 import { APIResult } from 'src/utils/types/APIResult';
+import { SearchQueryArgs } from '../types/SearchQueryArgs';
 
-const doGetArchivePosts: ( args: Record<string, string> ) => Promise<APIResult> = async ( args ): Promise<APIResult> => {
+const doGetArchivePosts: ( args: SearchQueryArgs ) => Promise<APIResult> = async ( args ): Promise<APIResult> => {
     try {
-        const queryString: string = new URLSearchParams( args ).toString();
+        const queryString: string = new URLSearchParams( args as Record<string, string> ).toString();
         const archiveAllEndpoint: string = `${WPAPIEndpoint}/archive/?${queryString}`;
         
         if ( doEnv !== 'prod' ) {

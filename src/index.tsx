@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Layout from './components/templates/Layout';
+import Layout from 'src/components/templates/Layout';
 
-const rootElement = document.getElementById('root');
+const rootElement = document.getElementById( 'do-root' );
 
 if ( rootElement ) {
     const router = createBrowserRouter( [

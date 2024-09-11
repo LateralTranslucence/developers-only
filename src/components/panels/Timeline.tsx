@@ -4,11 +4,11 @@ import Heading from 'src/components/shared/Heading';
 import SliderNav from 'src/components/shared/SliderNav';
 import 'assets/styles/components/blocks.scss';
 import 'assets/styles/components/timeline.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import MetaFieldKeyMap from 'src/utils/types/MetaFieldKeyMap';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { MetaFieldKeyMap } from 'src/utils/types/MetaFieldKeyMap';
 
-const Timeline: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Timeline: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -18,7 +18,7 @@ const Timeline: React.FC<PanelLoaderProps> = ( {
     const timelineFieldKeys: MetaFieldKeyMap = {
         timeline: panelPrefix + '_timeline' + panelSuffix,
     };
-    const timeline: Array<Record<string, any>> = data.fields[ timelineFieldKeys.timeline ] ? data.fields[ timelineFieldKeys.timeline ] : [];
+    const timeline: Array<Record<string, any>> = post.fields[ timelineFieldKeys.timeline ] ? post.fields[ timelineFieldKeys.timeline ] : [];
     const perRow: number = 3;
     
     if ( doLength( timeline ) ) {

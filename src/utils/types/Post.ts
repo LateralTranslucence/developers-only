@@ -42,10 +42,13 @@ export interface Post {
     post_thumbnail: Media;
     post_type_details: {
         bonus_fields: Record<string, any>;
+        breadcrumbs: Array<Record<string, string>>;
         is_landing_page: boolean;
         meta_fields: Record<string, any>;
         meta_prefix: string;
+        meta_suffix: string;
         post_name: Array<string>;
+        post_thumbnail: string;
         post_title: Array<string>;
         post_type: string;
         post_type_display_name: string;
@@ -63,4 +66,7 @@ export interface Post {
     seo_site_name: string;
     seo_title: string;
     seo_url: string;
+    // Not on every post
+    staff?: string;
+    press_boilerplate?: string;
   }

@@ -1,10 +1,10 @@
 import React from 'react';
 import CTAs from 'src/components/shared/CTAs';
 import 'assets/styles/components/cta.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
+import { PanelProps } from 'src/utils/types/PanelProps';
 
-const CTA:React.FC<PanelLoaderProps> = ( { 
-    data, 
+const CTA:React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -15,7 +15,7 @@ const CTA:React.FC<PanelLoaderProps> = ( {
         cta: panelPrefix + '_cta' + panelSuffix,
     };
 
-    const cta = data.fields[ CTAFieldKeys.cta ] ? data.fields[ CTAFieldKeys.cta ] : [];
+    const cta = post.fields[ CTAFieldKeys.cta ] ? post.fields[ CTAFieldKeys.cta ] : [];
 
     return (
         <>

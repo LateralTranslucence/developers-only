@@ -1,6 +1,6 @@
 import { Media } from 'src/utils/types/Media';
 
-export default interface Testimonial {
+export interface Testimonial {
     author: string;
     author_company_title: string;
     cta_class: string;

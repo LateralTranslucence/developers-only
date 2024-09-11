@@ -1,12 +1,13 @@
 import React from 'react';
 const { useEffect, useState } = wp.element;
-import { getNavMenu } from 'src/utils/api';
+import { doGetNavMenu } from 'src/utils/api';
 import { doLength, doParse } from 'src/utils/helpers';
 import { DoMobileMenu, DoSelectList } from 'src/utils/display';
 import CTA from 'src/components/shared/CTA';
 import 'assets/styles/components/social-menu.scss';
 import 'assets/styles/components/select-list.scss';
 import 'assets/styles/components/sites-menu.scss';
+import { APIResult } from 'src/utils/types/APIResult';
 
 interface MenuProps {
     name: string;
@@ -15,7 +16,7 @@ const Menu: React.FC<MenuProps> = ( { name } ) => {
     const [ navMenus, setNavMenus ] = useState<Record<string, any>>( {} );
     useEffect( () => {
         async function fetchData() {
-            await getNavMenu().then( ( data: any ) => {
+            await doGetNavMenu().then( ( data: APIResult ) => {
                 setNavMenus( data.json );
             } );
         }

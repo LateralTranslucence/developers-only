@@ -22,22 +22,11 @@ class DO_Company {
             'About' => 'html',
             'Size' => 'int',
             'URL' => 'url',
-            'Stats' => [
-                'type' => 'multi_array',
-                'fields' => [
-                    'Title' => 'text',
-                    'Copy' => 'html',
-                    'Solution' => new DO_CPT_Form_Field( 'select', 'do_solution', 'Slug', 'Slug' ),
-                ],
-            ],
             'Hidden' => 'binary',
         ] );
-        $companies->meta_fields( [
-            'Solutions' => new DO_CPT_Form_Field( 'checkbox', 'do_solution', 'post_title', 'post_name' ),
-        ], 'Solutions' );
         $companies->admin_fields( [ 'Title', 'Logo', 'Description', 'Hidden', 'post_date' ] );
     }
-
+    // Add title to Logo media post
     public function onsave( $POST, $cpt_object ) {
         global $wpdb;
         if ( isset( $POST['company_logo'] ) && strlen( $POST['company_logo'] ) ) {

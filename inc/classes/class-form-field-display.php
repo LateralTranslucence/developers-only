@@ -355,11 +355,11 @@ class DO_Form_Field_Display {
                 $other_text = isset( $field_settings['other_text'] ) ? $field_settings['other_text'] : 'Other';
                 $potential_values = count( $maybe_values = do_array_get_column_values( 'value', $this->field_options, '2' ) ) ? $maybe_values : $this->field_options;
                 do_cast_array_values_as_string( $potential_values );
-                $value_is_other = ! count( $this->value ) || do_in_array( $this->value, $potential_values, TRUE, TRUE ) ? FALSE : TRUE;
+                $value_is_other = ! count( $this->value ) || do_array_contains( $this->value, $potential_values, TRUE, TRUE ) ? FALSE : TRUE;
                 $other_value = '';
                 if ( $value_is_other ) {
                     foreach ( $this->value as $potential_other ) {
-                        if ( ! do_in_array( $potential_other, $potential_values ) ) {
+                        if ( ! do_array_contains( $potential_other, $potential_values ) ) {
                             $other_value = $potential_other;
                         }
                     }

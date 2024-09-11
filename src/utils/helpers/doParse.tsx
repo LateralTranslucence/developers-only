@@ -6,9 +6,9 @@ import Image from 'src/components/shared/Image';
 import Infographic from 'src/components/shared/Infographic';
 import Menu from 'src/components/shared/Menu';
 import { ReactJSXElement } from '@emotion/react/types/jsx-namespace';
-import Post from 'src/utils/types/Post';
+import { Post } from 'src/utils/types/Post';
 
-const doParse = ( string: string, post: Post | undefined = undefined ): ReactJSXElement | string => {
+const doParse: ( string: string | JSX.Element, post?: Post | undefined ) => ReactJSXElement | string = ( string, post = undefined ): ReactJSXElement | string => {
     if ( ! doLength( string ) ) {
         return '';
     }
@@ -48,6 +48,6 @@ const doParse = ( string: string, post: Post | undefined = undefined ): ReactJSX
             }
         }
     };
-    return parse( string, options ) as ReactJSXElement;
+    return parse( string.toString(), options ) as ReactJSXElement;
 }
 export default doParse;

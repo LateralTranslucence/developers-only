@@ -2,10 +2,10 @@ import React from 'react';
 import { doLength, doParse } from 'src/utils/helpers';
 import Heading from 'src/components/shared/Heading';
 import 'assets/styles/components/accordion.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
+import { PanelProps } from 'src/utils/types/PanelProps';
 
-const Accordion: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Accordion: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -16,7 +16,7 @@ const Accordion: React.FC<PanelLoaderProps> = ( {
         accordionItems: panelPrefix + '_accordion_items' + panelSuffix,
     };
 
-    const accordionItems = data.fields[ accordionFieldKeys.accordionItems ] ? data.fields[ accordionFieldKeys.accordionItems ] : [];
+    const accordionItems = post.fields[ accordionFieldKeys.accordionItems ] ? post.fields[ accordionFieldKeys.accordionItems ] : [];
     
     if ( doLength( accordionItems ) ) {
         return (

@@ -1,13 +1,15 @@
 import React from 'react';
-import ComponentLoaderMap from 'src/utils/types/ComponentLoaderMap';
+import { ComponentLoaderMap } from 'src/utils/types/ComponentLoaderMap';
 // Single Templates
 import { createContext, lazy, Suspense, useEffect, useState } from 'react';
 import { ScrollRestoration } from 'react-router-dom';
 import { doLength } from 'src/utils/helpers';
-import { getPost } from 'src/utils/api';
+import { doGetPost } from 'src/utils/api';
 import Loading from 'src/components/shared/Loading';
-import TemplateLoaderProps from 'src/utils/types/TemplateLoaderProps';
-import TemplateProps from 'src/utils/types/TemplateProps';
+import { TemplateLoaderProps } from 'src/utils/types/TemplateLoaderProps';
+import { TemplateProps } from 'src/utils/types/TemplateProps';
+import { APIResult } from 'src/utils/types/APIResult';
+import { Post } from 'src/utils/types/Post';
 // const DoAnnouncement = lazy( () => import( 'src/components/templates/single/DoAnnouncement' ) );
 // const DoAnalystReport = lazy( () => import( 'src/components/templates/single/DoAnalystReport' ) );
 const DoBlog = lazy( () => import( 'src/components/templates/single/DoBlog' ) );
@@ -55,9 +57,14 @@ const templates: ComponentLoaderMap = {
 
 export const PageSlugContext = createContext('');
 
-
-const TemplateLoader: React.FC<TemplateLoaderProps> = ( { iframe = false, postType, queryString = '', slug, layoutClassesFunction } ) => {
-    const [ post, setPost ] = useState<Record<string, any>>( {} );
+const TemplateLoader: React.FC<TemplateLoaderProps> = ( { 
+    iframe = false, 
+    postType, 
+    queryString = '', 
+    slug, 
+    layoutClassesFunction 
+} ) => {
+    const [ post, setPost ] = useState<Post | undefined>( undefined );
     const [ TemplateName, setTemplateName ] = useState<React.FC<TemplateProps>>();
     let finalPostType: string = postType;
     if ( finalPostType === 'media' ) {
@@ -70,14 +77,14 @@ const TemplateLoader: React.FC<TemplateLoaderProps> = ( { iframe = false, postTy
     }
     useEffect( () => {
         async function fetchData() {
-            await getPost( finalPostType, slug, queryString ).then( ( data: any ) => {
-                if ( data.json && doLength( data.json ) ) {
-                    setPost( Array.isArray( data.json ) ? data.json[0] : data.json );
-                    const template: React.FC<any> = templates[ finalPostType ] ? templates[ finalPostType ] : templates.default;
+            await doGetPost( finalPostType, slug, queryString ).then( ( data: APIResult ) => {
+                if ( data.json ) {
+                    setPost( data.json as Post );
+                    const template: React.FC<TemplateProps> = templates[ finalPostType ] ? templates[ finalPostType ] : templates.default;
                     setTemplateName( template );
                 } 
                 else {
-                    setPost( {} );
+                    setPost( undefined );
                     setTemplateName( templates['404'] );
                 }
             } );

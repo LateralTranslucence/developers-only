@@ -3,214 +3,30 @@
  * Form Builder
  *
  */
+include locate_template( '/inc/classes/post-types/class-form.php' );
+include locate_template( '/inc/classes/post-types/class-form-submission.php' );
 
 class DO_Form_Builder {
+    private static $instance;
     public $form_submitted;
     private $default_submitted_message;
 
-    public function __construct() {
-        global $do_forms;
-        $do_forms = $this;
+    private function __construct() {
         $this->default_submitted_message = "Thank you for reaching out, we'll be in touch soon.";
         // Actions/Filters
-        add_action( 'after_setup_theme', [ $this, 'post_type' ], 3 );
+        add_action( 'after_setup_theme', [ $this, 'post_types' ], 3 );
     }
-    public function post_type() {
-        $forms = new DO_Custom_Post_Type( 'do_form' );
-        $forms->settings( [
-            'icon' => '\f175',
-            'display_name' => 'Forms',
-            'post_title' => 'Form Name',
-            'post_name' => 'Form ID',
-            'slug' => 'form',
-            'restrict_users' => [ 'administrator' ],
-            'has_archive' => FALSE,
-            'menu_position' => 40,
-            'notes' => [
-                'Email Submissions To' => 'Comma-separated list of email addresses.',
-                'Field IDs' => 'Comma-separated list of field IDs.',
-                'Thank You Redirect' => 'Can only be an internal URL.'
-            ],
-            'schema' => 'ContactPage',
-            'dynamic_interface' => [
-                'settings' => [
-                    'type' => 'array',
-                    'nested' => 'Field Type',
-                    'default_meta_boxes' => [ 'Admin', 'onSubmit', 'Submissions' ],
-                    'dynamic_meta_box' => 'Field',
-                    'dynamic_meta_box_title_field' => 'Label',
-                ],
-                'field_configuration' => [
-                    'Field Type' => [
-                        'button_select' => [
-                            'Options' => [
-                                'type' => 'multi_array',
-                                'fields' => [
-                                    'Label' => 'text',
-                                    'Value' => 'varchar',
-                                    'Description' => 'text',
-                                ],
-                            ],
-                        ],
-                        'checkbox' => [
-                            'Options' => [
-                                'type' => 'multi_array',
-                                'fields' => [
-                                    'Label' => 'text',
-                                    'Value' => 'varchar',
-                                ],
-                            ],
-                        ],
-                        'email' => [],
-                        'hidden' => [],
-                        'radio' => [
-                            'Options' => [
-                                'type' => 'multi_array',
-                                'fields' => [
-                                    'Label' => 'text',
-                                    'Value' => 'varchar',
-                                ],
-                            ],
-                        ],
-                        'range_slider' => [
-                            'Min' => 'int',
-                            'Max' => 'int',
-                            'Increment' => 'int',
-                        ],
-                        'select' => [
-                            'Options' => [
-                                'type' => 'multi_array',
-                                'fields' => [
-                                    'Label' => 'text',
-                                    'Value' => 'varchar',
-                                ],
-                            ],
-                        ],
-                        'text' => [],
-                        'textarea' => [],
-                        'toggle' => [
-                            'Options' => [
-                                'type' => 'multi_array',
-                                'fields' => [
-                                    'Label' => 'text',
-                                    'Value' => 'varchar',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ] );
-        $forms->meta_fields( [
-            'Form Name' => 'text',
-            'Form ID' => 'varchar',
-            'Field Label Location' => [
-                'type' => 'select',
-                'options' => [
-                    'inside' => [
-                        'label' => 'Inside (default)',
-                        'value' => 'inside',
-                    ],
-                    'outside' => [
-                        'label' => 'Outside',
-                        'value' => 'outside',
-                    ],
-                ],
-            ],
-            'Submit Button Text' => 'text',
-            'Privacy Policy' => 'binary',
-        ], 'Admin' );
-        $forms->meta_fields( [
-            //'Repopulate?' => 'binary',
-            'Auto-update?' => 'binary',
-            'Thank You Text' => 'html',
-            'Thank You Redirect' => 'url',
-        ], 'onSubmit' );
-        $forms->meta_fields( [
-            'Email Submissions To' => 'textarea',
-            'Email Subject' => 'text',
-            'Email Confirmation' => 'textarea',
-        ], 'Submissions' );
-        $forms->meta_fields( [
-            'Fieldset' => [
-                'type' => 'multi_array',
-                'fields' => [
-                    'Fieldset Title' => 'text',
-                    'Field IDs' => 'textarea',
-                ],
-            ],
-        ], 'Fieldsets' );
-        $forms->meta_fields( [
-            'Hide Field' => 'binary',
-            'Field Type' => [
-                'type' => 'select',
-                'options' => [
-                    'button_select' => [
-                        'label' => 'Button Select',
-                        'value' => 'button_select',
-                    ],
-                    'checkbox' => [
-                        'label' => 'Checkboxes',
-                        'value' => 'checkbox',
-                    ],
-                    'email' => [
-                        'label' => 'Email Address',
-                        'value' => 'email',
-                    ],
-                    'hidden' => [
-                        'label' => 'Hidden',
-                        'value' => 'hidden',
-                    ],
-                    'Phone' => [
-                        'label' => 'Phone Number',
-                        'value' => 'phone',
-                    ],
-                    'radio' => [
-                        'label' => 'Radio Buttons',
-                        'value' => 'radio',
-                    ],
-                    'range_slider' => [
-                        'label' => 'Range Slider',
-                        'value' => 'range_slider',
-                    ],
-                    'select' => [
-                        'label' => 'Select',
-                        'value' => 'select',
-                    ],
-                    'text' => [
-                        'label' => 'Text',
-                        'value' => 'text',
-                    ],
-                    'textarea' => [
-                        'label' => 'Text Area',
-                        'value' => 'textarea',
-                    ],
-                    'toggle' => [
-                        'label' => 'Toggle',
-                        'value' => 'toggle',
-                    ],
-                ],
-            ],
-            'Label' => 'text',
-            'ID' => 'varchar',
-            'Required' => 'binary',
-        ], 'Field' );
-        $forms->admin_fields( [ 'Title', 'Form ID', 'post_date' ] );
 
-        $submissions = new DO_Custom_Post_Type( 'do_form_submission' );
-        $submissions->settings( [
-            'display_name' => 'Submissions',
-            'post_title' => 'Email',
-            'show_in_menu' => 'edit.php?post_type=do_form',
-            'restrict_users' => [ 'administrator' ],
-            'has_archive' => FALSE,
-        ] );
-        $submissions->meta_fields( [
-            'Email' => 'text',
-            'Form ID' => 'read_only',
-            'Data' => 'read_only_serialized',
-        ] );
-        $submissions->admin_fields( [ 'Title', 'Form ID', 'post_date' ] );
+    public static function get_instance() {
+        if ( ! self::$instance ) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    public function post_types() {
+        $form = DO_Form::get_instance();
+        $form_submission = DO_Form_Submission::get_instance();
     }
 
     public function display( $form_id = FALSE ) {
@@ -230,6 +46,7 @@ class DO_Form_Builder {
             'submissions_email_subject' => do_get_post_meta( $form_id, 'form_email_subject' ),
             'submissions_email_confirmation_copy' => do_get_post_meta( $form_id, 'form_email_confirmation' ),
             'missing_fields' => [],
+            'items' => [],
         ];
         $form_items = $this->form_items( $form_id );
         // If we're auto-updating, hide the submit button
@@ -419,4 +236,4 @@ class DO_Form_Builder {
         return $field_options;
     }
 }
-$forms = new DO_Form_Builder();
+$forms = DO_Form_Builder::get_instance();

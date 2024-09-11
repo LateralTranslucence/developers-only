@@ -1,7 +1,7 @@
 import React from 'react';
 import CTA from 'src/components/shared/CTA';
-import CTASettings from 'src/utils/types/CTASettings';
-import URLObject from 'src/utils/types/URLObject';
+import { CTASettings } from 'src/utils/types/CTASettings';
+import { URLObject } from 'src/utils/types/URLObject';
 
 const CTAs: React.FC<{ ctas: CTASettings | Array<CTASettings> }> = ( { ctas } ): JSX.Element => {
     return (

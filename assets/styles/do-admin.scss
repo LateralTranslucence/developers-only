@@ -433,7 +433,7 @@ div.picker + br {
     &::before {
         content: '';
         display: block;
-        background: url('assets/images/admin/loading.gif') no-repeat scroll 0 0 transparent;
+        background: url('../images/admin/loading.gif') no-repeat scroll 0 0 transparent;
         width: 82px;
         height: 82px;
         position: absolute;
@@ -443,7 +443,7 @@ div.picker + br {
     }
 }
 a.do-ajax-loading::before, li.do-ajax-loading::before {
-    background: url('assets/images/admin/loading_small.gif') no-repeat scroll 0 0 transparent;
+    background: url('../images/admin/loading_small.gif') no-repeat scroll 0 0 transparent;
     width: 16px;
     height: 16px;
     top: calc(50% - 8px);

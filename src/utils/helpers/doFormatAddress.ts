@@ -1,4 +1,4 @@
-import Address from 'src/utils/types/Address';
+import { Address } from 'src/utils/types/Address';
 
 const doFormatAddress = ( address: Address, lineBreak: string = '<br/>' ): string => {
     let addressString: string = '';

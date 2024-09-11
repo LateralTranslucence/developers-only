@@ -4,19 +4,14 @@
  *
  */
 import React from 'react';
+import { CTASettings } from 'src/utils/types/CTASettings';
+import { GatedProps } from 'src/utils/types/GatedProps';
 import { doLength, doURLType } from 'src/utils/helpers';
 import CTA from 'src/components/shared/CTA';
-import DownloadableContentWrapper from 'src/components/shared/DownloadableContentWrapper';
-import RenderHubspotForm from 'src/components/shared/RenderHubspotForm';
-import Modal from 'src/components/shared/Modal';
 import Heading from 'src/components/shared/Heading';
-import Post from 'src/utils/types/Post';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import CTASettings from 'src/utils/types/CTASettings';
-interface GatedProps extends PanelLoaderProps {
-    post: Post;
-    iframe: boolean;
-}
+import Modal from 'src/components/shared/Modal';
+import RenderHubspotForm from 'src/components/shared/RenderHubspotForm';
+
 const Gated: React.FC<GatedProps> = ( { 
     iframe = false,
     pageID = '', 
@@ -62,14 +57,14 @@ const Gated: React.FC<GatedProps> = ( {
                         </p>
                         <Modal id={ formID } heading={ { tag: 'h3', title: formTitle } } content={ <RenderHubspotForm options={ hubspotForm } formID={ formID + '-form' } /> } />
                         </>
-                    );
+                    )
                 } else {
                     return (
                         <div className="panel-form-wrapper">
                             <Heading tag="h2" title={ formTitle } classes={ [ 'text-align-center' ] } />
                             <RenderHubspotForm options={ hubspotForm } formID={ formID + '-form' } />
                         </div>
-                    );
+                    )
                 }
             }
         // Un-gated, show a download button ?>
@@ -80,26 +75,24 @@ const Gated: React.FC<GatedProps> = ( {
                 modal: doURLType( fileOrURL ) === 'pdf' && ! iframe,
                 //modalClass: doURLType( fileOrURL ) === 'pdf' && ! iframe ? 'do-downloadable-content' : false,
                 classes: downloadButtonStyle,
-                id: "do-download-content",
-                iframeName: "do-downloadable-iframe",
-            };
+                id: 'do-download-content',
+                iframeName: 'do-downloadable-iframe',
+            }
             // A panel
             if ( isPanel ) {
                 return (
                     <p className="panel-cta">
                         <CTA { ...ctaSettings } />
-                        <DownloadableContentWrapper />
                     </p>
-                );
+                )
             } 
             // Not a panel
             else {
-                return( 
+                return ( 
                     <p id="download" className="panel-cta">
                         <CTA { ...ctaSettings } />
-                        <DownloadableContentWrapper />
                     </p>
-                );
+                )
             }
         }
     } else {

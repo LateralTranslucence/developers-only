@@ -1,10 +1,10 @@
 import React from 'react';
 import { doParse } from 'src/utils/helpers';
 import 'assets/styles/components/iframe.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
+import { PanelProps } from 'src/utils/types/PanelProps';
 
-const Frame: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Frame: React.FC<PanelProps> = ( { 
+    post,
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -18,9 +18,9 @@ const Frame: React.FC<PanelLoaderProps> = ( {
     };
     
     // iframe code
-    const iframe: string = data.fields[ frameFieldKeys.frame ].replace( '[]', '<>' );
+    const iframe: string = post.fields[ frameFieldKeys.frame ].replace( '[]', '<>' );
     const defer: boolean = false;
-    const ratio: string = data.fields[ frameFieldKeys.ratio ].length ? data.fields[ frameFieldKeys.ratio ] : '100';
+    const ratio: string = post.fields[ frameFieldKeys.ratio ].length ? post.fields[ frameFieldKeys.ratio ] : '100';
     
     if ( iframe ) {
         return (

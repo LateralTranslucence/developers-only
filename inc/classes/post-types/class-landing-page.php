@@ -5,83 +5,40 @@
  */
 
 
-class DO_Landing_Page {
-    private $post_type;
-    private $post_type_display_name;
-    private $slug;
-    private $rest_slug;
-    private $meta_prefix;
-    private $panel_fields;
-    public $post_type_settings;
-    private $panel_default_fields;
-
-    function __construct() {
-        //Variables
-        $this->post_type = $this->set_post_type();
-        $this->post_type_display_name = $this->set_post_type_display_name();
-        $this->slug = $this->set_post_type_slug();
-        $this->rest_slug = $this->set_post_type_rest_slug();
-        $this->meta_prefix = $this->set_meta_prefix();
-        $this->panel_fields = $this->set_panel_fields();
-        $this->post_type_settings = $this->set_post_type_settings();
-        $this->panel_default_fields = $this->set_panel_default_fields();
-
+class DO_Landing_Page extends DO_Custom_Post_Type {
+    
+    protected function construct() {
         // Actions/Filters
-        add_action( 'after_setup_theme', [ $this, 'post_type' ], 3 );
-        if ( $this->post_type == 'do_landing_page' ) {
+        if ( $this->post_type() == 'do_landing_page' ) {
             add_action( 'generate_rewrite_rules' , [ $this, 'rewrite_rules' ] );
         }
         add_filter( 'pre_get_posts', [ $this, 'pre_get_posts' ] );
     }
 
-    public function post_type() {
-        $args = [ 'menu_position' => 20 ];
-        if ( $this->post_type === 'do_landing_page' ) {
-            $args['rewrite'] = FALSE;
-        }
-        $pages = new DO_Custom_Post_Type( $this->post_type, $args );
-        $pages->settings( $this->post_type_settings );
-        $pages->meta_fields( $this->panel_fields( 'hero' ), 'Hero' );
-        $pages->meta_fields( $this->panel_fields( 'seo' ), 'SEO' );
-        $pages->meta_fields( $this->panel_fields( 'admin' ), 'Admin' );
-        $pages->meta_fields( array_merge( $this->panel_control_fields() ), 'Panel' );
-        $pages->admin_fields( [ 'Title', 'Slug', 'post_date' ] );
-    }
-
-    protected function set_post_type() {
+    protected function post_type(): string {
         return 'do_landing_page';
     }
-
-    protected function set_post_type_display_name() {
-        return 'Landing Pages';
+    protected function post_type_args(): array {
+        $args = [ 'menu_position' => 20 ];
+        if ( $this->post_type() === 'do_landing_page' ) {
+            $args['rewrite'] = FALSE;
+        }
+        return $args;
     }
-
-    protected function set_post_type_slug() {
-        return FALSE;
-    }
-
-    protected function set_post_type_rest_slug() {
-        return 'landing-page';
-    }
-
-    protected function set_meta_prefix() {
-        return 'page';
-    }
-
-    protected function set_post_type_settings() {
+    protected function settings(): array {
         return [
             'post_title' => 'Title',
-            'display_name' => $this->post_type_display_name,
+            'display_name' => $this->post_type_display_name(),
             'icon' => '\f116',
             'onsave_callback' => [ $this, 'onsave' ],
             'aftersave_callback' => [ $this, 'aftersave' ],
             'has_archive' => FALSE,
             'is_landing_page' => TRUE,
             'post_name' => 'Slug',
-            'slug' => $this->slug,
-            'rest_slug' => $this->rest_slug,
-            'meta_prefix' => $this->meta_prefix,
-            'show_in_menu' => $this->post_type == 'do_landing_page' ? FALSE : 'edit.php?post_type=do_landing_page',
+            'slug' => $this->post_type_slug(),
+            'rest_slug' => $this->post_type_rest_slug(),
+            'meta_prefix' => $this->meta_prefix(),
+            //'show_in_menu' => $this->post_type() == 'do_landing_page' ? FALSE : 'edit.php?post_type=do_landing_page',
             'seo' => [
                 'title' => 'SEO Title||post_title',
                 'image' => 'SEO Image||Media',
@@ -119,7 +76,7 @@ class DO_Landing_Page {
                 ],
             ],
             'bonus_fields' => [
-                'noindex' => $this->meta_prefix . '_noindex',
+                'noindex' => $this->meta_prefix() . '_noindex',
             ],
             'hide_field' => 'Hidden',
             'schema' => [
@@ -131,8 +88,36 @@ class DO_Landing_Page {
             ],
         ];
     }
+    // [ 'BoxName' => [ ... ] ]
+    protected function meta_fields(): array {
+        return [
+            'Hero' => $this->panel_fields( 'hero' ),
+            'SEO' => $this->panel_fields( 'seo' ),
+            'Admin' => $this->panel_fields( 'admin' ),
+            'Panel' => array_merge( $this->panel_control_fields() ),
+        ];
+    }
+    protected function admin_fields(): array {
+        return [ 'Title', 'Slug', 'post_date' ];
+    }
 
-    protected function set_panel_default_fields( $unset = FALSE, $add = FALSE ) {
+    protected function post_type_display_name(): string {
+        return 'Landing Pages';
+    }
+
+    protected function post_type_slug(): string {
+        return FALSE;
+    }
+
+    protected function post_type_rest_slug(): string {
+        return 'landing-page';
+    }
+
+    protected function meta_prefix(): string {
+        return 'page';
+    }
+
+    protected function set_panel_default_fields( $unset = FALSE, $add = FALSE ): array {
         $default_fields = [
             'Title' => 'text',
             'Background' => 'background',
@@ -171,7 +156,7 @@ class DO_Landing_Page {
         return $default_fields;
     }
 
-    protected function set_panel_fields() {
+    protected function set_panel_fields(): array {
         global $do_site;
         $fields = [
             'accordion' => array_merge( $this->set_panel_default_fields(), [
@@ -648,7 +633,7 @@ class DO_Landing_Page {
         return $fields;
     }
 
-    public function set_panel_types() {
+    public function set_panel_types(): array {
         $panel_types = [
             'accordion' => [
                 'label' => 'Accordion',
@@ -738,7 +723,7 @@ class DO_Landing_Page {
         return $panel_types;
     }
 
-    public function panel_control_fields( $field_label_prefix = FALSE ) {
+    public function panel_control_fields( $field_label_prefix = FALSE ): array {
         $panel_types = $this->set_panel_types();
         ksort( $panel_types );
         $fields = [
@@ -759,21 +744,21 @@ class DO_Landing_Page {
     }
 
     // Used in the panel method to call (and maybe rename) specified panels in child classes
-    public function panel_default_fields( $field_label_prefix = FALSE ) {
+    public function panel_default_fields( $field_label_prefix = FALSE ): array {
         if ( $field_label_prefix ) {
-            foreach ( $this->panel_default_fields as $key => $value ) {
+            foreach ( $this->set_panel_default_fields() as $key => $value ) {
                 $default_fields[ $field_label_prefix . ' ' . $key ] = $value;
             }
         } else {
-            $default_fields = $this->panel_default_fields;
+            $default_fields = $this->set_panel_default_fields();
         }
         return $default_fields;
     }
 
-    public function panel_fields( $panel_type = FALSE, $field_label_prefix = FALSE ) {
+    public function panel_fields( $panel_type = FALSE, $field_label_prefix = FALSE ): array {
         // Modify labels...
         if ( $field_label_prefix ) {
-            foreach ( $this->panel_fields as $type_key => $type_value ) {
+            foreach ( $this->set_panel_fields() as $type_key => $type_value ) {
                 foreach ( $type_value as $key => $value ) {
                     $type_fields[ $type_key ][ $field_label_prefix . ' ' . $key ] = $value;
                 }
@@ -781,7 +766,7 @@ class DO_Landing_Page {
         }
         // ...or don't
         else {
-            $type_fields = $this->panel_fields;
+            $type_fields = $this->set_panel_fields();
         }
 
         // Return specific type...
@@ -795,7 +780,7 @@ class DO_Landing_Page {
     }
 
     // Used by child classes to display specific panel types
-    public function panel( $panel_type = FALSE, $field_label_prefix = FALSE ) {
+    public function panel( $panel_type = FALSE, $field_label_prefix = FALSE ): array {
         if ( $panel_type ) {
             $panel = in_array( $panel_type, [ 'hero', 'seo', 'admin' ] ) ? $this->panel_fields( $panel_type, $field_label_prefix ) : array_merge( $this->panel_default_fields( $field_label_prefix ), $this->panel_fields( $panel_type, $field_label_prefix ) );
         } else {
@@ -804,28 +789,28 @@ class DO_Landing_Page {
         return $panel;
     }
 
-    public function rewrite_rules( $wp_rewrite ) {
+    public function rewrite_rules( $wp_rewrite ): void {
         // $wp_rewrite->rules = [ '[^/]+/attachment/([^/]+)/?$' => 'index.php?attachment=$matches[1]' ] + $wp_rewrite->rules;
         // $wp_rewrite->rules = [ '[^/]+/attachment/([^/]+)/trackback/?$' => 'index.php?attachment=$matches[1]&tb=1' ] + $wp_rewrite->rules;
         // $wp_rewrite->rules = [ '[^/]+/attachment/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?attachment=$matches[1]&feed=$matches[2]' ] + $wp_rewrite->rules;
         // $wp_rewrite->rules = [ '[^/]+/attachment/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?attachment=$matches[1]&feed=$matches[2]' ] + $wp_rewrite->rules;
         // $wp_rewrite->rules = [ '[^/]+/attachment/([^/]+)/comment-page-([0-9]{1,})/?$' => 'index.php?attachment=$matches[1]&cpage=$matches[2]' ] + $wp_rewrite->rules;
         // $wp_rewrite->rules = [ '[^/]+/attachment/([^/]+)/embed/?$' => 'index.php?attachment=$matches[1]&embed=true' ] + $wp_rewrite->rules;
-        // $wp_rewrite->rules = [ '([^/]+)/embed/?$' => 'index.php?' . $this->post_type . '=$matches[1]&embed=true' ] + $wp_rewrite->rules;
-        // $wp_rewrite->rules = [ '([^/]+)/trackback/?$' => 'index.php?' . $this->post_type . '=$matches[1]&tb=1' ] + $wp_rewrite->rules;
-        // $wp_rewrite->rules = [ '([^/]+)/page/?([0-9]{1,})/?$' => 'index.php?' . $this->post_type . '=$matches[1]&paged=$matches[2]' ] + $wp_rewrite->rules;
-        // $wp_rewrite->rules = [ '([^/]+)/comment-page-([0-9]{1,})/?$' => 'index.php?' . $this->post_type . '=$matches[1]&cpage=$matches[2]' ] + $wp_rewrite->rules;
-        // $wp_rewrite->rules = [ '([^/]+)(?:/([0-9]+))?/?$' => 'index.php?' . $this->post_type . '=$matches[1]' ] + $wp_rewrite->rules;
+        // $wp_rewrite->rules = [ '([^/]+)/embed/?$' => 'index.php?' . $this->post_type() . '=$matches[1]&embed=true' ] + $wp_rewrite->rules;
+        // $wp_rewrite->rules = [ '([^/]+)/trackback/?$' => 'index.php?' . $this->post_type() . '=$matches[1]&tb=1' ] + $wp_rewrite->rules;
+        // $wp_rewrite->rules = [ '([^/]+)/page/?([0-9]{1,})/?$' => 'index.php?' . $this->post_type() . '=$matches[1]&paged=$matches[2]' ] + $wp_rewrite->rules;
+        // $wp_rewrite->rules = [ '([^/]+)/comment-page-([0-9]{1,})/?$' => 'index.php?' . $this->post_type() . '=$matches[1]&cpage=$matches[2]' ] + $wp_rewrite->rules;
+        // $wp_rewrite->rules = [ '([^/]+)(?:/([0-9]+))?/?$' => 'index.php?' . $this->post_type() . '=$matches[1]' ] + $wp_rewrite->rules;
         // $wp_rewrite->rules = [ '[^/]+/([^/]+)/trackback/?$' => 'index.php?attachment=$matches[1]&tb=1' ] + $wp_rewrite->rules;
         // $wp_rewrite->rules = [ '[^/]+/([^/]+)/feed/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?attachment=$matches[1]&feed=$matches[2]' ] + $wp_rewrite->rules;
         // $wp_rewrite->rules = [ '[^/]+/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?attachment=$matches[1]&feed=$matches[2]' ] + $wp_rewrite->rules;
         // $wp_rewrite->rules = [ '[^/]+/([^/]+)/comment-page-([0-9]{1,})/?$' => 'index.php?attachment=$matches[1]&cpage=$matches[2]' ] + $wp_rewrite->rules;
         // $wp_rewrite->rules = [ '[^/]+/([^/]+)/embed/?$' => 'index.php?attachment=$matches[1]&embed=true' ] + $wp_rewrite->rules;
-        $wp_rewrite->rules = $wp_rewrite->rules + [ '[^/]+/?$' => 'index.php?' . $this->post_type . '=$matches[1]' ];
-        $wp_rewrite->rules = $wp_rewrite->rules + [ 'iframe/[^/]+/?$' => 'index.php?' . $this->post_type . '=$matches[1]&iframe=1' ];
+        $wp_rewrite->rules = $wp_rewrite->rules + [ '[^/]+/?$' => 'index.php?' . $this->post_type() . '=$matches[1]' ];
+        $wp_rewrite->rules = $wp_rewrite->rules + [ 'iframe/[^/]+/?$' => 'index.php?' . $this->post_type() . '=$matches[1]&iframe=1' ];
     }
 
-    public function aftersave( $post_id ) {
+    public function aftersave( $post_id ): void {
         global $do_custom_post_types, $wpdb;
         $post_type_details = $do_custom_post_types[ get_post_field( 'post_type', $post_id ) ];
         // Manually set the guid
@@ -835,20 +820,19 @@ class DO_Landing_Page {
         flush_rewrite_rules();
     }
 
-    public function onsave( $POST, $cpt_obj ) {
-        if ( isset( $POST[ $this->meta_prefix . '_slug' ] ) && $POST[ $this->meta_prefix . '_slug' ] == 'home' ) {
+    public function onsave( $POST, $cpt_obj ): array {
+        if ( isset( $POST[ $this->meta_prefix() . '_slug' ] ) && $POST[ $this->meta_prefix() . '_slug' ] == 'home' ) {
             $POST['post_title_override'] = 'Home';
         }
         return $POST;
     }
 
-    public function pre_get_posts( $wp_query ) {
-        if ( is_admin() && isset( $wp_query->query_vars['post_type'] ) && $wp_query->query_vars['post_type'] == $this->post_type ) {
+    public function pre_get_posts( $wp_query ): void {
+        if ( is_admin() && isset( $wp_query->query_vars['post_type'] ) && $wp_query->query_vars['post_type'] == $this->post_type() ) {
             if ( ! isset( $_GET['orderby'] ) ) {
                 $wp_query->set( 'orderby', [ 'post_name' => 'ASC' ] );
             }
         }
     }
 }
-global $do_landing_page;
-$do_landing_page = new DO_Landing_Page();
+$DO_Landing_Page = DO_Landing_Page::get_instance();

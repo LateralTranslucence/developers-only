@@ -1,10 +1,10 @@
 import React from 'react';
 import BackgroundVideoControls from 'src/components/shared/BackgroundVideoControls';
-import BackgroundSettings from 'src/utils/types/BackgroundSettings';
+import { BackgroundProps } from 'src/utils/types/BackgroundProps';
 import 'assets/styles/components/background-videos.scss';
-import CustomAttributes from 'src/utils/types/CustomAttributes';
+import { CustomAttributes } from 'src/utils/types/CustomAttributes';
 
-interface BackgroundVideoProps extends BackgroundSettings {
+interface BackgroundVideoProps extends BackgroundProps {
     id: string;
 }
 const BackgroundVideo: React.FC<BackgroundVideoProps> = ( { animated, avatar, color, id } ) => {  

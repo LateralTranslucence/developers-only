@@ -7,6 +7,7 @@ export interface HeadingProps {
     id?: string;
     pretitle?: string;
     publishDate?: string;
+    subtitle?: string;
     tag?: string;
     title?: string;
     url?: string;

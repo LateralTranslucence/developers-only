@@ -6,5 +6,6 @@ module.exports = merge( common, {
     devtool: 'inline-source-map',
     devServer: {
         open: false,
+        watchFiles: ['src/**/*', 'assets/styles/**/*'], // Ensure files are being watched
     },
 } );

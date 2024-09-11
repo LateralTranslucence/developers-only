@@ -3,14 +3,14 @@ import { doLength } from 'src/utils/helpers';
 import BackgroundVideo from 'src/components/shared/BackgroundVideo';
 import Heading from 'src/components/shared/Heading';
 import 'assets/styles/components/panels.scss';
-import CustomAttributes from 'src/utils/types/CustomAttributes';
-import HeadingProps from 'src/utils/types/HeadingProps';
-import CTASettings from 'src/utils/types/CTASettings';
-import BackgroundSettings from 'src/utils/types/BackgroundSettings';
+import { CustomAttributes } from 'src/utils/types/CustomAttributes';
+import { HeadingProps } from 'src/utils/types/HeadingProps';
+import { CTASettings } from 'src/utils/types/CTASettings';
+import { BackgroundProps } from 'src/utils/types/BackgroundProps';
 
-interface PanelProps {
+interface PanelWrapperProps {
     background?: CustomAttributes;
-    backgroundVideo?: BackgroundSettings;
+    backgroundVideo?: BackgroundProps;
     children?: React.ReactNode;
     classes?: Array<string>;
     copy?: string;
@@ -19,11 +19,10 @@ interface PanelProps {
     featuredSettings?: CustomAttributes;
     heading?: HeadingProps;
     headerParallax?: CustomAttributes;
-    mediaBackgroundSettings?: CustomAttributes;
     panelID: string;
     panelType: string;
 }
-const PanelWrapper: React.FC<PanelProps> = ( { 
+const PanelWrapper: React.FC<PanelWrapperProps> = ( { 
     background, 
     backgroundVideo,
     classes = [],
@@ -34,12 +33,11 @@ const PanelWrapper: React.FC<PanelProps> = ( {
     featuredSettings, 
     heading = {},
     headerParallax = {},
-    mediaBackgroundSettings = {},
     panelID = '', 
     panelType = '', 
  } ) => {
     return (
-        <section id={ panelID } className={ doLength( classes ) ? classes.join( ' ' ) : '' } { ...mediaBackgroundSettings }>
+        <section id={ panelID } className={ doLength( classes ) ? classes.join( ' ' ) : '' }>
             <div className={ 'panel-inner-wrapper' + ( panelType == 'linear-content' ? '' : ' container' ) } { ...featuredSettings }>
                 { ( heading && doLength( heading.title ) ) || doLength( backgroundVideo ) ?
                     <header className={ 'panel-header' + ( doLength( cta ) ? ' has-cta' : '' ) } { ...headerParallax }>

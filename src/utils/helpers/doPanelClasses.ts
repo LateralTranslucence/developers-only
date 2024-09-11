@@ -1,7 +1,7 @@
-import BackgroundSettings from 'src/utils/types/BackgroundSettings';
+import { BackgroundProps } from 'src/utils/types/BackgroundProps';
 import { Media, MediaType } from 'src/utils/types/Media';
 
-const doPanelClasses = ( settings: BackgroundSettings ): Array<string> => {
+const doPanelClasses = ( settings: BackgroundProps ): Array<string> => {
     const backgroundOverlay: boolean = settings.overlay ? settings.overlay : false;
     const backgroundColor: string = settings.color && settings.color.length ? settings.color : '';
     const backgroundMedia: Media | null = settings.media ? settings.media : null;

@@ -1,7 +1,7 @@
 import React from 'react';
 import { doLength } from 'src/utils/helpers';
 import FieldError from 'src/components/forms/FieldError';
-import FormFieldProps from 'src/utils/types/FormFieldProps';
+import { FormFieldProps } from 'src/utils/types/FormFieldProps';
 
 const Alphabet: React.FC<FormFieldProps> = ( { field, callback, error = false } ) => {
     const currentValue = doLength( field.current_value ) ? field.current_value : [];

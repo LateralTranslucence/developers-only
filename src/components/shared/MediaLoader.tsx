@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'src/components/shared/Image';
 import Video from 'src/components/shared/Video';
-import Media from 'src/utils/types/Media';
+import { Media } from 'src/utils/types/Media';
 
 const MediaLoader: React.FC<Record<string, any>> = ( props ) => {
     const media: Media = props.media;
@@ -9,7 +9,7 @@ const MediaLoader: React.FC<Record<string, any>> = ( props ) => {
     if ( mediaType === 'image' || mediaType === 'icon' ) {
         return <Image image={ media } { ...props } />;
     } else if ( mediaType === 'video' ) {
-        return <Video url={ media.url } { ...props } />;
+        return <Video url={ media.url as string } { ...props } />;
     } else {
         return null;
     }

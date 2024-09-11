@@ -1,8 +1,9 @@
 import React from 'react';
 const { useEffect, useState } = wp.element;
-import { getHeadline } from 'src/utils/api';
+import { APIResult } from 'src/utils/types/APIResult';
+import { doGetHeadline } from 'src/utils/api';
 import { doLength } from 'src/utils/helpers';
-import CTA from 'src/components/shared/CTA.js';
+import CTA from 'src/components/shared/CTA';
 import 'assets/styles/components/header-promo.scss';
 
 const HeaderPromo: React.FC = () => {
@@ -10,7 +11,7 @@ const HeaderPromo: React.FC = () => {
     const [ promo, setPromo ] = useState<Record<string, any>>( [] );   
     useEffect( () => {
         async function fetchData() {
-            await getHeadline().then( ( data: any ) => {
+            await doGetHeadline().then( ( data: APIResult ) => {
                 setPromo( data.json );
             } );
         }

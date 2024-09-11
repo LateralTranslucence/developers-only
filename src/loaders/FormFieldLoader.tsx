@@ -13,7 +13,8 @@ import Text from 'src/components/forms/Text';
 import { ComponentLoaderMap } from 'src/utils/types/ComponentLoaderMap';
 
 interface FieldLoaderProps {
-    callback: ( e:Event ) => void;
+    callback?: ( e: Event ) => void;
+    error?: boolean;
     field: Record<string, any>;
     type: string;
 }

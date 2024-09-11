@@ -1,13 +1,13 @@
 import React from 'react';
+import { Media } from 'src/utils/types/Media';
+import { PanelProps } from 'src/utils/types/PanelProps';
 import { doLength } from 'src/utils/helpers';
 import CTA from 'src/components/shared/CTA';
 import MediaLoader from 'src/components/shared/MediaLoader';
 import 'assets/styles/components/featured-media.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import Media from 'src/utils/types/Media';
 
-const FeaturedMedia:React.FC<PanelLoaderProps> = ( { 
-    data, 
+const FeaturedMedia:React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -19,10 +19,10 @@ const FeaturedMedia:React.FC<PanelLoaderProps> = ( {
         image_link: panelPrefix + '_image_link' + panelSuffix,
         full_width_svg: panelPrefix + '_fullwidth_svg' + panelSuffix,
     };
-    const media: Media = data.fields[ featuredFieldKeys.media ] ? data.fields[ featuredFieldKeys.media ] : {};
-    const url: string = data.fields[ featuredFieldKeys.image_link ] ? data.fields[ featuredFieldKeys.image_link ].url : '';
-    const modal: boolean = data.fields[ featuredFieldKeys.image_link ] ? Boolean( data.fields[ featuredFieldKeys.image_link ].modal ) : false;
-    const fullWidthSVG: boolean = data.fields[ featuredFieldKeys.full_width_svg ] ? data.fields[ featuredFieldKeys.full_width_svg ] : false;
+    const media: Media = post.fields[ featuredFieldKeys.media ] ? post.fields[ featuredFieldKeys.media ] : {};
+    const url: string = post.fields[ featuredFieldKeys.image_link ] ? post.fields[ featuredFieldKeys.image_link ].url : '';
+    const modal: boolean = post.fields[ featuredFieldKeys.image_link ] ? Boolean( post.fields[ featuredFieldKeys.image_link ].modal ) : false;
+    const fullWidthSVG: boolean = post.fields[ featuredFieldKeys.full_width_svg ] ? post.fields[ featuredFieldKeys.full_width_svg ] : false;
 
     if ( doLength( media ) ) {
         return (

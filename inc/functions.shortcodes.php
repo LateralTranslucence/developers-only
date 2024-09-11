@@ -5,7 +5,7 @@
 
 // [button][/button]
 function do_button_shortcode( $attr, $content ) {
-    if ( ! is_assoc( $attr ) ) {
+    if ( ! is_assoc_array( $attr ) ) {
         $attr_temp = [];
         foreach ( $attr as $index => $attribute ) {
             //do_var_dump($attribute);

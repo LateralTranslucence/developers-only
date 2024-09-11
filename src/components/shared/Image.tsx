@@ -1,25 +1,9 @@
 import React from 'react';
+import { ImageProps } from 'src/utils/types/ImageProps';
+import { Media, MediaItem } from 'src/utils/types/Media';
 import { doLength } from 'src/utils/helpers';
 import 'assets/styles/components/image.scss';
-import { Media, MediaItem } from 'src/utils/types/Media';
-import CustomAttributes from 'src/utils/types/CustomAttributes';
 
-interface ImageProps {
-    // Required
-    image: Media;
-    // Optional
-    classes?: Array<string>;
-    fullWidthSVG?: boolean;
-    height?: number;
-    id?: string;
-    imageDataAttr?: CustomAttributes;
-    mobileImage?: string;
-    overlay?: boolean;
-    size?: string;
-    url?: string;
-    width?: number;
-    wrapperDataAttr?: CustomAttributes;
-}
 const Image: React.FC<ImageProps> = ( { 
     image, 
     classes = [], 

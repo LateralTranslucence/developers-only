@@ -1,12 +1,12 @@
 import React from 'react';
 const { useEffect, useState } = wp.element;
+import { CustomAttributes } from 'src/utils/types/CustomAttributes';
+import { VideoProps } from 'src/utils/types/VideoProps';
 import { doVideoType, doVideoEmbedURL } from 'src/utils/helpers';
 import CTA from 'src/components/shared/CTA';
 import 'assets/styles/components/videos.scss';
-import { CustomAttributes } from 'src/utils/types/CustomAttributes';
-import { Video } from 'src/utils/types/Video';
 
-const Video: React.FC<Video> = ( {
+const Video: React.FC<VideoProps> = ( {
     id = '',
     label = 'Watch',
     loop = false,

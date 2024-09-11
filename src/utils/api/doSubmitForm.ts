@@ -5,7 +5,7 @@ import { APIResult } from '../types/APIResult';
     try {
         const formSubmitEndpoint: string = `${WPAPIEndpoint}/do-form-submit?${queryString}`;
         if ( doEnv !== 'prod' ) {
-            console.log( 'doFormSubmit ' + formSubmitEndpoint );
+            console.log( 'doSubmitForm ' + formSubmitEndpoint );
         }
 
         const response = await fetch( formSubmitEndpoint );

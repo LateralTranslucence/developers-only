@@ -62,7 +62,7 @@ class API_Content {
                                 }
                             }
                         }
-                        $post_content = do_flatten_array( $post_content );
+                        $post_content = do_array_flatten( $post_content );
                     } 
                     // If it's not a landing page just use post_content
                     else {

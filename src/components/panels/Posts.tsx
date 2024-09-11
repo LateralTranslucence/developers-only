@@ -4,11 +4,11 @@ import SliderNav from 'src/components/shared/SliderNav';
 import PartialTemplateLoader from 'src/loaders/PartialTemplateLoader';
 import 'assets/styles/components/blocks.scss';
 import 'assets/styles/components/posts.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import Post from 'src/utils/types/Post';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { Post } from 'src/utils/types/Post';
 
-const Posts: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Posts: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -23,11 +23,11 @@ const Posts: React.FC<PanelLoaderProps> = ( {
         modal: panelPrefix + '_modal' + panelSuffix,
         viewType: panelPrefix + '_view_type' + panelSuffix,
     };
-    const posts: Array<Post> = data.fields[ postsFieldKeys.posts ];
-    const panelPerRow: number = data.fields[ postsFieldKeys.perRow ] ? Number( data.fields[ postsFieldKeys.perRow ] ) : 3;
-    const panelSlider: boolean = Boolean( data.fields[ postsFieldKeys.slider ] );
-    const panelPostsModal: boolean = Boolean( data.fields[ postsFieldKeys.modal ] );
-    const panelPostsViewType: string = data.fields[ postsFieldKeys.viewType ] ? data.fields[ postsFieldKeys.viewType ] : 'block';
+    const posts: Array<Post> = post.fields[ postsFieldKeys.posts ];
+    const panelPerRow: number = post.fields[ postsFieldKeys.perRow ] ? Number( post.fields[ postsFieldKeys.perRow ] ) : 3;
+    const panelSlider: boolean = Boolean( post.fields[ postsFieldKeys.slider ] );
+    const panelPostsModal: boolean = Boolean( post.fields[ postsFieldKeys.modal ] );
+    const panelPostsViewType: string = post.fields[ postsFieldKeys.viewType ] ? post.fields[ postsFieldKeys.viewType ] : 'block';
 
     const PostList: React.FC<{ posts: Array<Post> }> = ( { posts = [] } ): JSX.Element => {
         return (

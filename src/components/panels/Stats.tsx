@@ -4,13 +4,13 @@ import { doConvertNumberToWords, doParse } from 'src/utils/helpers';
 import { doCountUp } from 'src/utils/display';
 import Heading from 'src/components/shared/Heading';
 import Image from 'src/components/shared/Image';
-import MetaFieldKeyMap from 'src/utils/types/MetaFieldKeyMap';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
+import { MetaFieldKeyMap } from 'src/utils/types/MetaFieldKeyMap';
+import { PanelProps } from 'src/utils/types/PanelProps';
 import 'assets/styles/components/blocks.scss';
 import 'assets/styles/components/stats.scss';
 
-const Stats: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Stats: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -22,17 +22,11 @@ const Stats: React.FC<PanelLoaderProps> = ( {
         perRow: panelPrefix + '_blocks_per_row' + panelSuffix,
         blockStyle: panelPrefix + '_block_style' + panelSuffix,
     };
-    const stats: Array<Record<string, any>> = data.fields[ statsFieldKeys.stats ] ? data.fields[ statsFieldKeys.stats ] : [];
-    const perRow: number = data.fields[ statsFieldKeys.perRow ] && ! isNaN( data.fields[ statsFieldKeys.perRow ] ) ? Number( data.fields[ statsFieldKeys.perRow ] ) : 4;
-    const blockStyle: string = data.fields[ statsFieldKeys.blockStyle ] ? data.fields[ statsFieldKeys.blockStyle ] : 'card';
+    const stats: Array<Record<string, any>> = post.fields[ statsFieldKeys.stats ] ? post.fields[ statsFieldKeys.stats ] : [];
+    const perRow: number = post.fields[ statsFieldKeys.perRow ] && ! isNaN( post.fields[ statsFieldKeys.perRow ] ) ? Number( post.fields[ statsFieldKeys.perRow ] ) : 4;
+    const blockStyle: string = post.fields[ statsFieldKeys.blockStyle ] ? post.fields[ statsFieldKeys.blockStyle ] : 'card';
     useEffect( () => {
-        // const script = document.createElement('script');
-        // script.src = templateDirectory + '/libs/countup/countup.min.js';
-        // document.head.appendChild( script );
-
-        // script.addEventListener( 'load', () => {
-            doCountUp();
-        //} );
+        doCountUp();
     }, [] );
     if ( stats ) {
         return (

@@ -1,31 +1,32 @@
 import React from 'react';
+import { MetaFieldKeyMap } from 'src/utils/types/MetaFieldKeyMap';
+import { PanelProps } from 'src/utils/types/PanelProps';
 import { doParse } from 'src/utils/helpers';
 import 'assets/styles/components/callout.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
 
-const Callout:React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Callout:React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
     panelPrefix = '', 
     panelSuffix = ''
 } ): JSX.Element => {
-    const calloutFieldKeys: Record<string, string> = {
+    const calloutFieldKeys: MetaFieldKeyMap = {
         pretitle: panelPrefix + '_callout_pretitle' + panelSuffix,
         callout: panelPrefix + '_callout' + panelSuffix,
         additional_text: panelPrefix + '_additional_text' + panelSuffix,
         footnote: panelPrefix + '_footnote' + panelSuffix,
         calloutStyle: panelPrefix + '_callout_style' + panelSuffix,
-    };
+    }
 
-    const pretitle: string = data.fields[ calloutFieldKeys.pretitle ] ? data.fields[ calloutFieldKeys.pretitle ] : '';
-    const callout: string = data.fields[ calloutFieldKeys.callout ] ? data.fields[ calloutFieldKeys.callout ] : '';
-    const additionalText: string = data.fields[ calloutFieldKeys.additional_text ] ? data.fields[ calloutFieldKeys.additional_text ] : '';
-    const footnote: string = data.fields[ calloutFieldKeys.footnote ] ? data.fields[ calloutFieldKeys.footnote ] : '';
+    const pretitle: string = post.fields[ calloutFieldKeys.pretitle ] ? post.fields[ calloutFieldKeys.pretitle ] : '';
+    const callout: string = post.fields[ calloutFieldKeys.callout ] ? post.fields[ calloutFieldKeys.callout ] : '';
+    const additionalText: string = post.fields[ calloutFieldKeys.additional_text ] ? post.fields[ calloutFieldKeys.additional_text ] : '';
+    const footnote: string = post.fields[ calloutFieldKeys.footnote ] ? post.fields[ calloutFieldKeys.footnote ] : '';
 
     // Callout Style
-    const calloutStyle: string = data.fields[ calloutFieldKeys.calloutStyle ] ? data.fields[ calloutFieldKeys.calloutStyle ] : 'plain';
+    const calloutStyle: string = post.fields[ calloutFieldKeys.calloutStyle ] ? post.fields[ calloutFieldKeys.calloutStyle ] : 'plain';
 
     return (
         <div className={ 'callout-wrapper' + ' ' + calloutStyle }>

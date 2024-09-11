@@ -9,7 +9,7 @@ class DO_Form_Field_Validate {
         // If $raw_value is an array 
         if ( is_array( $raw_value ) ) {
             // make sure it isn't empty,
-            $imploded = implode( '', do_flatten_array( $raw_value ) );
+            $imploded = implode( '', do_array_flatten( $raw_value ) );
             if ( strlen( $imploded ) ) {
                 $this->value = $this->validate( $raw_value, $type, TRUE );
             } 
@@ -279,7 +279,7 @@ class DO_Form_Field_Validate {
     private function multi( $force_value = FALSE ) {
         $value = $force_value !== FALSE ? $force_value : $this->raw_value;
         // Determine if the value array is empty
-        $value_string = is_array( $value ) ? implode( '', do_flatten_array( $value ) ) : $value;
+        $value_string = is_array( $value ) ? implode( '', do_array_flatten( $value ) ) : $value;
         // If the value array is empty, save an empty array
         $value = strlen( $value_string ) === 0 ? [] : ( is_array( $value ) ? $value : explode( ',', $value ) );
         // Sanitize each array item
@@ -298,7 +298,7 @@ class DO_Form_Field_Validate {
         foreach ( $value as $value_key => $value_piece ) {
             if ( is_array( $value_piece ) ) {
                 // make sure it isn't empty,
-                $imploded = implode( '', do_flatten_array( $value_piece ) );
+                $imploded = implode( '', do_array_flatten( $value_piece ) );
                 if ( strlen( $imploded ) ) {
                     $sanitized_value[ is_int( $value_key ) ? $i : $value_key ] = $this->multi_array( $value_piece );
                 } 

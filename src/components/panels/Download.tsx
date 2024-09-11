@@ -1,9 +1,9 @@
 import React from 'react';
 import CTA from 'src/components/shared/CTA';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
+import { PanelProps } from 'src/utils/types/PanelProps';
 
-const Download:React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Download:React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -15,8 +15,8 @@ const Download:React.FC<PanelLoaderProps> = ( {
         downloadFile: panelPrefix + '_file',
     };
 
-    const ctaLabel: string = data.fields[ downloadFieldKeys.ctaLabel ] ? data.fields[ downloadFieldKeys.ctaLabel ] : 'Download';
-    const downloadFile: string = data.fields[ downloadFieldKeys.downloadFile ] ? data.fields[ downloadFieldKeys.downloadFile ] : '';
+    const ctaLabel: string = post.fields[ downloadFieldKeys.ctaLabel ] ? post.fields[ downloadFieldKeys.ctaLabel ] : 'Download';
+    const downloadFile: string = post.fields[ downloadFieldKeys.downloadFile ] ? post.fields[ downloadFieldKeys.downloadFile ] : '';
     
     return (
         <p className="panel-cta">

@@ -2,7 +2,7 @@ import React, { ElementType } from 'react';
 import { doLength, doParse, doTrimChar } from 'src/utils/helpers';
 import CTA from 'src/components/shared/CTA';
 import CTAs from 'src/components/shared/CTAs';
-import HeadingProps from 'src/utils/types/HeadingProps';
+import { HeadingProps } from 'src/utils/types/HeadingProps';
 
 const Heading: React.FC<HeadingProps> = ( {
     align = '',

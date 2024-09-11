@@ -10,15 +10,15 @@ import PartialTemplateLoader from 'src/loaders/PartialTemplateLoader';
 import 'assets/styles/components/search.scss';
 import 'assets/styles/components/blocks.scss';
 import 'assets/styles/components/select-list.scss';
-import { PanelLoaderProps } from 'src/utils/types/PanelLoaderProps';
+import { PanelProps } from 'src/utils/types/PanelProps';
 import { MetaFieldKeyMap } from 'src/utils/types/MetaFieldKeyMap';
 import { SearchArgs } from 'src/utils/types/SearchArgs';
 import { APIResult } from 'src/utils/types/APIResult';
 import { CustomAttributes } from 'src/utils/types/CustomAttributes';
 import { Post } from 'src/utils/types/Post';
 
-const Search: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Search: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -34,17 +34,17 @@ const Search: React.FC<PanelLoaderProps> = ( {
     };
 
     // Search heading
-    const searchHeading: string = data.fields[ searchFieldKeys.heading ];
-    const panelPerRow: number = data.fields[ searchFieldKeys.perRow ] ? data.fields[ searchFieldKeys.perRow ] : 3;
-    const panelPostsModal: boolean = Boolean( data.fields[ searchFieldKeys.modal ] );
+    const searchHeading: string = post.fields[ searchFieldKeys.heading ];
+    const panelPerRow: number = post.fields[ searchFieldKeys.perRow ] ? post.fields[ searchFieldKeys.perRow ] : 3;
+    const panelPostsModal: boolean = Boolean( post.fields[ searchFieldKeys.modal ] );
 
     // Search Result Style
-    const templateType: string = data.fields[ searchFieldKeys.templateType ] ? data.fields[ searchFieldKeys.templateType ] : 'block';
+    const templateType: string = post.fields[ searchFieldKeys.templateType ] ? post.fields[ searchFieldKeys.templateType ] : 'block';
 
     // Get search results
     const [ searchResults, setSearchResults ] = useState<Record<string, any>>( {} );
     const searchArgs: SearchArgs = {
-        postID: data.ID, 
+        postID: post.ID, 
         metaPrefix: panelPrefix, 
         metaSuffix: panelSuffix, 
         query: {}
@@ -268,7 +268,7 @@ const Search: React.FC<PanelLoaderProps> = ( {
 
         return (
             <div id="search-results">
-                <Heading tag="h2" title={ doLength( searchHeading ) ? searchHeading : 'Search' } classes={ doLength( searchHeading ) ? '' : 'screen-reader-text'} />
+                <Heading tag="h2" title={ doLength( searchHeading ) ? searchHeading : 'Search' } classes={ doLength( searchHeading ) ? [] : [ 'screen-reader-text' ] } />
                 <SearchForm />
                 <div id="search-results-statement-orderby-wrapper">
                     <SearchResultsStatement />

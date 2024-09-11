@@ -144,6 +144,16 @@ function do_array_find( $needles, $haystack, $search_keys = FALSE, $keep_going =
 	}
 }
 
+function do_array_flatten( $array ) {
+    if ( is_array( $array ) ) {
+        return array_reduce( $array, function ( $c, $a ) { 
+            return array_merge( $c, do_array_flatten( $a ) ); 
+        }, [] );
+    } else {
+        return [ $array ];
+    }
+}
+
 // Returns the values of a column in an associative array or object (up to two levels deep)
 function do_array_get_column_values( $needles, $haystack, $level = 2 ) {
 	if ( ! is_array( $needles ) ) {
@@ -204,7 +214,7 @@ function do_array_get_column_values( $needles, $haystack, $level = 2 ) {
 }
 
 function do_array_has_value( $array ) {
-    $flat_array = do_flatten_array( $array );
+    $flat_array = do_array_flatten( $array );
     if ( is_array( $flat_array ) ) {
         $flat_array = implode( '', $flat_array );
     }
@@ -286,6 +296,18 @@ function do_array_merge_add( $arrays = [] ) {
         }
     }
     return $return_array;
+}
+
+function do_array_strip_slashes( $array ) {
+    $clean_array = [];
+    if ( ! is_array( $array ) ) {
+        return stripslashes( $array );
+    } else {
+        foreach( $array as $key => $value ) {
+            $clean_array[ $key ] = do_array_strip_slashes( $value );
+        }
+        return $clean_array;
+    }
 }
 
 // Finds the sum of the values for specific $keys in an $array
@@ -577,7 +599,7 @@ function do_distribute( $items = [], $columns = 2, $output = 'per_column' ) {
     	if ( $output == 'per_column' ) {
     		return $per_column;
     	} else {
-    	    if ( is_assoc( $items ) ) {
+    	    if ( is_assoc_array( $items ) ) {
                 $indexed_items = [];
                 $i = 0;
                 foreach ( $items as $key => $value ) {
@@ -703,16 +725,6 @@ function do_field_options( $field_options ) {
     }
     //do_var_dump($options);
     return $options;
-}
-
-function do_flatten_array( $array ) {
-    if ( is_array( $array ) ) {
-        return array_reduce( $array, function ( $c, $a ) { 
-            return array_merge( $c, do_flatten_array( $a ) ); 
-        }, [] );
-    } else {
-        return [ $array ];
-    }
 }
 
 function do_format_address( $address = [], $settings = [] ) {
@@ -1030,14 +1042,14 @@ function do_get_meta_field_type( $settings ) {
 function do_get_post_meta( $post_id, $meta_key = '' ) {
     if ( strlen( $meta_key ) ) {
         $meta_value = get_post_meta( $post_id, $meta_key );
-        return do_strip_slashes_in_array( $meta_value && count( $meta_value ) > 1 ? $meta_value : current( $meta_value ) );
+        return do_array_strip_slashes( $meta_value && count( $meta_value ) > 1 ? $meta_value : current( $meta_value ) );
     } else {
         $meta_values = [];
         $meta_values_raw = get_post_meta( $post_id );
         foreach ( $meta_values_raw as $meta_key => $meta_value ) {
             if ( strpos( $meta_key, 'BAK' ) === FALSE && strpos( $meta_key, '_' ) !== 0 ) {
                 $meta_value = do_get_post_meta( $post_id, $meta_key );
-                $meta_values[ $meta_key ] = do_strip_slashes_in_array( $meta_value && is_array( $meta_value ) && count( $meta_value ) > 1 ? $meta_value : ( is_array( $meta_value ) ? current( $meta_value ) : $meta_value ) );
+                $meta_values[ $meta_key ] = do_array_strip_slashes( $meta_value && is_array( $meta_value ) && count( $meta_value ) > 1 ? $meta_value : ( is_array( $meta_value ) ? current( $meta_value ) : $meta_value ) );
             }
         }
         return $meta_values;
@@ -1166,17 +1178,16 @@ function do_schema_formatter( $key, $value, $post ) {
 }
 
 // Retrieves and formats seo field value from options
-function do_get_seo_field_value( $field_options, $data ) {
+function do_get_seo_field_value( $field_options, $data = new stdClass ) {
     $has_options = ( is_string( $field_options ) && strpos( $field_options, '||' ) ) || ( is_array( $field_options ) && count( $field_options ) );
+    $fields = [];
     if ( $has_options ) {
         if ( is_string( $field_options ) ) {
             $fields = explode( '||', $field_options );
         } elseif ( is_array( $field_options ) ) {
             $fields = $field_options;
         }
-    } else {
-        $fields = is_string( $field_options ) ? [ $field_options ] : $field_options;
-    }
+    } 
     foreach ( $fields as $field ) {
         // $field is a string (aka a single field)
         if ( is_string( $field ) ) {
@@ -1336,7 +1347,7 @@ function do_hubspot_form_function_name( $post_id = FALSE, $append = FALSE, $moda
     return 'hubspot_form_' . str_replace( '-', '_', remove_accents( get_post_field( 'post_name', $post_id ) ) ) . ( $modal ? '_modal' : '' ) . ( $append ? '_' . $append : '' );
 }
 
-function do_in_array( $needles, $haystack, $all = FALSE, $strict = FALSE ) {
+function do_array_contains( $needles, $haystack, $all = FALSE, $strict = FALSE ) {
     if ( ! is_array( $needles ) ) {
         $needles = [ $needles ];
     }
@@ -1462,14 +1473,13 @@ function do_number_in_range( $number, $range = [ 0, 0 ] ) {
 }
 
 // Convert an object into an array
-function do_object_to_array( $obj ) {
+function do_array_from_object( $obj ) {
 	$array = [];
 	foreach ( $obj as $key => $value ) {
 		$array[ $key ] = $value;
 	}
 	return $array;
 }
-
 
 // Organize post type into $value => [ 'label' => $label, 'value' => $value ] format
 function do_organize_posts( $post_type = FALSE ) {
@@ -1757,18 +1767,6 @@ function do_str_lreplace( $search, $replace, $subject ) {
     return $subject;
 }
 
-function do_strip_slashes_in_array( $array ) {
-    $clean_array = [];
-    if ( ! is_array( $array ) ) {
-        return stripslashes( $array );
-    } else {
-        foreach( $array as $key => $value ) {
-            $clean_array[ $key ] = do_strip_slashes_in_array( $value );
-        }
-        return $clean_array;
-    }
-}
-
 function do_svg_dimensions( $image_url, $dimension = 'all' ) {
     $dimensions = FALSE;
     $image_url_array = explode( '/', $image_url );
@@ -1967,7 +1965,7 @@ function do_video_type( $video = FALSE ) {
 
 // Determines if an array is associative or not
 // from https://stackoverflow.com/questions/173400/how-to-check-if-php-array-is-associative-or-sequential
-function is_assoc( $array = [] ) {
+function is_assoc_array( $array = [] ) {
     if ( ! count( $array ) ) {
         return FALSE;
     }

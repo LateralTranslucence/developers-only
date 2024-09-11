@@ -5,14 +5,14 @@ import Image from 'src/components/shared/Image';
 import SliderNav from 'src/components/shared/SliderNav';
 import 'assets/styles/components/blocks.scss';
 import 'assets/styles/components/testimonial-carousel.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import MetaFieldKeyMap from 'src/utils/types/MetaFieldKeyMap';
-import Media from 'src/utils/types/Media';
-import CTASettings from 'src/utils/types/CTASettings';
-import Testimonial from 'src/utils/types/Testimonial';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { MetaFieldKeyMap } from 'src/utils/types/MetaFieldKeyMap';
+import { Media } from 'src/utils/types/Media';
+import { CTASettings } from 'src/utils/types/CTASettings';
+import { Testimonial } from 'src/utils/types/Testimonial';
 
-const TestimonialCarousel: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const TestimonialCarousel: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -22,7 +22,7 @@ const TestimonialCarousel: React.FC<PanelLoaderProps> = ( {
     const testimonialCarouselFieldKeys: MetaFieldKeyMap = {
         testimonial_carousel: panelPrefix + '_testimonial_carousel' + panelSuffix,
     };
-    const testimonialCarouselItems: Array<Testimonial> = data.fields[ testimonialCarouselFieldKeys.testimonial_carousel ] ? data.fields[ testimonialCarouselFieldKeys.testimonial_carousel ] : [];
+    const testimonialCarouselItems: Array<Testimonial> = post.fields[ testimonialCarouselFieldKeys.testimonial_carousel ] ? post.fields[ testimonialCarouselFieldKeys.testimonial_carousel ] : [];
 
     // Testimonial Carousel List
     const TestimonialCarouselList: React.FC = (): JSX.Element => {

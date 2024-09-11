@@ -2,7 +2,7 @@ import { WPAPIEndpoint } from 'src/globalVariables';
 import { APIResult } from 'src/utils/types/APIResult';
 import { Post } from 'src/utils/types/Post';
 
-const doGetPosts: ( postType: string, slug: string, queryString?: string ) => Promise<APIResult> = async ( postType = '' ): Promise<APIResult> => {
+const doGetPosts: ( postType: string ) => Promise<APIResult> = async ( postType = '' ): Promise<APIResult> => {
     try {
         const postsEndpoint: string = `${WPAPIEndpoint}/${postType}/`;
 

@@ -6,11 +6,11 @@ import Heading from 'src/components/shared/Heading';
 import Image from 'src/components/shared/Image';
 import 'assets/styles/components/blocks.scss';
 import 'assets/styles/components/decision-tree.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import CustomAttributes from 'src/utils/types/CustomAttributes';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { CustomAttributes } from 'src/utils/types/CustomAttributes';
 
-const DecisionTree:React.FC<PanelLoaderProps> = ( { 
-    data, 
+const DecisionTree:React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -23,7 +23,7 @@ const DecisionTree:React.FC<PanelLoaderProps> = ( {
     };
 
     // Cards
-    const cards: Record<string, any> = data.fields[ treeFieldKeys.cards ] ? data.fields[ treeFieldKeys.cards ] : {};
+    const cards: Record<string, any> = post.fields[ treeFieldKeys.cards ] ? post.fields[ treeFieldKeys.cards ] : {};
 
     const [ openTree, setOpenTree ] = useState<number | boolean | null>( null );
     const openTheTree = ( e: React.MouseEvent<HTMLButtonElement, MouseEvent> ) => {

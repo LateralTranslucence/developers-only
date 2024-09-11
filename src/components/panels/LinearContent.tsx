@@ -8,10 +8,10 @@ import Image from 'src/components/shared/Image';
 import MediaLoader from 'src/components/shared/MediaLoader';
 import 'assets/styles/components/select-list.scss';
 import 'assets/styles/components/linear-content.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
+import { PanelProps } from 'src/utils/types/PanelProps';
 
-const LinearContent: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const LinearContent: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -23,7 +23,7 @@ const LinearContent: React.FC<PanelLoaderProps> = ( {
     };
 
     // Block
-    const linearContentBlocks = data.fields[ linearContentFieldKeys.content_blocks ] ? data.fields[ linearContentFieldKeys.content_blocks ] : [];
+    const linearContentBlocks = post.fields[ linearContentFieldKeys.content_blocks ] ? post.fields[ linearContentFieldKeys.content_blocks ] : [];
     const firstBlock = linearContentBlocks[0] ? linearContentBlocks[0] : {};
 
     useEffect( () => {

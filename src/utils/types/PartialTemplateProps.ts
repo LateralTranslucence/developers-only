@@ -5,5 +5,5 @@ export interface PartialTemplateProps {
     panelSlider?: boolean;
     perRow?: number;
     post: Post;
-    type: string;
+    type?: string;
 }

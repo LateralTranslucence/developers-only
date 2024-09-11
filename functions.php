@@ -28,30 +28,30 @@ add_action( 'wp_enqueue_scripts', 'do_scripts', 1 );
 // Admin Scripts
 function do_admin_scripts() {
     // List Library
-    wp_register_script( 'list', get_template_directory_uri() . 'assets/js/libs/list.js', [], '12232019' );
+    wp_register_script( 'list', get_template_directory_uri() . '/assets/js/libs/list.js', [], '12232019' );
     // DO Admin
-    wp_enqueue_script( 'do-admin', get_template_directory_uri() . 'assets/js/do-admin.js', [ 'jquery', 'list', 'jquery-ui-sortable' ], DO_VER, TRUE );
+    wp_enqueue_script( 'do-admin', get_template_directory_uri() . '/assets/js/do-admin.js', [ 'jquery', 'list', 'jquery-ui-sortable' ], DO_VER, TRUE );
     wp_enqueue_style( 'do-admin', get_template_directory_uri() . '/build/admin.css', [ 'dashicons' ], DO_VER, 'all' );
     // Font Awesome Index
     if ( get_current_screen()->id === 'appearance_page_fontawesome-icons' ) {
-        wp_enqueue_style( 'do-icons', get_template_directory_uri() . 'assets/styles/fonts/FontAwesome/style.css', [], DO_VER, 'all' );
+        wp_enqueue_style( 'do-icons', get_template_directory_uri() . '/assets/styles/fonts/FontAwesome/style.css', [], DO_VER, 'all' );
     }
     // Media Library Tabs
-    wp_enqueue_script( 'media-library-tabs', get_template_directory_uri() . 'assets/js/do-media-library-tabs.js', array( 'jquery', 'media-upload', 'media-views' ), DO_VER, TRUE );
+    wp_enqueue_script( 'media-library-tabs', get_template_directory_uri() . '/assets/js/do-media-library-tabs.js', array( 'jquery', 'media-upload', 'media-views' ), DO_VER, TRUE );
     // Image upload
     wp_enqueue_media();
-    wp_enqueue_script( 'media-upload-field', get_template_directory_uri() . 'assets/js/do-media-upload-field.js', [ 'jquery', 'jquery-ui-core', 'jquery-ui-sortable' ], '08062024', TRUE );
+    wp_enqueue_script( 'media-upload-field', get_template_directory_uri() . '/assets/js/do-media-upload-field.js', [ 'jquery', 'jquery-ui-core', 'jquery-ui-sortable' ], '08062024', TRUE );
     // Binary checkbox in admin column
-    wp_enqueue_script( 'binary-toggle', get_template_directory_uri() . 'assets/js/do-binary-toggle.js', [ 'jquery' ], '08062024', TRUE );
+    wp_enqueue_script( 'binary-toggle', get_template_directory_uri() . '/assets/js/do-binary-toggle.js', [ 'jquery' ], '08062024', TRUE );
     // Color picker
     wp_enqueue_style( 'wp-color-picker' );
     wp_enqueue_script( 'wp-color-picker' );
-    wp_enqueue_script( 'do-color-picker', get_template_directory_uri() . 'assets/js/do-color-picker.js', [ 'jquery', 'wp-color-picker' ], '08062024', TRUE );
+    wp_enqueue_script( 'do-color-picker', get_template_directory_uri() . '/assets/js/do-color-picker.js', [ 'jquery', 'wp-color-picker' ], '08062024', TRUE );
     // Date picker
-    wp_enqueue_style( 'jquery-ui-styles', get_template_directory_uri() . 'assets/js/libs/timepicker/jquery-ui.css', [], '08062024' );
-    wp_enqueue_style( 'jquery-ui-timepicker-styles', get_template_directory_uri() . 'assets/js/libs/timepicker/jquery-ui-timepicker-addon.css', [ 'jquery-ui-styles' ], '08062024' );
-    wp_enqueue_script( 'jquery-ui-timepicker', get_template_directory_uri() . 'assets/js/libs/timepicker/jquery-ui-timepicker-addon.js', [ 'jquery-ui-datepicker', 'jquery-ui-slider' ], '08062024', TRUE );
-    wp_enqueue_script( 'date-picker', get_template_directory_uri() . 'assets/js/do-date-picker.js', [ 'jquery-ui-timepicker' ], '08062024', TRUE );
+    wp_enqueue_style( 'jquery-ui-styles', get_template_directory_uri() . '/assets/js/libs/timepicker/jquery-ui.css', [], '08062024' );
+    wp_enqueue_style( 'jquery-ui-timepicker-styles', get_template_directory_uri() . '/assets/js/libs/timepicker/jquery-ui-timepicker-addon.css', [ 'jquery-ui-styles' ], '08062024' );
+    wp_enqueue_script( 'jquery-ui-timepicker', get_template_directory_uri() . '/assets/js/libs/timepicker/jquery-ui-timepicker-addon.js', [ 'jquery-ui-datepicker', 'jquery-ui-slider' ], '08062024', TRUE );
+    wp_enqueue_script( 'date-picker', get_template_directory_uri() . '/assets/js/do-date-picker.js', [ 'jquery-ui-timepicker' ], '08062024', TRUE );
 
 }
 add_action( 'admin_enqueue_scripts', 'do_admin_scripts' );
@@ -70,7 +70,7 @@ function do_load_classes() {
         'gated',
     	'media-library-tab',
     	'options-screen',
-        'admin-page', // extends options-screen
+        'admin-pages', // extends options-screen
     	'post-browser',
     	'redirect',
     	'rewrite',
@@ -97,9 +97,8 @@ function do_load_classes() {
     // Include Post Types
     do_load_class_files( [
         // Resources
-        'analyst-report',
         //'announcement',
-        //'blog',
+        'blog',
         //'customer-story',
         //'event',
         //'glossary',
@@ -111,7 +110,7 @@ function do_load_classes() {
         //'white-paper',
 
         // Landing Pages
-        //'landing-page',
+        'landing-page',
         //'about',
         //'campaign-page',
 
@@ -125,6 +124,7 @@ function do_load_classes() {
         //'legal',
         //'simple-page',
         //'testimonial',
+        'attachment',
 	], 'post-types' );
 
     // Include External APIs
@@ -196,15 +196,6 @@ function do_create_objects() {
         'social-nav' => __( 'Social Navigation' ),
         'legal-nav' => __( 'Legal Footer Navigation' ),
 	] );
-    // Attachments
-    $attachments = new DO_Custom_Post_Type( 'attachment', [ 'rewrite' => [ 'slug' => 'media' ] ] );
-    $attachments->settings( [
-        'noindex' => TRUE,
-        'has_archive' => FALSE,
-        'schema' => [
-            '@type' => 'MediaObject',
-        ],
-    ] );
 }
 add_action( 'after_setup_theme', 'do_create_objects', 1 );
 

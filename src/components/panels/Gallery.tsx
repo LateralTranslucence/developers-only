@@ -5,11 +5,11 @@ import CTA from 'src/components/shared/CTA';
 import MediaLoader from 'src/components/shared/MediaLoader';
 import 'assets/styles/components/blocks.scss';
 import 'assets/styles/components/gallery.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import CTASettings from 'src/utils/types/CTASettings';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { CTASettings } from 'src/utils/types/CTASettings';
 
-const Gallery: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Gallery: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -20,8 +20,8 @@ const Gallery: React.FC<PanelLoaderProps> = ( {
         media: panelPrefix + '_media_gallery' + panelSuffix,
         cta: panelPrefix + '_cta' + panelSuffix,
     };
-    const media: Array<Record<string, any>> = data.fields[ galleryFieldKeys.media ];
-    const cta: Array<CTASettings> = data.fields[ galleryFieldKeys.cta ] ? data.fields[ galleryFieldKeys.cta ] : {};
+    const media: Array<Record<string, any>> = post.fields[ galleryFieldKeys.media ];
+    const cta: Array<CTASettings> = post.fields[ galleryFieldKeys.cta ] ? post.fields[ galleryFieldKeys.cta ] : {};
 
     
     if ( doLength( media ) ) {

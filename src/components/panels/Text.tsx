@@ -1,12 +1,12 @@
 import React from 'react';
 import CTAs from 'src/components/shared/CTAs';
 import 'assets/styles/components/text.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import MetaFieldKeyMap from 'src/utils/types/MetaFieldKeyMap';
-import CTASettings from 'src/utils/types/CTASettings';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { MetaFieldKeyMap } from 'src/utils/types/MetaFieldKeyMap';
+import { CTASettings } from 'src/utils/types/CTASettings';
 
-const Text: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Text: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -16,7 +16,7 @@ const Text: React.FC<PanelLoaderProps> = ( {
     const textFieldKeys: MetaFieldKeyMap = {
         cta: panelPrefix + '_cta' + panelSuffix,
     };
-    const cta: Array<CTASettings> = data.fields[ textFieldKeys.cta ] ? data.fields[ textFieldKeys.cta ] : [];
+    const cta: Array<CTASettings> = post.fields[ textFieldKeys.cta ] ? post.fields[ textFieldKeys.cta ] : [];
     
     return <CTAs ctas={ cta } />
 }

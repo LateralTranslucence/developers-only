@@ -2,7 +2,7 @@ import { WPAPIEndpoint } from 'src/globalVariables';
 import { APIResult } from 'src/utils/types/APIResult';
 import { Post } from 'src/utils/types/Post';
 
-const doGetForm: ( formID: string ) => Promise<APIResult> = async ( formID ): Promise<APIResult> => {
+const doGetForm: ( formID: number ) => Promise<APIResult> = async ( formID ): Promise<APIResult> => {
     try {
         const formEndpoint: string = WPAPIEndpoint + '/do-form/?formID=' + formID;
             

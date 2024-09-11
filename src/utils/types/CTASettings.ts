@@ -16,5 +16,5 @@ export interface CTASettings {
     text?: string;
     title?: string;
     uk?: boolean;
-    url: string | URLObject;
+    url?: string | URLObject;
 }

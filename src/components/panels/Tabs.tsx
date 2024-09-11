@@ -10,16 +10,16 @@ import CTA from 'src/components/shared/CTA';
 import Heading from 'src/components/shared/Heading';
 import MediaLoader from 'src/components/shared/MediaLoader';
 import SliderNav from 'src/components/shared/SliderNav';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import MetaFieldKeyMap from 'src/utils/types/MetaFieldKeyMap';
-import Tab from 'src/utils/types/Tab';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { MetaFieldKeyMap } from 'src/utils/types/MetaFieldKeyMap';
+import { Tab } from 'src/utils/types/Tab';
 import 'assets/styles/components/select-list.scss';
 import 'assets/styles/components/blocks.scss';
 import 'assets/styles/components/tabs.scss';
-import Post from 'src/utils/types/Post';
+import { Post } from 'src/utils/types/Post';
 
-const Tabs: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const Tabs: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -30,8 +30,8 @@ const Tabs: React.FC<PanelLoaderProps> = ( {
         tabs: panelPrefix + '_tabs' + panelSuffix,
         media_size: panelPrefix + '_media_size' + panelSuffix,
     };
-    const tabs: Array<Tab> = data.fields[ tabsFieldKeys.tabs ] ? data.fields[ tabsFieldKeys.tabs ] : [];
-    const mediaSize: string = data.fields[ tabsFieldKeys.media_size ] ? data.fields[ tabsFieldKeys.media_size ] : '';
+    const tabs: Array<Tab> = post.fields[ tabsFieldKeys.tabs ] ? post.fields[ tabsFieldKeys.tabs ] : [];
+    const mediaSize: string = post.fields[ tabsFieldKeys.media_size ] ? post.fields[ tabsFieldKeys.media_size ] : '';
 
     useEffect( () => {
         new DoSelectList();

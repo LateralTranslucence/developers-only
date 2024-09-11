@@ -52,7 +52,7 @@
     "lint:css": "wp-scripts lint-style",
     "lint:js": "wp-scripts lint-js",
     "lint:pkg-json": "wp-scripts lint-pkg-json",
-    "start": "webpack serve --open --config webpack.dev.js",
+    "start": "webpack serve --config webpack.dev.js --stats-error-details",
     "build-ts": "tsc"
   },
   "author": "",

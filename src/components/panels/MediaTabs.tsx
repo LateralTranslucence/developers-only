@@ -13,11 +13,11 @@ import CTA from 'src/components/shared/CTA';
 import 'assets/styles/components/select-list.scss';
 import 'assets/styles/components/videos.scss';
 import 'assets/styles/components/media-tabs.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import CTASettings from 'src/utils/types/CTASettings';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { CTASettings } from 'src/utils/types/CTASettings';
 
-const MediaTabs: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const MediaTabs: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -28,10 +28,10 @@ const MediaTabs: React.FC<PanelLoaderProps> = ( {
         tabs: panelPrefix + '_tabs' + panelSuffix,
         tabsOrientation: panelPrefix + '_tabs_orientation' + panelSuffix,
     };
-    const tabs: Array<Record<string, any>> = data.fields[ tabsFieldKeys.tabs ] ? data.fields[ tabsFieldKeys.tabs ] : [];
+    const tabs: Array<Record<string, any>> = post.fields[ tabsFieldKeys.tabs ] ? post.fields[ tabsFieldKeys.tabs ] : [];
 
     // Tabs nav orientation
-    const tabsOrientation: string = data.fields[ tabsFieldKeys.tabsOrientation ] ? data.fields[ tabsFieldKeys.tabsOrientation ] : '';
+    const tabsOrientation: string = post.fields[ tabsFieldKeys.tabsOrientation ] ? post.fields[ tabsFieldKeys.tabsOrientation ] : '';
     const buttonStyle: string = tabsOrientation === 'vertical' ? 'text-button' : ( tabsOrientation === 'horizontal' ? 'solid-button' : '' );
     
     useEffect( () => {

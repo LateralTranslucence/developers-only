@@ -4,12 +4,12 @@ import CTA from 'src/components/shared/CTA';
 import Heading from 'src/components/shared/Heading';
 import MediaLoader from 'src/components/shared/MediaLoader';
 import 'assets/styles/components/featured-post.scss';
-import PanelLoaderProps from 'src/utils/types/PanelLoaderProps';
-import Media from 'src/utils/types/Media';
-import CustomAttributes from 'src/utils/types/CustomAttributes';
+import { PanelProps } from 'src/utils/types/PanelProps';
+import { Media } from 'src/utils/types/Media';
+import { CustomAttributes } from 'src/utils/types/CustomAttributes';
 
-const FeaturedPost: React.FC<PanelLoaderProps> = ( { 
-    data, 
+const FeaturedPost: React.FC<PanelProps> = ( { 
+    post, 
     pageID = '', 
     panelID = '', 
     panelNumber, 
@@ -30,16 +30,16 @@ const FeaturedPost: React.FC<PanelLoaderProps> = ( {
     };
     
     // Featured Post
-    const featuredPost: Record<string, any> = data.fields[ featuredFieldKeys.post ] ? data.fields[ featuredFieldKeys.post ] : {};
-    const overlayHero: boolean = data.fields[ featuredFieldKeys.overlay_hero ] ? Boolean( data.fields[ featuredFieldKeys.overlay_hero ] ) : false;
+    const featuredPost: Record<string, any> = post.fields[ featuredFieldKeys.post ] ? post.fields[ featuredFieldKeys.post ] : {};
+    const overlayHero: boolean = post.fields[ featuredFieldKeys.overlay_hero ] ? Boolean( post.fields[ featuredFieldKeys.overlay_hero ] ) : false;
 
     // Overrides
-    const overrideImage: Media = data.fields[ featuredFieldKeys.override_image ] ? data.fields[ featuredFieldKeys.override_image ] : {};
-    const overridePretitle: string = data.fields[ featuredFieldKeys.override_pretitle ] ? data.fields[ featuredFieldKeys.override_pretitle ] : '';
-    const overrideTitle: string = data.fields[ featuredFieldKeys.override_title ] ? data.fields[ featuredFieldKeys.override_title ] : '';
-    const overrideDescription: string = data.fields[ featuredFieldKeys.override_description ] ? data.fields[ featuredFieldKeys.override_description ] : '';
-    const overrideCTAText: string = data.fields[ featuredFieldKeys.override_cta_text ] ? data.fields[ featuredFieldKeys.override_cta_text ] : '';
-    const overrideURL: string = data.fields[ featuredFieldKeys.override_url ] ? data.fields[ featuredFieldKeys.override_url ] : '';
+    const overrideImage: Media = post.fields[ featuredFieldKeys.override_image ] ? post.fields[ featuredFieldKeys.override_image ] : {};
+    const overridePretitle: string = post.fields[ featuredFieldKeys.override_pretitle ] ? post.fields[ featuredFieldKeys.override_pretitle ] : '';
+    const overrideTitle: string = post.fields[ featuredFieldKeys.override_title ] ? post.fields[ featuredFieldKeys.override_title ] : '';
+    const overrideDescription: string = post.fields[ featuredFieldKeys.override_description ] ? post.fields[ featuredFieldKeys.override_description ] : '';
+    const overrideCTAText: string = post.fields[ featuredFieldKeys.override_cta_text ] ? post.fields[ featuredFieldKeys.override_cta_text ] : '';
+    const overrideURL: string = post.fields[ featuredFieldKeys.override_url ] ? post.fields[ featuredFieldKeys.override_url ] : '';
 
     // Check to see if this is the first panel
     const firstPanel: boolean = Boolean( panelNumber === 1 ) && overlayHero;
@@ -52,7 +52,7 @@ const FeaturedPost: React.FC<PanelLoaderProps> = ( {
     const description: string = doLength( overrideDescription ) ? overrideDescription : featuredPost.post_excerpt;
     const ctaText: string = doLength( overrideCTAText ) ? overrideCTAText : 'Read More';
     const url: string = doLength( overrideURL ) ? overrideURL : ( featuredPost.permalink ? featuredPost.permalink : '' );
-    const linkTarget: string = doLength( data.fields[ featuredFieldKeys.link_target ] ) ? data.fields[ featuredFieldKeys.link_target ] : '_self';
+    const linkTarget: string = doLength( post.fields[ featuredFieldKeys.link_target ] ) ? post.fields[ featuredFieldKeys.link_target ] : '_self';
     const target: CustomAttributes = linkTarget === 'modal' ? { modal: true } : { target: linkTarget };
 
     if ( doLength( image ) && doLength( title ) ) {

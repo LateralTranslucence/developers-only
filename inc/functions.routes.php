@@ -271,9 +271,8 @@ function do_form_query( $data ) {
     if ( ! $form_id ) {
         return [];
     }
-    global $do_forms;
     // Get the form
-    $form = $do_forms->display( $form_id );
+    $form = DO_Form_Builder::display( $form_id );
 
     return $form;
 }
@@ -293,10 +292,9 @@ function do_form_submit_query( $data ) {
     $form_id = isset( $query_params['do-form-id'] ) ? $query_params['do-form-id'] : FALSE;
     $form_post_id = isset( $query_params['do-form-post-id'] ) ? $query_params['do-form-post-id'] : FALSE;
     if ( $form_post_id ) {
-        global $do_forms;
         // Get the form
-        $form = $do_forms->display( $form_post_id );
-        $form_fields = $do_forms->get_fields( $form_post_id, FALSE );
+        $form = DO_Form_Builder::display( $form_post_id );
+        $form_fields = DO_Form_Builder::get_fields( $form_post_id, FALSE );
         $form_values_array = [];
         $serialize_me = [];
         $email_address = FALSE;
@@ -328,8 +326,8 @@ function do_form_submit_query( $data ) {
             }
         }
         // Organize the fields and add to form object
-        $raw_fieldsets = $do_forms->get_fieldsets( $form_post_id );
-        $form_items = $do_forms->organize_fields( $form_fields, $raw_fieldsets );
+        $raw_fieldsets = DO_Form_Builder::get_fieldsets( $form_post_id );
+        $form_items = DO_Form_Builder::organize_fields( $form_fields, $raw_fieldsets );
         $form['items'] = $form_items;
         // If there is an error, return the form
         if ( $form['error'] ) {
