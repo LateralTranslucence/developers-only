@@ -298,15 +298,23 @@ function do_array_merge_add( $arrays = [] ) {
     return $return_array;
 }
 
-function do_array_strip_slashes( $array ) {
-    $clean_array = [];
-    if ( ! is_array( $array ) ) {
-        return stripslashes( $array );
+function do_strip_slashes( $var ) {
+    if ( $var instanceof stdClass ) {
+        $clean_var = new stdClass;
     } else {
-        foreach( $array as $key => $value ) {
-            $clean_array[ $key ] = do_array_strip_slashes( $value );
+        $clean_var = [];
+    }
+    if ( ! is_array( $var ) && ! ( $var instanceof stdClass ) ) {
+        return stripslashes( $var );
+    } else {
+        foreach( $var as $key => $value ) {
+            if ( $var instanceof stdClass ) {
+                $clean_var->{ $key } = do_strip_slashes( $value );
+            } else {
+                $clean_var[ $key ] = do_strip_slashes( $value );
+            }
         }
-        return $clean_array;
+        return $clean_var;
     }
 }
 
@@ -554,6 +562,19 @@ function do_curl( $url, $bearer_token ) {
     return json_decode( $response );
 }
 
+// Get the current url
+function do_current_url( $relative = FALSE, $protocol_less = FALSE ) {
+    $host = $_SERVER['HTTP_HOST'];
+    $request_uri = $_SERVER['REQUEST_URI'];
+    $protocol = strpos( home_url(), 'https://' ) !== FALSE ? 'https://' : 'http://';
+    if ( $relative ) {
+        $url = str_replace( home_url(), '', ( $protocol_less ? '' : $protocol ) . $host . $request_uri );
+    } else {
+        $url = ( $protocol_less ? '' : $protocol ) . $host . $request_uri;
+    }
+    return $url;
+}
+
 function do_current_user_role() {
     $current_user = wp_get_current_user();
     return $current_user->roles;
@@ -665,8 +686,6 @@ function do_field_key( $field_label ) {
 
 // Calls functions or methods for retrieving field options
 function do_field_options( $field_options ) {
-    // do_var_dump($field_options);
-    // do_var_dump(post_type_exists( $field_options ));
     // Function, no arguments
     if ( is_string( $field_options ) && function_exists( $field_options ) ) {
         $options = call_user_func( $field_options );
@@ -727,8 +746,7 @@ function do_field_options( $field_options ) {
     return $options;
 }
 
-function do_format_address( $address = [], $settings = [] ) {
-    $break = isset( $settings['break'] ) ? $settings['break'] : '<br>';
+function do_format_address( $address = [], $break = '<br>' ) {
     $address_string = '';
     if ( isset( $address['name'] ) && strlen( $address['name'] ) ) {
         $address_string .= '<b>' . $address['name'] . '</b>';
@@ -1041,18 +1059,18 @@ function do_get_meta_field_type( $settings ) {
 // Un-serialize meta value
 function do_get_post_meta( $post_id, $meta_key = '' ) {
     if ( strlen( $meta_key ) ) {
-        $meta_value = get_post_meta( $post_id, $meta_key );
-        return do_array_strip_slashes( $meta_value && count( $meta_value ) > 1 ? $meta_value : current( $meta_value ) );
+        $meta_value_raw = get_post_meta( $post_id, $meta_key, TRUE );
+        return is_json( $meta_value_raw ) ? do_strip_slashes( json_decode( $meta_value_raw ) ) : do_strip_slashes( $meta_value_raw );
     } else {
         $meta_values = [];
         $meta_values_raw = get_post_meta( $post_id );
         foreach ( $meta_values_raw as $meta_key => $meta_value ) {
             if ( strpos( $meta_key, 'BAK' ) === FALSE && strpos( $meta_key, '_' ) !== 0 ) {
                 $meta_value = do_get_post_meta( $post_id, $meta_key );
-                $meta_values[ $meta_key ] = do_array_strip_slashes( $meta_value && is_array( $meta_value ) && count( $meta_value ) > 1 ? $meta_value : ( is_array( $meta_value ) ? current( $meta_value ) : $meta_value ) );
+                $meta_values[ $meta_key ] = is_json( $meta_value ) ? json_decode( $meta_value ) : $meta_value;
             }
         }
-        return $meta_values;
+        return do_strip_slashes( $meta_values );
     }
 }
 
@@ -1865,19 +1883,6 @@ function do_truncate( $text = FALSE, $settings = [] ) {
     return $truncated_text;
 }
 
-// Get the current url
-function do_current_url( $relative = FALSE, $protocol_less = FALSE ) {
-    $host = $_SERVER['HTTP_HOST'];
-    $request_uri = $_SERVER['REQUEST_URI'];
-    $protocol = strpos( home_url(), 'https://' ) !== FALSE ? 'https://' : 'http://';
-    if ( $relative ) {
-        $url = str_replace( home_url(), '', ( $protocol_less ? '' : $protocol ) . $host . $request_uri );
-    } else {
-        $url = ( $protocol_less ? '' : $protocol ) . $host . $request_uri;
-    }
-    return $url;
-}
-
 // Determines if a url is good based on the headers it returns (not always accurate)
 function do_url_checker( $url ) {
 	$headers = @get_headers( $url );
@@ -1970,6 +1975,12 @@ function is_assoc_array( $array = [] ) {
         return FALSE;
     }
     return array_keys( $array ) !== range( 0, count( $array ) - 1 );
+}
+
+// ...pretty self-explanatory I think
+function is_json( string $string ): bool {
+    json_decode( $string );
+    return ( json_last_error() === JSON_ERROR_NONE );
 }
 
 // Helps remove filters originating in plugins

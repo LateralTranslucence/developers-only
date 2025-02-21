@@ -41,7 +41,7 @@ class DO_Gated {
         $this->cpt_object->meta_fields( [
             'Gated?' => 'binary',
             'Form Title' => 'text',
-            'Hubspot Form Embed Code' => 'hubspot_code',
+            'Form Embed Code' => 'form_embed_code',
         ], 'Gating' );
         $this->cpt_object->meta_fields( [
             'Thank You Page Title' => 'text',

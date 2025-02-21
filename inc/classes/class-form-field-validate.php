@@ -15,7 +15,7 @@ class DO_Form_Field_Validate {
             } 
             // otherwise save as empty array.
             else {
-                $this->value = serialize( [] );
+                $this->value = json_encode( [] );
             }
         } 
         // If $raw_value is a string, 
@@ -32,18 +32,18 @@ class DO_Form_Field_Validate {
         
     }
 
-    private function validate( $value, $type, $serialize = FALSE ) {
+    private function validate( $value, $type, $json_encode = FALSE ) {
         // Find the custom method for the data type
         if ( method_exists( $this, $type ) ) {
-            return $serialize ? serialize( $this->{ $type }() ) : $this->{ $type }();
+            return $json_encode ? json_encode( $this->{ $type }() ) : $this->{ $type }();
         } 
         // or just generically sanitize the field
         else {
             if ( is_array( $value ) ) {
-                $sanitized_array = array_map( 'wp_kses_post', $value );
-                return $serialize ? serialize( $sanitized_array ) : $sanitized_array;
+                $sanitized_array = array_map( [ $this, 'clean_html' ], $value );
+                return $json_encode ? json_encode( $sanitized_array ) : $sanitized_array;
             } else {
-                return $serialize ? serialize( wp_kses_post( $this->raw_value ) ) : wp_kses_post( $this->raw_value );
+                return $json_encode ? json_encode( $this->clean_html( $this->raw_value ) ) : $this->clean_html( $this->raw_value );
             }
         }
     }
@@ -102,12 +102,7 @@ class DO_Form_Field_Validate {
         $value = $force_value !== FALSE ? $force_value : $this->raw_value;
         return $this->basic_array_validation( $value );
     }
-    
-    private function client_stories( $force_value = FALSE ) {
-        $value = $force_value !== FALSE ? $force_value : $this->raw_value;
-        return $this->multi_array( $value );
-    }
-    
+
     private function code( $force_value = FALSE ) {
         $value = $force_value !== FALSE ? $force_value : $this->raw_value;
         return $value;
@@ -223,7 +218,7 @@ class DO_Form_Field_Validate {
         return $this->wp_editor( $value );
     }
 
-    private function hubspot_code( $force_value = FALSE ) {
+    private function form_embed_code( $force_value = FALSE ) {
         $value = $force_value !== FALSE ? $force_value : $this->raw_value;
         // No Slashes
         $value = str_replace( '\\', '', $value );
@@ -307,7 +302,7 @@ class DO_Form_Field_Validate {
                     $sanitized_value[ is_int( $value_key ) ? $i : $value_key ] = [];
                 }
             } else {
-                $sanitized_value[ is_int( $value_key ) ? $i : $value_key ] = wp_kses_post( $value_piece );
+                $sanitized_value[ is_int( $value_key ) ? $i : $value_key ] = $this->clean_html( $value_piece );
             }
             $i++;
         }
@@ -446,7 +441,7 @@ class DO_Form_Field_Validate {
 
     private function wp_editor( $force_value = FALSE ) {
         $value = $force_value !== FALSE ? $force_value : $this->raw_value;
-        return wp_kses_post( $value );
+        return $this->clean_html( $value );
     }
 
     private function year( $force_value = FALSE ) {
@@ -467,14 +462,14 @@ class DO_Form_Field_Validate {
 
     private function basic_array_validation( $array ) {
         if ( ! is_array( $array ) ) {
-            return wp_kses_post( $array );
+            return $this->clean_html( $array );
         }
         $clean_array = [];
         foreach ( $array as $key => $value ) {
             if ( is_array( $value ) ) {
                 return $this->basic_array_validation( $value );
             } else {
-                $clean_array[ $key ] = wp_kses_post( $value );
+                $clean_array[ $key ] = $this->clean_html( $value );
             }
         }
         return $clean_array;
@@ -503,5 +498,9 @@ class DO_Form_Field_Validate {
         else {
             return $force_value;
         }
+    }
+
+    private function clean_html( $string ) {
+        return html_entity_decode( wp_kses_post( $string ) );
     }
 }

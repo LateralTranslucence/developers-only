@@ -1,0 +1,2 @@
+import{r,j as a}from"./vendor-CBRddasq.js";import{a as d,P as p}from"./index-BG22mTkn.js";const i=({options:t,formID:s})=>{const o=d(t)?typeof t=="string"?JSON.parse(t):t:{},n=r.useContext(p);return r.useEffect(()=>{const e=document.createElement("script");e.src="https://js.hsforms.net/forms/embed/v2.js",document.head.appendChild(e),e.addEventListener("load",()=>{window.hbspt&&window.hbspt.forms.create({...o,target:"#"+s})})},[n]),a.jsx("div",{id:s})};export{i as R};
+//# sourceMappingURL=RenderHubspotForm-B6E6hxCY.js.map

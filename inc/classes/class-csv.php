@@ -242,7 +242,7 @@ class DO_CSV {
                         $meta_array_string = trim( $meta_array_string, '; ');
                         $meta_array_string .= '}';
                         $custom_value = $meta_array_string;
-                        //$custom_value = serialize( $do_get_post_meta );
+                        //$custom_value = json_encode( $do_get_post_meta );
                     }
                     // If pretty values
                     elseif ( $cpt_class && isset( $cpt_class->meta_fields[ $custom_field_name ] ) && is_array( $cpt_class->meta_fields[ $custom_field_name ] ) && isset( $cpt_class->meta_fields[ $custom_field_name ][0] ) && is_object( $cpt_class->meta_fields[ $custom_field_name ][0] ) ) {

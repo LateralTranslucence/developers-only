@@ -1,0 +1,31 @@
+@use '../abstracts' as *;
+
+.do-chart-text  {
+    @include p();
+    font-weight: normal;
+    color: $navy;
+    fill: $navy;
+    line-height: 1.15em;
+    b {
+        @include font(bold);
+    }
+    &.dark {
+        fill: $navy;
+        color: $navy;
+    }
+    &.light {
+        fill: $white;
+        color: $white;
+    }
+}
+.do-chart-footnote  {
+    margin-top: 15px;
+    font-size: 0.75em;
+    text-align: left;
+}
+.highcharts-legend .highcharts-legend-item > span {
+    top: 7px !important;
+}
+.highcharts-credits {
+    display: none;
+}

@@ -1,6 +1,8 @@
 <?php
 // Define constants
 define( 'DO_VER', DO_ENVIRONMENT == 'local' ? time() : 'DEPLOY_TIMESTAMP' );
+// TODO: Move config file to child theme
+include_once( __DIR__ . '/inc/config.php' );
 
 // Include Helper Functions
 include_once( __DIR__ . '/inc/functions.helpers.php' );
@@ -15,15 +17,33 @@ require( __DIR__ . '/inc/functions.shortcodes.php' );
 function do_scripts() {
     // wp_enqueue_style( $handle, $src, $deps = [], $ver = false, $media = 'all' )
     // wp_enqueue_script( $handle, $src, $deps = [], $ver = false, $load_in_footer = FALSE )
+
+    $entry = 'assets/src/index.tsx';
+    $manifest = file_get_contents( __DIR__ . '/assets/dist/.vite/manifest.json' );
+    $vite_files = json_decode( $manifest );
+    if ( isset( $vite_files->{ $entry } ) ) {
+        $index_file = $vite_files->{ $entry };
+        // Load React app
+        wp_enqueue_script( 'react-index', get_template_directory_uri() . '/assets/dist/' . $index_file->file, [], DO_VER, TRUE );
+        // Load global styles
+        wp_enqueue_style( 'do-global', get_template_directory_uri() . '/assets/dist/do-global.css', [], DO_VER );
+        if ( isset( $index_file->css ) ) {
+            wp_enqueue_style( 'react-index', get_template_directory_uri() . '/assets/dist/' . current( $index_file->css ), [], DO_VER );
+        }
+    }
     
-    // STYLES
-    wp_enqueue_style( 'styles', get_template_directory_uri() . '/build/styles.css', [], DO_VER );
-    wp_enqueue_style( 'main', get_template_directory_uri() . '/build/main.css', [], DO_VER );
-  
-	// SCRIPTS
-    wp_enqueue_script( 'react-index', get_template_directory_uri() . '/build/main.bundle.js', [ 'wp-element' ], DO_VER, TRUE );
 }
 add_action( 'wp_enqueue_scripts', 'do_scripts', 1 );
+
+function do_js_module( $tag ) {
+    // Only do this if we are not in the admin and this is a js file
+    if ( is_admin() || strpos( $tag, 'index' ) === FALSE ) {
+        return $tag;
+    }
+    $module_tag = str_replace( 'type="text/javascript"', 'type="module"', $tag );
+    return $module_tag;
+}
+add_filter( 'script_loader_tag', 'do_js_module', 10 );
 
 // Admin Scripts
 function do_admin_scripts() {
@@ -31,10 +51,10 @@ function do_admin_scripts() {
     wp_register_script( 'list', get_template_directory_uri() . '/assets/js/libs/list.js', [], '12232019' );
     // DO Admin
     wp_enqueue_script( 'do-admin', get_template_directory_uri() . '/assets/js/do-admin.js', [ 'jquery', 'list', 'jquery-ui-sortable' ], DO_VER, TRUE );
-    wp_enqueue_style( 'do-admin', get_template_directory_uri() . '/build/admin.css', [ 'dashicons' ], DO_VER, 'all' );
+    wp_enqueue_style( 'do-admin', get_template_directory_uri() . '/assets/dist/do-admin.css', [ 'dashicons' ], DO_VER, 'all' );
     // Font Awesome Index
     if ( get_current_screen()->id === 'appearance_page_fontawesome-icons' ) {
-        wp_enqueue_style( 'do-icons', get_template_directory_uri() . '/assets/styles/fonts/FontAwesome/style.css', [], DO_VER, 'all' );
+        wp_enqueue_style( 'do-icons', get_template_directory_uri() . '/assets/src/styles/fonts/FontAwesome/style.css', [], DO_VER, 'all' );
     }
     // Media Library Tabs
     wp_enqueue_script( 'media-library-tabs', get_template_directory_uri() . '/assets/js/do-media-library-tabs.js', array( 'jquery', 'media-upload', 'media-views' ), DO_VER, TRUE );
@@ -56,82 +76,154 @@ function do_admin_scripts() {
 }
 add_action( 'admin_enqueue_scripts', 'do_admin_scripts' );
 
-// Include classes
+// Include Classes
 function do_load_classes() {
-    // Include utility classes
-    do_load_class_files( [
+    // Required Utilities
+    $utility_classes = [
         'cpt-form-field',
-    	//'csv',
     	'custom-post-type',
-        'form-builder',
         'form-field-api-display',
     	'form-field-display',
     	'form-field-validate',
-        'gated',
-    	'media-library-tab',
     	'options-screen',
-        'admin-pages', // extends options-screen
     	'post-browser',
     	'redirect',
     	'rewrite',
-    	'send-simple-email',
-        'search-query',
-        'search-ui',
-        'search',
-        'site-updates-email',
-    	//'user-role',
-        'unused-media',
-    	'view-permalinks',
-    	'view-phpinfo',
-    	'content-survey', // several dependancies, load last
-	] );
+	];
+    // Optional Utilities
+    if ( defined( 'DO_ADMIN_PAGES' ) && DO_ADMIN_PAGES ) {
+        $utility_classes[] = 'admin-pages'; // extends options-screen
+    }
+    if ( defined( 'DO_CONTENT_SURVEY' ) && DO_CONTENT_SURVEY ) {
+        $utility_classes[] = 'content-survey';
+    }
+    if ( defined( 'DO_CSV' ) && DO_CSV ) {
+        $utility_classes[] = 'csv';
+    }
+    if ( defined( 'DO_FORM_BUILDER' ) && DO_FORM_BUILDER ) {
+        $utility_classes[] = 'form-builder';
+        $utility_classes[] = 'send-simple-email';
+    }
+    if ( defined( 'DO_GATE' ) && DO_GATE ) {
+        $utility_classes[] = 'gated';
+    }
+    if ( defined( 'DO_PHPINFO' ) && DO_PHPINFO ) {
+        $utility_classes[] = 'view-phpinfo';
+    }
+    if ( defined( 'DO_SEARCH' ) && DO_SEARCH ) {
+        $utility_classes[] = 'search';
+        $utility_classes[] = 'search-query';
+        $utility_classes[] = 'search-ui';
+    }
+    if ( defined( 'DO_UNUSED_MEDIA' ) && DO_UNUSED_MEDIA ) {
+        $utility_classes[] = 'unused-media';
+    }
+    if ( defined( 'DO_UPDATES' ) && DO_UPDATES ) {
+        $utility_classes[] = 'site-updates-email';
+    }
+    if ( defined( 'DO_USER_ROLE' ) && DO_USER_ROLE ) {
+        $utility_classes[] = 'user-role';
+    }
+    if ( defined( 'DO_VIEW_PERMALINKS' ) && DO_VIEW_PERMALINKS ) {
+        $utility_classes[] = 'view-permalinks';
+    }
+    do_load_class_files( $utility_classes );
 
-    // Include Taxonomies
-    // do_load_class_files( [
-    //     'podcast-series',
-    //     'event-type',
-    //     'region',
-    //     'subject',
-    // ], 'post-types/taxonomies' );
-
-    // Include Post Types
-    do_load_class_files( [
-        // Resources
-        //'announcement',
-        'blog',
-        //'customer-story',
-        //'event',
-        //'glossary',
-        //'media-coverage',
-        //'podcast',
-        //'press-release',
-        //'topic',
-        //'video',
-        //'white-paper',
-
-        // Landing Pages
-        'landing-page',
-        //'about',
-        //'campaign-page',
-
-        // About
-        //'staff',
-        //'location',
-
-        // Other
-        //'company',
-        //'icon',
-        //'legal',
-        //'simple-page',
-        //'testimonial',
-        'attachment',
-	], 'post-types' );
-
-    // Include External APIs
-    // do_load_class_files( [
-    //     'content',
-    // ], 'apis' );
-
+    // Taxonomies
+    $taxonomies = [];
+    if ( defined( 'DO_EVENT_TYPE' ) && DO_EVENT_TYPE ) {
+        $taxonomies[] = 'event-type';
+    }
+    if ( defined( 'DO_PODCAST_SERIES' ) && DO_PODCAST_SERIES ) {
+        $taxonomies[] = 'podcast-series';
+    }
+    if ( defined( 'DO_REGION' ) && DO_REGION ) {
+        $taxonomies[] = 'region';
+    }
+    if ( defined( 'DO_SUBJECT' ) && DO_SUBJECT ) {
+        $taxonomies[] = 'subject';
+    }
+    if ( count( $taxonomies ) ) {
+        do_load_class_files( $taxonomies, 'post-types/taxonomies' );
+    }
+    // Post Types
+    $post_types = [];
+    if ( defined( 'DO_ANNOUNCEMENT' ) && DO_ANNOUNCEMENT ) {
+        $post_types[] = 'announcement';
+    }
+    if ( defined( 'DO_ATTACHMENT' ) && DO_ATTACHMENT ) {
+        $post_types[] = 'attachment';
+    }
+    if ( defined( 'DO_BLOG' ) && DO_BLOG ) {
+        $post_types[] = 'blog';
+    }
+    if ( defined( 'DO_CUSTOMER_STORY' ) && DO_CUSTOMER_STORY ) {
+        $post_types[] = 'customer-story';
+    }
+    if ( defined( 'DO_EVENT' ) && DO_EVENT ) {
+        $post_types[] = 'event';
+    }
+    if ( defined( 'DO_GLOSSARY' ) && DO_GLOSSARY ) {
+        $post_types[] = 'glossary';
+    }
+    if ( defined( 'DO_LANDING_PAGE' ) && DO_LANDING_PAGE ) {
+        $post_types[] = 'landing-page';
+    }
+    if ( defined( 'DO_LEGAL' ) && DO_LEGAL ) {
+        $post_types[] = 'legal';
+    }
+    if ( defined( 'DO_MEDIA_COVERAGE' ) && DO_MEDIA_COVERAGE ) {
+        $post_types[] = 'media-coverage';
+    }
+    if ( defined( 'DO_PODCAST' ) && DO_PODCAST ) {
+        $post_types[] = 'podcast';
+    }
+    if ( defined( 'DO_PRESS_RELEASE' ) && DO_PRESS_RELEASE ) {
+        $post_types[] = 'press-release';
+    }
+    if ( defined( 'DO_REPORT' ) && DO_REPORT ) {
+        $post_types[] = 'report';
+    }
+    if ( defined( 'DO_SIMPLE_PAGE' ) && DO_SIMPLE_PAGE ) {
+        $post_types[] = 'simple-page';
+    }
+    if ( defined( 'DO_TOPIC' ) && DO_TOPIC ) {
+        $post_types[] = 'topic';
+    }
+    if ( defined( 'DO_VIDEO' ) && DO_VIDEO ) {
+        $post_types[] = 'video';
+    }
+    if ( defined( 'DO_STAFF' ) && DO_STAFF ) {
+        $post_types[] = 'staff';
+    }
+    if ( defined( 'DO_TESTIMONIAL' ) && DO_TESTIMONIAL ) {
+        $post_types[] = 'testimonial';
+    }
+    if ( defined( 'DO_ABOUT' ) && DO_ABOUT ) {
+        $post_types[] = 'about';
+    }
+    if ( defined( 'DO_CAMPAIGN_PAGE' ) && DO_CAMPAIGN_PAGE ) {
+        $post_types[] = 'campaign-page';
+    }
+    if ( defined( 'DO_LOCATION' ) && DO_LOCATION ) {
+        $post_types[] = 'location';
+    }
+    if ( defined( 'DO_COMPANY' ) && DO_COMPANY ) {
+        $post_types[] = 'company';
+    }
+    if ( defined( 'DO_ICON' ) && DO_ICON ) {
+        $post_types[] = 'icon';
+    }
+    if ( 
+        ( defined( 'DO_COMPANY' ) && DO_COMPANY ) ||
+        ( defined( 'DO_ICON' ) && DO_ICON )
+        ) {
+        // A utility that is currently only needed for these 2 post types
+        $post_types[] = 'media-library-tab';
+    }
+    if ( count( $post_types ) ) {
+        do_load_class_files( $post_types, 'post-types' );
+    }
 }
 add_action( 'after_setup_theme', 'do_load_classes', 0 );
 
@@ -436,7 +528,7 @@ if ( ! function_exists( 'do_login_url_title' ) ) {
 add_filter( 'login_headertext', 'do_login_url_title' );
 // CSS
 function do_login_stylesheet() {
-    wp_enqueue_style( 'do-login', get_template_directory_uri() . '/build/wplogin.css', [ 'login' ], DO_VER );
+    wp_enqueue_style( 'do-login', get_template_directory_uri() . '/assets/dist/do-login.css', [ 'login' ], DO_VER );
 }
 add_action( 'login_enqueue_scripts', 'do_login_stylesheet' );
 
@@ -656,3 +748,35 @@ function do_load_textdomain() {
     load_theme_textdomain( 'developers_only', get_template_directory() . '/languages' );
 }
 add_action( 'after_setup_theme', 'do_load_textdomain', 0 );
+
+function do_add_custom_post_types_to_homepage_dropdown( $pages, $r ) {
+    if ( isset( $r['post_type'] ) && 'page' === $r['post_type'] ) {
+        // Get custom post types (for example, 'my_custom_post_type')
+        $custom_posts = get_posts( array(
+            'post_type' => [ 'do_landing_page', 'do_simple_page' ], // Replace with your custom post type
+            'numberposts' => -1,
+        ) );
+        // Add custom post types to the list of pages
+        foreach ( $custom_posts as $custom_post ) {
+            $pages[] = $custom_post;
+        }
+    }
+    return $pages;
+}
+add_filter( 'get_pages', 'do_add_custom_post_types_to_homepage_dropdown', 10, 2 );
+
+// Set Block Image
+function do_set_block_image( $block_image, $post_id = FALSE ) {
+    $fallback_images = [
+        get_template_directory_uri() . '/images/fallback1.jpg',
+        get_template_directory_uri() . '/images/fallback2.jpg',
+        get_template_directory_uri() . '/images/fallback3.jpg',
+        get_template_directory_uri() . '/images/fallback4.jpg',
+        get_template_directory_uri() . '/images/fallback5.jpg',
+    ];
+    $random_number = rand( 0, 4 );
+    $block_image = get_the_post_thumbnail_url( $post_id );
+
+    return $block_image ? $block_image : $fallback_images[ $random_number ];
+}
+add_filter( 'do_block_image', 'do_set_block_image', 10, 2 );

@@ -78,7 +78,7 @@ class DO_Event {
                 ],
             ],
             'Location' => 'address',
-            'Hubspot Form Embed Code' => 'hubspot_code',
+            'Form Embed Code' => 'form_embed_code',
             'Form' => new DO_CPT_Form_Field( 'select', 'do_form', 'post_title', 'post_id' ),
             'Video' => 'url',
             'Featured' => 'binary',

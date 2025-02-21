@@ -1,0 +1,66 @@
+@use '../abstracts' as *;
+
+main.single-do_topic {
+    article#content-wrapper.two-column nav {
+        padding-top: 0;
+        margin-bottom: 2em;
+        @include max-900 {
+            display: none;
+        }
+        > div {
+            //height: calc(100vh - 125px);
+            height: fit-content;
+            position: sticky;
+            top: 125px;
+            overflow-y: auto;
+            border-radius: $large_border_radius;
+            box-shadow: $block_shadow;
+            padding: 1.5em;
+            h2 {
+                font-size: 1.563em; // 25px
+            }
+            ul#topic-nav {
+                &.blocks {
+                    > li {
+                        width: 100%;
+                        padding: 0.5em 0;
+                        margin: 0 auto 0.25em auto;
+                        > a {
+                            padding: 0 0 0 1.5em;
+                            color: $white;
+                            position: relative;
+                            &.block-link {
+                                &:hover {
+                                    text-decoration: underline;
+                                }
+                                &:after {
+                                    display: none;
+                                }
+                            }
+                            &::before {
+                                content: '\f0da';
+                                @include font(icon);
+                                color: $yellow;
+                                display: block;
+                                position: absolute;
+                                left: 0;
+                                top: 0;
+                            }
+                        }
+                        &.active {
+                            width: calc(100% + 1.5em);
+                            padding: 0.5em 0.75em;
+                            margin-left: -0.75em;
+                            margin-right: -0.75em;
+                            background-color: $blue;
+                        }
+                    }
+                }
+                &.post > li {
+                    background-color: $navy;
+                }
+            }
+        }
+    }
+}
+

@@ -1,0 +1,64 @@
+@use '../abstracts' as *;
+
+ul.do-share-bar {
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    &::before {
+        content: attr(data-label);;
+        font-size: 0.875em;
+        @include font(bold);
+    }
+    li {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        > a:not(.button) {
+            margin-left: 15px;
+            font-size: 1.25em;
+            color: $yellow;
+            &:hover {
+                opacity: $hover_opacity;
+            }
+            > span {
+                display: none;
+            }
+            &.fa-envelope::before {
+                @include font(icon);
+            }
+        }
+        &.do-share-newsletter-signup {
+            width: 200px;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            > a {
+                text-align: left;
+                > span {
+                    display: inline;
+                }
+            }
+            @include max-768 {
+                width: 165px;
+            }
+        }
+    }
+    @include max-480 {
+        padding-bottom: 40px;
+        li.do-share-newsletter-signup {
+            width: 100%;
+            top: auto;
+            bottom: 20px;
+            left: 0;
+            margin: 0;
+            > a {
+                margin-left: 0;
+            }
+        }
+    }
+    @include print {
+        display: none;
+    }
+}

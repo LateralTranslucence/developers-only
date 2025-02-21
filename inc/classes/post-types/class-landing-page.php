@@ -27,14 +27,16 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
     }
     protected function settings(): array {
         return [
+            'post_excerpt' => 'SEO Description',
+            'post_name' => 'Slug',
             'post_title' => 'Title',
+            'post_thumbnail' => 'SEO Image||Media',
             'display_name' => $this->post_type_display_name(),
             'icon' => '\f116',
             'onsave_callback' => [ $this, 'onsave' ],
             'aftersave_callback' => [ $this, 'aftersave' ],
             'has_archive' => FALSE,
             'is_landing_page' => TRUE,
-            'post_name' => 'Slug',
             'slug' => $this->post_type_slug(),
             'rest_slug' => $this->post_type_rest_slug(),
             'meta_prefix' => $this->meta_prefix(),
@@ -213,8 +215,8 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                     'type' => 'select_multiple',
                     'options' => 'do_get_public_post_types',
                 ],
-                'Subject' => new DO_CPT_Form_Field( 'select_multiple', 'do_subject', 'Title', 'Slug' ),
-                'Region' => new DO_CPT_Form_Field( 'select', 'do_region', 'Title', 'Slug' ),
+                //'Subject' => new DO_CPT_Form_Field( 'select_multiple', 'do_subject', 'Title', 'Slug' ),
+                //'Region' => new DO_CPT_Form_Field( 'select', 'do_region', 'Title', 'Slug' ),
                 'Posts Per Row' => 'per_row',
                 'Slider' => 'binary',
                 'Post Order' => 'varchar',
@@ -321,7 +323,7 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                 ]
             ] ),
             'form' => array_merge( $this->set_panel_default_fields(), [
-                'Hubspot Form Embed Code' => 'hubspot_code',
+                'Form Embed Code' => 'form_embed_code',
                 'Form' => new DO_CPT_Form_Field( 'select', 'do_form', 'post_title', 'post_id' ),
                 'Overlay Hero?' => 'binary',
             ] ),
@@ -549,15 +551,18 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                         'Title' => 'text',
                         'Media' => 'media',
                         'Copy' => 'html',
-                        'List' => 'text_array',
-                        'CTA Text' => 'varchar',
-                        'CTA URL' => 'varchar',
-                        'CTA Modal' => 'binary_select',
-                        'Related Title' => 'varchar',
-                        'Related' => 'post_browser'
+                        'CTA' => 'cta',
+                        'List Title' => 'varchar',
+                        'List' => [
+                            'type' => 'multi_array',
+                            'fields' => [
+                                'Icon' => 'media',
+                                'Title' => 'text',
+                                'URL' => 'url',
+                            ],
+                        ],
                     ],
                 ],
-                'Media Size' => 'image_size',
             ] ),
             'testimonial-carousel' => array_merge( $this->set_panel_default_fields( [ 'Copy' ] ), [
                 'Testimonial Carousel' => [
@@ -644,7 +649,7 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                 'value' => 'archive',
             ],
             'blocks' => [
-                'label' => 'Multi-Column Cards/Icon Grid',
+                'label' => 'Blocks',
                 'value' => 'blocks',
             ],
             'cta' => [
@@ -811,13 +816,16 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
     }
 
     public function aftersave( $post_id ): void {
-        global $do_custom_post_types, $wpdb;
-        $post_type_details = $do_custom_post_types[ get_post_field( 'post_type', $post_id ) ];
-        // Manually set the guid
-        $guid = home_url( ( $post_type_details->post_type_slug ? $post_type_details->post_type_slug . '/' : '' ) . get_post_field( 'post_name', $post_id ) . '/' );
-        $wpdb->query( "UPDATE $wpdb->posts SET guid = '$guid' WHERE ID = $post_id;" );
-        // Flush rewrite rules
-        flush_rewrite_rules();
+        $post_type = get_post_field( 'post_type', $post_id );
+        if ( $post_type === $this->post_type ) {
+            global $do_custom_post_types, $wpdb;
+            $post_type_details = $do_custom_post_types[ $post_type ];
+            // Manually set the guid
+            $guid = home_url( ( $post_type_details->post_type_slug ? $post_type_details->post_type_slug . '/' : '' ) . get_post_field( 'post_name', $post_id ) . '/' );
+            $wpdb->query( "UPDATE $wpdb->posts SET guid = '$guid' WHERE ID = $post_id;" );
+            // Flush rewrite rules
+            flush_rewrite_rules();
+        }
     }
 
     public function onsave( $POST, $cpt_obj ): array {

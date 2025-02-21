@@ -1,9 +1,13 @@
 <?php
-
-class DO_Company {
-    public function __construct() {
-        $companies = new DO_Custom_Post_Type( 'do_company' );
-        $companies->settings( [
+class Do_Company extends DO_Custom_Post_Type {
+    protected function post_type(): string {
+        return 'do_company';
+    }
+    protected function post_type_args(): array {
+        return [];
+    }
+    protected function settings(): array {
+        return [
             'post_title' => 'Name',
             'post_content' => 'Description',
             'post_excerpt' => 'Description',
@@ -14,19 +18,25 @@ class DO_Company {
             'show_in_admin_bar' => FALSE,
             'hide_field' => 'Hidden',
             'onsave_callback' => [ $this, 'onsave' ],
-        ] );
-        $companies->meta_fields( [
-            'Name' => 'text',
-            'Logo' => 'media',
-            'Description' => 'html',
-            'About' => 'html',
-            'Size' => 'int',
-            'URL' => 'url',
-            'Hidden' => 'binary',
-        ] );
-        $companies->admin_fields( [ 'Title', 'Logo', 'Description', 'Hidden', 'post_date' ] );
+        ];
     }
-    // Add title to Logo media post
+    // [ 'BoxName' => [ ... ] ]
+    protected function meta_fields(): array {
+        return [
+            '' => [
+                'Name' => 'text',
+                'Logo' => 'media',
+                'Description' => 'html',
+                'About' => 'html',
+                'Size' => 'int',
+                'URL' => 'url',
+                'Hidden' => 'binary',
+            ],
+        ];
+    }
+    protected function admin_fields(): array {
+        return [ 'Title', 'Logo', 'Description', 'Hidden', 'post_date' ];
+    }
     public function onsave( $POST, $cpt_object ) {
         global $wpdb;
         if ( isset( $POST['company_logo'] ) && strlen( $POST['company_logo'] ) ) {
@@ -48,4 +58,4 @@ class DO_Company {
         return $POST;
     }
 }
-$do_company = new DO_Company();
+$do_company = Do_Company::get_instance();

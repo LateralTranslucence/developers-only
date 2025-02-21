@@ -128,7 +128,7 @@ class DoSearch {
     private function organize_field_settings( $fields = [] ) {
         $field_settings = [];
         foreach ( $fields as $field ) {
-            $field_type = isset( $field['field_type'] ) ? $field['field_type'] : FALSE;
+            $field_type = isset( $field->field_type ) ? $field->field_type : FALSE;
             switch( $field_type ) {
                 case 'alphabet':
                     $field_name = 'alpha';
@@ -140,15 +140,15 @@ class DoSearch {
                     $field_name = 's';
                     break;
                 default:
-                    $field_name = sanitize_title_with_dashes( $field['field_name'] );
+                    $field_name = sanitize_title_with_dashes( $field->field_name );
                     break;
             }
             $settings = [
-                'label' => $field['field_name'],
+                'label' => $field->field_name,
                 'name' => $field_name,
                 'type' => $field_type,
-                'options_post_type' => $field['options_post_type'],
-                'meta_key' => isset( $field['meta_field'] ) && strlen( $field['meta_field'] ) ? $field['meta_field'] : FALSE,
+                'options_post_type' => $field->options_post_type,
+                'meta_key' => isset( $field->meta_field ) && strlen( $field->meta_field ) ? $field->meta_field : FALSE,
             ];
             $field_settings[ $field_name ] = $settings;
         };

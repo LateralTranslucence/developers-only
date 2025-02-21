@@ -1,0 +1,2 @@
+import{j as t}from"./vendor-CBRddasq.js";import{a}from"./SEOTags-H5-u8r2l.js";import{I as i}from"./index-BG22mTkn.js";const d=({index:s,panelSlider:o,perRow:l,post:e,type:m})=>{const r=e.fields[e.post_type_details.meta_prefix+"_logo"];return t.jsxs("li",{children:[t.jsx(i,{image:r,size:"logo"}),t.jsx(a,{tag:"h3",title:e.post_title,classes:["screen-reader-text"]})]},s)};export{d as default};
+//# sourceMappingURL=DOCompanySimple-D2JiQ8ns.js.map

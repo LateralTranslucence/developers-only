@@ -1,0 +1,2 @@
+import{j as o}from"./vendor-CBRddasq.js";import{d as m}from"./index-BG22mTkn.js";const c=({post:e,pageID:d="",panelID:l="",panelNumber:n,panelPrefix:a="",panelSuffix:t=""})=>{const r={frame:a+"_frame"+t,ratio:a+"_height_width_ratio"+t},i=e.fields[r.frame].replace("[]","<>"),s=e.fields[r.ratio].length?e.fields[r.ratio]:"100";return i?o.jsx("div",{className:"do-iframe-wrapper",style:{paddingTop:s+"%"},children:m(i)}):null};export{c as default};
+//# sourceMappingURL=Iframe-ArATmntW.js.map

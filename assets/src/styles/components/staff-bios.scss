@@ -1,0 +1,109 @@
+@use '../abstracts' as *;
+
+section.panel-type-staff-bios {
+    div.panel-inner-wrapper {
+        display: grid;
+        grid-template-columns: [left] 28.75% [right] 68.75% [end];
+        grid-template-rows: [one] auto [two] 1fr [end];
+        column-gap: 2.5%;
+    }
+    header.panel-header {
+        text-align: left;
+        grid-column: left / right;
+        grid-row: one / two;
+    }
+    div.panel-copy-wrapper {
+        text-align: left;
+        grid-column: left / right;
+        grid-row: two / end;
+        width: 100%;
+        max-width: 100%;
+    }
+    ul.staff-bios {
+        grid-column: right / end;
+        grid-row: one / end;
+        justify-content: flex-start;
+        > li {
+            text-align: center;
+            span.do-image-wrapper {
+                width: 160px;
+                max-width: 100%;
+                border-radius: 200px;
+                margin: 0 auto 1em auto;
+            }
+            a.block-link {
+                border-radius: $xlarge_border_radius;
+                div.block-content-wrapper {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-start;
+                    padding: 10% 15% 15% 15%;
+                    height: 100%;
+                }
+                span.linkedin {
+                    &::before {
+                        content: '\f08c';
+                        @include font(brand);
+                        color: $blue;
+                    }
+                    > span {
+                        display: none;
+                    }
+                }
+                h3 {
+                    @include font(medium);
+                    font-size: 1.25em;
+                    color: $navy;
+                    margin-bottom: 0;
+                    margin-top: 0.5em;
+                    &::after {
+                        display: none;
+                    }
+                }
+                p.bio-position {
+                    @include p_small;
+                    margin-top: 0.5em;
+                }
+                &:hover {
+                    background-color: $navy;
+                    div.block-content-wrapper {
+                        span.linkedin {
+                            &::before {
+                                color: $yellow;
+                            }
+                        }
+                        h3 {
+                            color: $white;
+                        }
+                        p.bio-position {
+                            color: $white;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    @include max-1024 {
+        div.panel-inner-wrapper {
+            display: grid;
+            grid-template-columns: [left] 100% [end];
+            grid-template-rows: [one] auto [two] auto [three] 1fr [end];
+        }
+        header.panel-header {
+            grid-column: left / end;
+            grid-row: one / two;
+        }
+        div.panel-copy-wrapper {
+            text-align: left;
+            grid-column: left / end;
+            grid-row: two / three;
+            width: 100%;
+            max-width: 600px;
+            margin-left: 0;
+        }
+        ul.staff-bios {
+            grid-column: left / end;
+            grid-row: three / end;
+        }
+    }
+}

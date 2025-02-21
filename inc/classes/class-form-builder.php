@@ -7,14 +7,12 @@ include locate_template( '/inc/classes/post-types/class-form.php' );
 include locate_template( '/inc/classes/post-types/class-form-submission.php' );
 
 class DO_Form_Builder {
-    private static $instance;
-    public $form_submitted;
-    private $default_submitted_message;
+    private static $instance, $default_submitted_message;
 
     private function __construct() {
-        $this->default_submitted_message = "Thank you for reaching out, we'll be in touch soon.";
+        self::$default_submitted_message = "Thank you for reaching out, we'll be in touch soon.";
         // Actions/Filters
-        add_action( 'after_setup_theme', [ $this, 'post_types' ], 3 );
+        add_action( 'after_setup_theme', [ 'DO_Form_Builder', 'post_types' ], 3 );
     }
 
     public static function get_instance() {
@@ -24,12 +22,12 @@ class DO_Form_Builder {
         return self::$instance;
     }
 
-    public function post_types() {
+    public static function post_types() {
         $form = DO_Form::get_instance();
         $form_submission = DO_Form_Submission::get_instance();
     }
 
-    public function display( $form_id = FALSE ) {
+    public static function display( $form_id = FALSE ) {
         if ( ! $form_id ) {
             return;
         }
@@ -39,8 +37,8 @@ class DO_Form_Builder {
             'post_id' => $form_id,
             'submitted' => isset( $_POST ) && count( $_POST ),
             'error' => isset( $_POST['missing_fields'] ),
-            'autoupdate' => (bool) do_get_post_meta( $form_id, 'form_autoupdate' ) && $this->form_submitted,
-            'thank_you_message' => strlen( $thank_you = do_get_post_meta( $form_id, 'form_thank_you_text' ) ) ? __( $thank_you, 'developers_only' ) : __( $this->default_submitted_message, 'developers_only' ),
+            'autoupdate' => (bool) do_get_post_meta( $form_id, 'form_autoupdate' ),
+            'thank_you_message' => strlen( $thank_you = do_get_post_meta( $form_id, 'form_thank_you_text' ) ) ? __( $thank_you, 'developers_only' ) : __( self::$default_submitted_message, 'developers_only' ),
             'thank_you_redirect' => do_get_post_meta( $form_id, 'form_thank_you_redirect' ),
             'submissions_email_to' => do_get_post_meta( $form_id, 'form_email_submissions_to' ),
             'submissions_email_subject' => do_get_post_meta( $form_id, 'form_email_subject' ),
@@ -48,7 +46,7 @@ class DO_Form_Builder {
             'missing_fields' => [],
             'items' => [],
         ];
-        $form_items = $this->form_items( $form_id );
+        $form_items = self::form_items( $form_id );
         // If we're auto-updating, hide the submit button
         if ( $form['autoupdate'] === TRUE ) {
             $form_items['do-form-submit']['field_type'] = 'hidden';
@@ -57,13 +55,13 @@ class DO_Form_Builder {
         return $form;
     }
 
-    public function form_items( $post_id ) {
+    public static function form_items( $post_id ) {
         if ( ! $post_id ) {
             return;
         }
-        $raw_form_fields = $this->get_fields( $post_id );
-        $raw_fieldsets = $this->get_fieldsets( $post_id );
-        $form_items = $this->organize_fields( $raw_form_fields, $raw_fieldsets );
+        $raw_form_fields = self::get_fields( $post_id );
+        $raw_fieldsets = self::get_fieldsets( $post_id );
+        $form_items = self::organize_fields( $raw_form_fields, $raw_fieldsets );
 
         return $form_items;
     }
@@ -72,7 +70,7 @@ class DO_Form_Builder {
      * HELPERS
      */
 
-    public function get_fields( $post_id ) {
+    public static function get_fields( $post_id ) {
         $form_fields_count = (int) do_get_post_meta( $post_id, 'form_field_count' );
         $label_location = strlen( $label_location = do_get_post_meta( $post_id, 'form_field_label_location' ) ) ? $label_location : 'inside';
         $show_privacy_policy = (bool) do_get_post_meta( $post_id, 'form_privacy_policy' );
@@ -118,7 +116,7 @@ class DO_Form_Builder {
                 case 'select':
                 case 'toggle':
                     $field_options_raw = is_array( $options = do_get_post_meta( $post_id, 'form_options_' . $i ) ) ? $options : [];
-                    $field_options = $this->format_field_options( $field_options_raw );
+                    $field_options = self::format_field_options( $field_options_raw );
                     break;
                 case 'range_slider':
                     $field_options_raw = is_array( $options = do_get_post_meta( $post_id, 'form_options_' . $i ) ) ? $options : [];
@@ -174,7 +172,7 @@ class DO_Form_Builder {
         return $fields;
     }
 
-    public function get_fieldsets( $post_id ) {
+    public static function get_fieldsets( $post_id ) {
         $fieldsets = [];
         $fieldset_field_raw = is_array( $fieldset_options = do_get_post_meta( $post_id, 'form_fieldset' ) ) ? $fieldset_options : [];
         foreach ( $fieldset_field_raw as $fieldset_field_array ) {
@@ -185,7 +183,7 @@ class DO_Form_Builder {
         return $fieldsets;
     }
 
-    public function organize_fields( $fields, $fieldsets ) {
+    public static function organize_fields( $fields, $fieldsets ) {
         $form_fields = [];
         // Create $fieldset_fields lookup array
         $fieldset_fields = [];
@@ -221,7 +219,7 @@ class DO_Form_Builder {
         return $form_fields;
     }
 
-    private function format_field_options( $field_options_raw ) {
+    private static function format_field_options( $field_options_raw ) {
         $field_options = [];
         foreach ( $field_options_raw as $field_option ) {
             $label = isset( $field_option['label'] ) ? $field_option['label'] : '';

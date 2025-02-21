@@ -1,0 +1,72 @@
+@use '../abstracts' as *;
+
+figure.do-video {
+    max-width: 100%;
+    overflow: hidden;
+    span.do-video-wrapper {
+        @include video();
+    }
+    &.embed {
+        span.do-video-wrapper {
+            padding-top: 100%;
+            video {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+            }
+        }
+    }
+}
+header, div.panel-copy-wrapper {
+    figure.do-video {
+        margin: 0 auto;
+    }
+}
+ul.panel-videos.blocks.one li {
+    width: 100%;
+    padding: 0;
+    align-items: center;
+    figure.do-video {
+        width: 600px;
+    }
+    > p {
+        width: 100%;
+        max-width: 600px;
+    }
+    &.has-copy {
+        flex-direction: row;
+        align-items: flex-start;
+        div.video-copy-wrapper {
+            width: 50%;
+            margin-left: 5%;
+            h3 {
+                margin-bottom: 1.75em;
+            }
+        }
+        @include max-900 {
+            flex-direction: column;
+            align-items: center;
+            div.video-copy-wrapper {
+                width: 100%;
+                max-width: 600px;
+                margin: 2em 0 0 0;
+            }
+        }
+    }
+}
+img.video-fallback-image {
+    width: 100%;
+}
+
+div.do-video-player-wrapper {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    > iframe {
+        width: 100%;
+        height: 100%;
+    }
+}

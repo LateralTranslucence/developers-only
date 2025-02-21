@@ -1,0 +1,73 @@
+@use '../abstracts' as *;
+
+// Screen Reader
+.screen-reader-text {
+    display: none !important;
+}
+
+// Text align
+.text-align-left {
+    text-align: left;
+}
+.text-align-right {
+    text-align: right;
+}
+.text-align-center {
+    text-align: center;
+}
+
+// Disclaimer
+/* .disclaimer {
+    font-weight: 300;
+    opacity: .75;
+    font-size: 0.75em;;
+    a.button + & {
+        display: inline-block;
+        width: 100%;
+        font-size: 1em;
+        margin-top: 1em;
+    }
+} */
+// Misc
+.footnote {
+    font-size: 13px;
+    line-height: 1em;
+    opacity: .5;
+}
+.small {
+    font-size: .875em;
+    line-height: 1.45 //20px (20.3 actual)
+}
+.large {
+    font-size: 1.125em;
+    line-height: 1.5; //27px
+}
+.red {
+    color: red !important; // override more specific selectors
+}
+
+// quote
+blockquote {
+    font-size: 2em;
+    @include font(light);
+    color: $light_gray;
+    margin: 1.5em 1em 1.5em 2em;
+    padding-left: 1em;
+    line-height: inherit;
+    font-style: normal;
+    position: relative;
+    &::before {
+        content: '';
+        display: block;
+        width: 5px;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        border-radius: 5px;
+        background: $mid_blue;
+    }
+    @include max-600 {
+        margin-left: 1em;
+        font-size: 1.5em;
+    }
+}

@@ -1,9 +1,13 @@
 <?php
-// Simple Pages
-class DO_Simple_Page {
-    public function __construct() {
-        $page = new DO_Custom_Post_Type( 'do_simple_page' );
-        $page->settings( [
+class DO_Simple_Page extends DO_Custom_Post_Type {
+    protected function post_type(): string {
+        return 'do_simple_page';
+    }
+    protected function post_type_args(): array {
+        return [];
+    }
+    protected function settings(): array {
+        return [
             'post_title' => 'Title',
             'post_name' => 'Slug',
             'post_thumbnail' => 'Image',
@@ -30,18 +34,25 @@ class DO_Simple_Page {
                 'image' => 'Image',
                 'text' => 'Content',
             ],
-        ] );
-        $page->meta_fields( [
-            'Title' => 'text',
-            'Slug' => 'varchar',
-            'Image' => 'media',
-            'Image Credit' => 'varchar',
-            'SEO Image' => 'media',
-            'Description' => 'html',
-            'Content' => 'wp_editor',
-            'Hidden' => 'binary',
-        ], 'Page' );
-        $page->admin_fields( [ 'Title', 'Description', 'Hidden', 'post_date' ] );
+        ];
+    }
+    // [ 'BoxName' => [ ... ] ]
+    protected function meta_fields(): array {
+        return [
+            'Page' => [
+                'Title' => 'text',
+                'Slug' => 'varchar',
+                'Image' => 'media',
+                'Image Credit' => 'varchar',
+                'SEO Image' => 'media',
+                'Description' => 'html',
+                'Content' => 'wp_editor',
+                'Hidden' => 'binary',
+            ],
+        ];
+    }
+    protected function admin_fields(): array {
+        return [ 'Title', 'Description', 'Hidden', 'post_date' ];
     }
 }
-$do_page = new DO_Simple_Page();
+$do_page = DO_Simple_Page::get_instance();

@@ -296,7 +296,7 @@ function do_form_submit_query( $data ) {
         $form = DO_Form_Builder::display( $form_post_id );
         $form_fields = DO_Form_Builder::get_fields( $form_post_id, FALSE );
         $form_values_array = [];
-        $serialize_me = [];
+        $json_encode_me = [];
         $email_address = FALSE;
         // Set submitted to true and add a missing_fields property
         $form['submitted'] = TRUE;
@@ -311,7 +311,7 @@ function do_form_submit_query( $data ) {
                 // Add to field's current_value property
                 $form_field['current_value'] = $value;
                 $form_fields[ $field_name ]['current_value'] = $value;
-                $serialize_me[ $form_field['label'] ] = $value;
+                $json_encode_me[ $form_field['label'] ] = $value;
                 // And to $form_values_array (for storing in the submissions post type)
                 $form_values_array[ $field_name ] = $form_field;
                 // Check to see if this is the email field
@@ -346,7 +346,7 @@ function do_form_submit_query( $data ) {
             if ( $submission_id ) {
                 update_post_meta( $submission_id, 'submission_email', $email_address );
                 update_post_meta( $submission_id, 'submission_form_id', $form_id );
-                update_post_meta( $submission_id, 'submission_data', serialize( $serialize_me ) );
+                update_post_meta( $submission_id, 'submission_data', json_encode( $json_encode_me ) );
             }
             // Submission Email Alert (internal)
             if ( strlen( $email_submissions_to = do_get_post_meta( $form_post_id, 'form_email_submissions_to' ) ) ) {

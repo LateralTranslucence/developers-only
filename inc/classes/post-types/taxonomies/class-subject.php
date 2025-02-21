@@ -1,9 +1,13 @@
 <?php
-// Subjects
-class DO_Subject {
-    public function __construct() {
-        $subjects = new DO_Custom_Post_Type( 'do_subject' );
-        $subjects->settings( [
+class DO_Subject extends DO_Custom_Post_Type {
+    protected function post_type(): string {
+        return 'do_subject';
+    }
+    protected function post_type_args(): array {
+        return [];
+    }
+    protected function settings(): array {
+        return [
             'post_title' => 'Title',
             'post_name' => 'Slug',
             'has_archive' => FALSE,
@@ -16,14 +20,21 @@ class DO_Subject {
             ],
             'restrict_users' => [ 'administrator' ],
             'hide_field' => 'Hidden',
-        ] );
-        $subjects->meta_fields( [
-            'Title' => 'text',
-            'Slug' => 'varchar',
-            'Description' => 'textarea',
-            'Hidden' => 'binary',
-        ] );
-        $subjects->admin_fields( [ 'Title', 'Slug', 'Description', 'Active' ] );
+        ];
+    }
+    // [ 'BoxName' => [ ... ] ]
+    protected function meta_fields(): array {
+        return [
+            '' => [
+                'Title' => 'text',
+                'Slug' => 'varchar',
+                'Description' => 'textarea',
+                'Hidden' => 'binary',
+            ]
+        ];
+    }
+    protected function admin_fields(): array {
+        return [ 'Title', 'Slug', 'Description', 'Active' ];
     }
 }
-$do_subject = new DO_Subject();
+$do_subject = DO_Subject::get_instance();

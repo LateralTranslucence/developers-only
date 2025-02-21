@@ -1,0 +1,65 @@
+@use '../abstracts' as *;
+
+main.single-do_event {
+    // div#post-details {
+    //     > p {
+    //         font-size: 1.125em;
+    //     }
+    // }
+    header#hero {
+        div#post-details {
+            @include font(medium);
+            font-size: 2em;
+            font-size: 1.125em;
+            span {
+                width: 100%;
+                display: inline-block;
+                padding-left: 1.5em;
+                &::before {
+                    @include font(icon);
+                    display: inline-block;
+                    font-size: 0.85em;
+                    margin-left: -1.75em;
+                    width: 1.75em;
+                    text-align: center;
+                }
+            }
+            .do-event-location {
+                margin-top: 0.25em;
+            }
+            .do-event-date::before {
+                content: "\f017";
+            }
+            .do-event-in-person::before {
+                content: "\f041";
+            }
+            .do-event-hybrid::before {
+                content: "\f108";
+                margin-left: -2em;
+                width: 2em;
+            }
+        }
+    }
+    section.panel-type-staff-bios {
+        div.panel-inner-wrapper {
+            padding: 1.5em 0;
+            display: flex;
+            flex-direction: column;
+        }
+    }
+    div#location {
+        display: flex;
+        flex-direction: row;
+        padding: 3em 0;
+        div#location-map {
+            margin-right: 2em;
+            width: 250px;
+        }
+        @include max-640 {
+            flex-direction: column;
+            div#location-map {
+                margin: 0 0 1em 0;
+            }
+        }
+    }
+}

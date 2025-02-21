@@ -146,10 +146,10 @@ class DO_Site_Updates_Email {
 	public function add_subscriber( $form_value_array ) {
 		$email_address = FALSE;
         $data = [];
-		$serialize_me = [];
-		// Prepare form data to be serialized
+		$json_encode_me = [];
+		// Prepare form data to be json_encoded
 		foreach ( $form_value_array as $field_name => $field_details ) {
-			$serialize_me[ $field_details['label'] ] = sanitize_text_field( $field_details['current_value'] );
+			$json_encode_me[ $field_details['label'] ] = sanitize_text_field( $field_details['current_value'] );
 			if ( $field_details['field_type'] == 'email' && $email_address === FALSE ) {
 				$email_address = sanitize_email( $field_details['current_value'] );
 			}
@@ -186,7 +186,7 @@ class DO_Site_Updates_Email {
 				update_post_meta( $subscriber_id, 'subscriber_active', 1 );
 				update_post_meta( $subscriber_id, 'subscriber_frequency', 'weekly' );
 				update_post_meta( $subscriber_id, 'subscriber_subjects', '' );
-				update_post_meta( $subscriber_id, 'subscriber_data', serialize( $serialize_me ) );
+				update_post_meta( $subscriber_id, 'subscriber_data', json_encode( $json_encode_me ) );
 				update_post_meta( $subscriber_id, 'subscriber_date_subscribed', time() );
 				update_post_meta( $subscriber_id, 'subscriber_date_last_updated', time() );
 				update_post_meta( $subscriber_id, 'subscriber_date_last_email', '' );

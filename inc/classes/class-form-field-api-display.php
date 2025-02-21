@@ -41,21 +41,19 @@ class DO_Form_Field_API_Display {
     // Build out background object
     private function background( $force_value = FALSE ) {
         $raw_background = $force_value !== FALSE ? $force_value : do_get_post_meta( $this->post_id, $this->field_key );
-        $background = is_array( $raw_background ) ? $raw_background : [];
+        $background = is_object( $raw_background ) ? $raw_background : new stdClass();
+        //do_var_dump($raw_background);
         $data = [];
-        if ( count( $background ) ) {
+        if ( count( (array) $background ) ) {
             $data = [
-                'media' => isset( $background['media'] ) ? $this->media( $background['media'] ) : [],
-                'overlay' => isset( $background['overlay'] ) ? $background['overlay'] : '',
-                'color' => isset( $background['color'] ) ? $background['color'] : '',
-                'parallax' => isset( $background['parallax'] ) ? $background['parallax'] : '',
-                'loop' => isset( $background['loop'] ) ? (bool) $background['loop'] : FALSE,
-                'videoTranscript' => isset( $background['videoTranscript'] ) ? $background['videoTranscript'] : '',
-                'avatar' => isset( $background['avatar'] ) ? (bool) $background['avatar'] : FALSE,
+                'media' => isset( $background->media ) ? $this->media( $background->media ) : [],
+                'overlay' => isset( $background->overlay ) ? $background->overlay : '',
+                'color' => isset( $background->color ) ? $background->color : '',
+                'parallax' => isset( $background->parallax ) ? $background->parallax : '',
+                'loop' => isset( $background->loop ) ? (bool) $background->loop : FALSE,
+                'videoTranscript' => isset( $background->videoTranscript ) ? $background->videoTranscript : '',
+                'avatar' => isset( $background->avatar ) ? (bool) $background->avatar : FALSE,
             ];
-            if ( isset( $background['animated'] ) ) {
-                $data['animated'] = $background['animated'];
-            }
         }
         return $data;
     }
@@ -71,52 +69,7 @@ class DO_Form_Field_API_Display {
         return $this->binary( $force_value !== FALSE ? $force_value : do_get_post_meta( $this->post_id, $this->field_key ) );
     }
 
-    // private function blocks( $force_value = FALSE ) {
-    //     $raw_blocks = $force_value !== FALSE ? $force_value : do_get_post_meta( $this->post_id, $this->field_key );
-    //     $blocks = is_array( $raw_blocks ) ? $raw_blocks : [];
-    //     $data = [];
-    //     foreach ( $blocks as $block_elements ) {
-    //         $block_image = isset( $block_elements['media'] ) && strlen( $block_elements['media'] ) ? $block_elements['media'] : [];
-    //         $image_api_field = $this->media( $block_image );
-    //         $icon_logo = isset( $block_elements['icon_logo'] ) ? (bool) $block_elements['icon_logo'] : FALSE;
-    //         $block_title = isset( $block_elements['title'] ) && strlen( $block_elements['title'] ) ? $block_elements['title'] : '';
-    //         $block_copy = isset( $block_elements['copy'] ) && strlen( $block_elements['copy'] ) ? $block_elements['copy'] : '';
-    //         $block_cta_text = isset( $block_elements['cta_text'] ) && strlen( $block_elements['cta_text'] ) ? $block_elements['cta_text'] : '';
-    //         $block_cta_url = isset( $block_elements['cta_url'] ) && strlen( $block_elements['cta_url'] ) ? $block_elements['cta_url'] : '';
-    //         $block_cta_modal = isset( $block_elements['cta_modal'] ) && strlen( $block_elements['cta_modal'] ) ? (bool) $block_elements['cta_modal'] : FALSE;
-    //         $data[] = [
-    //             'media' => $image_api_field,
-    //             'icon_logo' => $icon_logo,
-    //             'title' => $block_title,
-    //             'copy' => do_autop( $block_copy ),
-    //             'cta_text' => $block_cta_text,
-    //             'cta_url' => $block_cta_url,
-    //             'cta_modal' => $block_cta_modal,
-    //         ];
-    //     }
-    //     return $data;
-    // }
-
-    private function client_stories( $force_value = FALSE ) {
-        $raw_client_stories = $force_value !== FALSE ? $force_value : do_get_post_meta( $this->post_id, $this->field_key );
-        $client_stories = is_array( $raw_client_stories ) ? $raw_client_stories : [];
-        $data = [];
-        foreach ( $client_stories as $story_elements ) {
-            $story_client = isset( $story_elements['client'] ) && strlen( $story_elements['client'] ) ? $story_elements['client'] : '';
-            $story_video_url = isset( $story_elements['video_url'] ) && strlen( $story_elements['video_url'] ) ? $story_elements['video_url'] : '';
-            $story_challenge = isset( $story_elements['challenge'] ) && strlen( $story_elements['challenge'] ) ? $story_elements['challenge'] : '';
-            $story_solution = isset( $story_elements['solution'] ) && strlen( $story_elements['solution'] ) ? $story_elements['solution'] : '';
-            $story_results = isset( $story_elements['results'] ) && strlen( $story_elements['results'] ) ? $story_elements['results'] : '';
-            $data[] = [
-                'client' => $story_client,
-                'video_url' => $story_video_url,
-                'challenge' => do_autop( $story_challenge ),
-                'solution' => do_autop( $story_solution ),
-                'results' => do_autop( $story_results ),
-            ];
-        }
-        return $data;
-    }
+    
 
     // private function company_logo_browser( $force_value = FALSE ) {
     //     $data = $this->post_browser( $force_value !== FALSE ? $force_value : do_get_post_meta( $this->post_id, $this->field_key ) );
@@ -154,22 +107,6 @@ class DO_Form_Field_API_Display {
     //     return $data;
     // }
 
-    private function cta( $force_value = FALSE ) {
-        $raw_ctas = $force_value !== FALSE ? $force_value : do_get_post_meta( $this->post_id, $this->field_key );
-        $ctas = is_array( $raw_ctas ) ? $raw_ctas : [];
-        $data = [];
-        foreach ( $ctas as $cta_details ) {
-            $data[] = [
-                'text' => isset( $cta_details['text'] ) ? $cta_details['text'] : '',
-                'url' => isset( $cta_details['url'] ) ? $cta_details['url'] : '',
-                'modal' => isset( $cta_details['modal'] ) ? (bool) $cta_details['modal'] : FALSE,
-                'button_style' => isset( $cta_details['button_style'] ) ? $cta_details['button_style'] : '',
-                'modal_class' => isset( $cta_details['modal_class'] ) ? $cta_details['modal_class'] : '',
-                //'download' => isset( $cta_details['download'] ) ? (bool) $cta_details['download'] : FALSE,
-            ];
-        }
-        return $data;
-    }
     private function date( $force_value = FALSE ) {
         $raw_date = $force_value !== FALSE ? $force_value : do_get_post_meta( $this->post_id, $this->field_key );
         $date = [];
@@ -255,7 +192,7 @@ class DO_Form_Field_API_Display {
         return $this->wp_editor( $force_value !== FALSE ? $force_value : do_get_post_meta( $this->post_id, $this->field_key ) );
     }
 
-    private function hubspot_code( $force_value = FALSE ) {
+    private function form_embed_code( $force_value = FALSE ) {
         return stripslashes( $force_value !== FALSE ? $force_value : do_get_post_meta( $this->post_id, $this->field_key ) );
     }
 
@@ -419,7 +356,7 @@ class DO_Form_Field_API_Display {
         }
         $data = [];
         foreach ( $multi_array_field as $key => $multi_field ) {
-            if ( is_array( $multi_field ) && count( $multi_field ) ) {
+            if ( is_object( $multi_field ) && count( (array) $multi_field ) ) {
                 foreach ( $multi_field as $field_key => $field_value ) {
                     $field_type = isset( $multi_field_fields[ $field_key ] ) ? do_get_meta_field_type( $multi_field_fields[ $field_key ] ) : 'text';
                     $field_endpoint = $this->force_field( $field_type, $field_value, ( $field_type === 'multi_array' ? $multi_field_fields[ $field_key ]['fields'] : FALSE ) );
@@ -457,16 +394,13 @@ class DO_Form_Field_API_Display {
         $promo = is_array( $raw_promo ) ? $raw_promo : [];
         $data = [];
         if ( count( $promo ) ) {
-            $item_media = isset( $promo['media'] ) ? $promo['media'] : [];
-            $item_title = isset( $promo['title'] ) ? $promo['title'] : '';
-            $item_cta_url = isset( $promo['cta_url'] ) ? $promo['cta_url'] : '';
-            $item_cta_modal = isset( $promo['cta_modal'] ) ? (bool) $promo['cta_modal'] : FALSE;
+            $item_media = isset( $promo->media ) ? $promo->media : [];
             $image_api_field = $this->media( $item_media );
             $data = [
                 'media' => $image_api_field,
-                'title' => $item_title,
-                'cta_url' => $item_cta_url,
-                'cta_modal' => $item_cta_modal,
+                'title' => isset( $promo->title ) ? $promo->title : '',
+                'cta_url' => isset( $promo->cta_url ) ? $promo->cta_url : '',
+                'cta_modal' => isset( $promo->cta_modal ) ? (bool) $promo->cta_modal : FALSE,
             ];
         };
         return $data;
@@ -502,14 +436,14 @@ class DO_Form_Field_API_Display {
         $stats = is_array( $raw_stats ) ? $raw_stats : [];
         $data = [];
         foreach ( $stats as $stat_elements ) {
-            $stat_icon = isset( $stat_elements['icon'] ) && strlen( $stat_elements['icon'] ) ? $stat_elements['icon'] : '';
+            $stat_icon = isset( $stat_elements->icon ) && strlen( $stat_elements->icon ) ? $stat_elements->icon : '';
             $image_api_field = $this->media( $stat_icon );
-            $stat_before_number = isset( $stat_elements['before_number'] ) && strlen( $stat_elements['before_number'] ) ? $stat_elements['before_number'] : '';
-            $stat_number = isset( $stat_elements['number'] ) && strlen( $stat_elements['number'] ) ? $stat_elements['number'] : '';
-            $stat_after_number = isset( $stat_elements['after_number'] ) && strlen( $stat_elements['after_number'] ) ? $stat_elements['after_number'] : '';
-            $stat_title = isset( $stat_elements['title'] ) && strlen( $stat_elements['title'] ) ? $stat_elements['title'] : '';
-            $stat_description = isset( $stat_elements['description'] ) && strlen( $stat_elements['description'] ) ? $stat_elements['description'] : '';
-            $stat_count_down = isset( $stat_elements['count_down'] ) && strlen( $stat_elements['count_down'] ) ? (bool) $stat_elements['count_down'] : FALSE;
+            $stat_before_number = isset( $stat_elements->before_number ) && strlen( $stat_elements->before_number ) ? $stat_elements->before_number : '';
+            $stat_number = isset( $stat_elements->number ) && strlen( $stat_elements->number ) ? $stat_elements->number : '';
+            $stat_after_number = isset( $stat_elements->after_number ) && strlen( $stat_elements->after_number ) ? $stat_elements->after_number : '';
+            $stat_title = isset( $stat_elements->title ) && strlen( $stat_elements->title ) ? $stat_elements->title : '';
+            $stat_description = isset( $stat_elements->description ) && strlen( $stat_elements->description ) ? $stat_elements->description : '';
+            $stat_count_down = isset( $stat_elements->count_down ) && strlen( $stat_elements->count_down ) ? (bool) $stat_elements->count_down : FALSE;
             $stat_decimal = $stat_number && strpos( $stat_number, '.' ) !== FALSE;
             $stat_number = $stat_decimal ? (float) $stat_number : (int) $stat_number;
             $data[] = [
@@ -580,9 +514,9 @@ class DO_Form_Field_API_Display {
         $data = [];
         foreach ( $videos as $video_elements ) {
             $data[] = [
-                'title' => isset( $video_elements['title'] ) && strlen( $video_elements['title'] ) ? $video_elements['title'] : '',
-                'copy' => isset( $video_elements['copy'] ) && strlen( $video_elements['copy'] ) ? $video_elements['copy'] : '',
-                'url' => isset( $video_elements['url'] ) && strlen( $video_elements['url'] ) ? $video_elements['url'] : '',
+                'title' => isset( $video_elements->title ) && strlen( $video_elements->title ) ? $video_elements->title : '',
+                'copy' => isset( $video_elements->copy ) && strlen( $video_elements->copy ) ? $video_elements->copy : '',
+                'url' => isset( $video_elements->url ) && strlen( $video_elements->url ) ? $video_elements->url : '',
             ];
         }
         return $data;

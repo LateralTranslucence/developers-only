@@ -291,7 +291,7 @@ class DoSearch_UI {
         $options_count = [];
         foreach ( $meta_values as $value_field ) {
             if ( $value_field && strlen( $value_field ) ) {
-                $values = is_serialized( $value_field ) ? unserialize( $value_field ) : $value_field;
+                $values = is_json( $value_field ) ? json_decode( $value_field ) : $value_field;
                 // If it's an array of values, loop through them and add to $options_count
                 if ( is_array( $values ) ) {
                     foreach ( $values as $value ) {

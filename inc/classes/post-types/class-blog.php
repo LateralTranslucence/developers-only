@@ -14,7 +14,7 @@ class DO_Blog extends DO_Custom_Post_Type {
             'post_content' => 'Content',
             'post_excerpt' => 'Description',
             'slug' => 'blog',
-            'show_in_menu' => 'resources',
+            //'show_in_menu' => 'resources',
             'has_archive' => TRUE,
             'seo' => [
                 'title' => 'Title',

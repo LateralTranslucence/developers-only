@@ -393,21 +393,6 @@ class DO_Form_Field_Display {
     //     return $logo_browser_field->output;
     // }
     
-    private function client_stories() {
-        $client_stories_field_options = [
-            'fields' => [
-                'Client' => 'text',
-                'Video URL' => 'varchar',
-                'Challenge' => 'textarea',
-                'Solution' => 'textarea',
-                'Results' => 'textarea',
-            ],
-        ];
-        $client_stories_field = new DO_Form_Field_Display( 'multi_array', $this->field_key, $client_stories_field_options, array_merge( $this->settings, [ 'show_field_key' => FALSE ] ) );
-        
-        return $client_stories_field->output;
-    }
-
     private function code() {
         return $this->textarea();
     }
@@ -441,7 +426,7 @@ class DO_Form_Field_Display {
                 'Modal' => 'binary_select',
                 'Button Style' => 'button_style',
                 'Modal Class' => 'varchar',
-                //'Download' => 'binary_select',
+                'Download' => 'binary_select',
             ],
         ];
         $cta_field = new DO_Form_Field_Display( 'multi_array', $this->field_key, $cta_field_options, array_merge( $this->settings, [ 'show_field_key' => FALSE ] ) );
@@ -547,7 +532,7 @@ class DO_Form_Field_Display {
         return $this->textarea();
     }
     
-    private function hubspot_code() {
+    private function form_embed_code() {
         return $this->textarea();
     }
 
@@ -711,7 +696,7 @@ class DO_Form_Field_Display {
             $subfield_type = is_a( $subfield, 'DO_CPT_Form_Field' ) ? $subfield->field_type : ( is_array( $subfield ) ? $subfield['type'] : $subfield );
             $subfield_options['options'] = is_a( $subfield, 'DO_CPT_Form_Field' ) ? ( $subfield->target_type == 'taxonomy' ? $subfield->set_up_tax_options() : $subfield->set_up_field_options() ) : ( is_array( $subfield ) && isset( $subfield['options'] ) ? do_field_options( $subfield['options'] ) : [] );
             $subfield_options['fields'] = is_array( $subfield ) && isset( $subfield['fields'] ) ? $subfield['fields'] : [];
-            $this->settings['force_value'] = isset( $this->value[ $subfield_key ] ) ? $this->value[ $subfield_key ] : ( is_string( $this->value ) ? $this->value : '' );
+            $this->settings['force_value'] = isset( $this->value->{ $subfield_key } ) ? $this->value->{ $subfield_key } : ( is_string( $this->value ) ? $this->value : '' );
             $this->settings['label'] = $subfield_title;
             $this->settings['in_a_multi'] = TRUE;
             $this->settings['brackets'] = $this->brackets;
@@ -872,11 +857,11 @@ class DO_Form_Field_Display {
         return $output;
     }
     
-    private function read_only_serialized() {
+    private function read_only_json() {
         $output = '<textarea name="' . $this->field_name . '" id="' . $this->field_id . '" style="display: none">'. $this->value .'</textarea>';
         if ( strlen( $this->value ) ) {
-            $output .= '<table class="read-only-serialized" cellpadding="0" cellspacing="0" border="0">';
-            foreach ( unserialize( $this->value )  as $data_label => $data_value ) {
+            $output .= '<table class="read-only-json" cellpadding="0" cellspacing="0" border="0">';
+            foreach ( json_decode( $this->value )  as $data_label => $data_value ) {
                 $output .= '<tr>';
                 $output .= '<th scope="row">' . $data_label . '</th><td>' . $data_value . '</td>';
                 $output .= '</tr>';
@@ -910,6 +895,7 @@ class DO_Form_Field_Display {
         $is_select_multiple = $this->type === 'select_multiple';
         $this->field_options = isset( $this->field_options['options'] ) ? $this->field_options['options'] : $this->field_options;
         $output = '';
+        //do_var_dump($this->field_options);
         if ( count( $this->field_options ) ) {
             if ( $is_select_multiple ) {
                 $output .= '<span class="footnote">' . __( 'Hold cmd or ctrl to select multiple', 'developers_only' ) . '</span><br>';
@@ -1042,7 +1028,7 @@ class DO_Form_Field_Display {
     } 
     
     private function wp_editor() {
-        $output = wp_editor( $this->value, $this->field_id, [ 'textarea_name' => $this->field_name, 'media_buttons' => ( $this->type == 'wp_editor' ), 'teeny' => ( $this->type == 'wp_editor_limited' ), 'wpautop' => TRUE ] );
+        $output = wp_editor( $this->value, $this->field_id, [ 'textarea_name' => $this->field_name, 'media_buttons' => ( $this->type === 'wp_editor' ), 'teeny' => ( $this->type === 'wp_editor_limited' ), 'wpautop' => TRUE ] );
 
         return $output;
     }

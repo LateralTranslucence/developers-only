@@ -21,7 +21,7 @@ class DO_Form_Submission extends DO_Custom_Post_Type {
             '' => [
                 'Email' => 'text',
                 'Form ID' => 'read_only',
-                'Data' => 'read_only_serialized',
+                'Data' => 'read_only_json',
             ],
         ];
     }

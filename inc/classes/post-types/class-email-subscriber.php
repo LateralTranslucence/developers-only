@@ -46,7 +46,7 @@ class DO_Email_Subscriber extends DO_Custom_Post_Type {
                     ],
                 ],
                 'Subjects' => new DO_CPT_Form_Field( 'select_multiple', 'do_subject', 'post_title', 'post_name' ),
-                'Data' => 'read_only_serialized',
+                'Data' => 'read_only_json',
                 'Date Subscribed' => 'date_time',
                 'Date Last Updated' => 'date_time',
                 'Date Last Email' => 'date_time',

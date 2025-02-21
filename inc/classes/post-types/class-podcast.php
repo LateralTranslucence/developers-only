@@ -65,7 +65,7 @@ class DO_Podcast {
         ] );
         $podcast->meta_fields( [
             'Form Title' => 'varchar',
-            'Hubspot Form Embed Code' => 'hubspot_code',
+            'Form Embed Code' => 'form_embed_code',
         ], 'Form (Optional)' );
         if ( class_exists( 'DO_Subject' ) && class_exists( 'DO_Region' ) ) {
             $podcast->meta_fields( [

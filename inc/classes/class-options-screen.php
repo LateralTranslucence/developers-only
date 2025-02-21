@@ -418,7 +418,7 @@ class DO_Options_Screen {
                         else {
                             $validate = new DO_Form_Field_Validate( $type, $input[ $field_name ] );
                             //$value = $validate->value;
-                            $value = is_serialized( $validate->value ) ? unserialize( $validate->value ) : $validate->value;
+                            $value = is_json( $validate->value ) ? json_decode( $validate->value ) : $validate->value;
                         }
                     }
                     // If there's NOT a value for this field

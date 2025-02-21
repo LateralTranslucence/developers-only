@@ -1,0 +1,154 @@
+@use '../abstracts' as *;
+
+section.panel-type-cta { 
+    div.panel-inner-wrapper {
+        display: grid;
+        grid-template-columns: [left] 60% [right] 40% [end];
+        grid-template-rows: [one] auto [two] 1fr [end];
+        justify-content: stretch;
+        align-items: center;
+        header {
+            margin-bottom: 0;
+            grid-column: left / right;
+            grid-row: one / two;
+            text-align: left;
+        }
+        div.panel-copy-wrapper {
+            margin-bottom: 0;
+            max-width: 100%;
+            width: 100%;
+            text-align: left;
+            grid-column: left / right;
+            grid-row: two / three;
+            > p {
+                margin-top: 0.5em;
+            }
+        }
+        p.panel-cta {
+            grid-column: right / end;
+            grid-row: one / end;
+            justify-self: end;
+            margin-top: 0;
+        }
+        @include max-900 {
+            display: flex;
+            flex-direction: column;
+            header, div.panel-copy-wrapper {
+                text-align: center;
+            }
+            p.panel-cta {
+                margin-top: 2.25em;
+            }
+        }
+    }
+    &.color-blue {
+        p.panel-cta {
+            a.solid-button {
+                background-color: $navy;
+                color: $white;
+            }
+        }
+    }
+    &.color-navy {
+        header {
+            color: $teal;
+        }
+        p.panel-cta {
+            a.solid-button {
+                background-color: $teal;
+                color: $navy;
+            }
+        }
+    }
+    // Basic avatar background settings
+    &.has-avatar {
+        background-position-x: 110%;
+        @include full-width-only {
+            background-position-x: calc(50% + 450px);
+        }
+        @include max-900 {
+            background-position-x: 50%;
+            position: relative;
+            &::after {
+                content: '';
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                z-index: 0;
+            }
+        }
+    }
+    // Panel Background colors
+    &.color-blue {
+        &.has-avatar {
+            //background-image: url('/images/avatar/avatar-blue-small.jpg');
+            @include full-width-only {
+                //background-image: url('/images/avatar/avatar-blue-medium.jpg');
+            }
+            @include max-900 {
+                &::after {
+                    background-color: $blue;
+                    opacity: 0.75;
+                }
+            }
+        }
+    }
+    &.color-navy {
+        &.has-avatar {
+            //background-image: url('/images/avatar/avatar-navy-small.jpg');
+            @include full-width-only {
+                //background-image: url('/images/avatar/avatar-navy-medium.jpg');
+            }
+            @include max-900 {
+                &::after {
+                    background-color: $navy;
+                    opacity: 0.75;
+                }
+            }
+        }
+    }
+    &.color-teal {
+        &.has-avatar {
+            //background-image: url('/images/avatar/avatar-teal-small.jpg');
+            @include full-width-only {
+                //background-image: url('/images/avatar/avatar-teal-medium.jpg');
+            }
+            @include max-900 {
+                &::after {
+                    background-color: $teal;
+                    opacity: 0.75;
+                }
+            }
+        }
+    }
+    &.color-white { // default
+        &.has-avatar {
+            //background-image: url('/images/avatar/avatar-white-small.jpg');
+            @include full-width-only {
+                //background-image: url('/images/avatar/avatar-white-medium.jpg');
+            }
+            @include max-900 {
+                &::after {
+                    background-color: $white;
+                    opacity: 0.75;
+                }
+            }
+        }
+    }
+    &.color-yellow {
+        &.has-avatar {
+            //background-image: url('/images/avatar/avatar-yellow-small.jpg');
+            @include full-width-only {
+                //background-image: url('/images/avatar/avatar-yellow-medium.jpg');
+            }
+            @include max-900 {
+                &::after {
+                    background-color: $yellow;
+                    opacity: 0.75;
+                }
+            }
+        }
+    }
+}

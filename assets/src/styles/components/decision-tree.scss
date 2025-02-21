@@ -1,0 +1,169 @@
+@use '../abstracts' as *;
+
+section.panel-type-decision-tree {
+    header.panel-header {
+        text-align: center;
+    }
+    ul.blocks.card {
+        width: 150%;
+        justify-content: flex-start;
+        > li {
+            min-height: 19em;
+            div.block-content-wrapper {
+                padding-top: 3em;
+            }
+            span.decision-tree-full {
+                display: none;
+                width: 100%;
+                flex-direction: row;
+                span.left {
+                    width: 65%;
+                    padding-right: 10%;
+                    a.do-cta {
+                        color: $blue;
+                    }
+                }
+                span.right {
+                    width: 35%;
+                    ul {
+                        margin: 0;
+                        > li {
+                            list-style: none;
+                            margin: 0;
+                            position: relative;
+                            a {
+                                color: $blue;
+                                &.has-icon {
+                                    display: flex;
+                                    flex-direction: row;
+                                    align-items: center;
+                                    span.do-image-wrapper {
+                                        margin: 0 0.75em 0 ;
+                                        width: 35px !important; // override inline style
+                                        height: 35px !important; // override inline style
+                                    }
+                                    figure.do-image.do-icon {
+                                        background-image: var(--icon-blue);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            button.decision-tree-open, button.decision-tree-close {
+                background: transparent;
+                border: none;
+                font-size: 1em;
+                position: absolute;
+                right: 5.5em;
+                cursor: pointer;
+                > span {
+                    display: none;
+                }
+                &::before {
+                    @include font(icon);
+                    display: block;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 1.75em;
+                    height: 1.75em;
+                    border-radius: 100px;
+                    font-size: 2em;
+                    line-height: 1.75em;
+                    text-align: center;
+                }
+                &:focus {
+                    outline: none;
+                    &::before {
+                        outline: 2px $teal dashed;
+                    }
+                }
+            }
+            button.decision-tree-open {
+                bottom: 5.5em;
+                &::before {
+                    content: '\2b';
+                    background-color: $blue;
+                    color: $white;
+                }
+            }
+            button.decision-tree-close {
+                display: none;
+                top: 2em;
+                &::before {
+                    content: '\f00d';
+                    background-color: $white;
+                    color: $blue;
+                    border: 1px $blue solid;
+                }
+            }
+            &.open {
+                width: calc(50% - 3em);
+                &::after {
+                    content: '';
+                    display: inline-block;
+                    width: calc(100% - 2.65em);
+                    height: 4px;
+                    background: linear-gradient(90deg, $navy, $blue 30%, $teal) 0 100%;
+                    position: absolute;
+                    bottom: 1em;
+                    right: 1em;
+                    border-radius: 0 0 0 $xlarge;
+                }
+                span.decision-tree-overview {
+                    display: none;
+                }
+                span.decision-tree-full {
+                    display: flex;
+                }
+                button.decision-tree-open {
+                    display: none;
+                }
+                button.decision-tree-close {
+                    display: inline;
+                }
+            }
+        }
+        &.card-1-open {
+            margin-left: -25%;
+        }
+        @include max-1024 {
+            > li.open {
+                width: calc(60% - 3em);
+            }
+            &.card-1-open {
+                margin-left: -35%;
+            }
+        }
+        @include max-900 {
+            > li {
+                width: calc(35% - 3em);
+            }
+            > li.open {
+                width: calc(55% - 3em);
+                span.decision-tree-full {
+                    flex-direction: column;
+                    span.left {
+                        width: 100%;
+                    }
+                    span.left {
+                        margin-top: 2em;
+                        width: 100%;
+                    }
+                }
+            }
+        }
+        @include max-768 {
+            width: 100%;
+            > li, > li.open {
+                width: 100%;
+                margin-right: 0 !important;
+            }
+            &.card-1-open {
+                margin-left: 0;
+            }
+        }
+    }
+}

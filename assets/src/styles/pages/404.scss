@@ -1,0 +1,15 @@
+
+main.page-404 {
+    header#hero {
+        background-position: 50% -200px;
+        height: calc(100vh - 100px); // same as main
+        div.hero-container div.hero-text-wrapper {
+            grid-column: one / end;
+            text-align: center;
+            p#hero-cta {
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+    }
+}

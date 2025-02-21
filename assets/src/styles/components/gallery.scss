@@ -1,0 +1,28 @@
+@use '../abstracts' as *;
+
+section.panel.panel-type-logo-gallery-circle {
+    header.panel-header {
+        text-align: center;
+    }
+    ul.logo-gallery.logos {
+        margin: 4em 0 0 0;
+        li {
+            margin-bottom: 2em;
+            align-items: center;
+            span.do-image-wrapper, figure.do-image {
+                border-radius: 0;
+                margin: 0 auto;
+            }
+            figure.do-image {
+                padding-top: 50px !important;
+                background-size: contain;
+                background-position: 50%;
+            }
+            a:hover span.do-image-wrapper figure.do-image {
+                transform: none;
+                opacity: $hover_opacity;
+            }
+        }
+    }
+}
+

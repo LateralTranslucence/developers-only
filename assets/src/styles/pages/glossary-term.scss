@@ -1,0 +1,11 @@
+
+article#content-wrapper {
+    &.one-column {
+        section#main-content {
+            width: 100%;
+            > p {
+                width: 65%;
+            }
+        }
+    }
+}

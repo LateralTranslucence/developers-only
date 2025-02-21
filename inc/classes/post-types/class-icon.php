@@ -1,9 +1,13 @@
 <?php
-
-class DO_Icon {
-    public function __construct() {
-        $icons = new DO_Custom_Post_Type( 'do_icon' );
-        $icons->settings( [
+class Do_Icon extends DO_Custom_Post_Type {
+    protected function post_type(): string {
+        return 'do_icon';
+    }
+    protected function post_type_args(): array {
+        return [];
+    }
+    protected function settings(): array {
+        return [
             'post_title' => 'Label',
             'has_archive' => FALSE,
             'noindex' => TRUE,
@@ -11,26 +15,32 @@ class DO_Icon {
             'show_in_admin_bar' => FALSE,
             'hide_field' => 'Hidden',
             'onsave_callback' => [ $this, 'onsave' ],
-        ] );
-        $icons->meta_fields( [
-            'Label' => 'text',
-            'Files' => [
-                'type' => 'multi',
-                'fields' => [
-                    'Blue' => 'media',
-                    'Navy' => 'media',
-                    'Teal' => 'media',
-                    'White' => 'media',
-                    'Yellow' => 'media',
-                ],
-            ],
-            'Keywords' => 'textarea',
-            'Hidden' => 'binary',
-            'Preview' => 'hidden',
-        ] );
-        $icons->admin_fields( [ 'Title', 'Preview', 'Hidden', 'post_date' ] );
+        ];
     }
-
+    // [ 'BoxName' => [ ... ] ]
+    protected function meta_fields(): array {
+        return [
+            '' => [
+                'Label' => 'text',
+                'Files' => [
+                    'type' => 'multi',
+                    'fields' => [
+                        'Blue' => 'media',
+                        'Navy' => 'media',
+                        'Teal' => 'media',
+                        'White' => 'media',
+                        'Yellow' => 'media',
+                    ],
+                ],
+                'Keywords' => 'textarea',
+                'Hidden' => 'binary',
+                'Preview' => 'hidden',
+            ],
+        ];
+    }
+    protected function admin_fields(): array {
+        return [ 'Title', 'Preview', 'Hidden', 'post_date' ];
+    }
     public function onsave( $POST, $cpt_object ) {
         global $wpdb;
         if ( isset( $POST['icon_files'] ) && count( $POST['icon_files'] ) ) {
@@ -58,4 +68,4 @@ class DO_Icon {
         return $POST;
     }
 }
-$do_icon = new DO_Icon();
+$do_icon = Do_Icon::get_instance();

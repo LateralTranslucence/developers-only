@@ -179,15 +179,15 @@ abstract class DO_Custom_Post_Type {
     *
     * */
     private function set_setting( $setting_name, $setting_value ) {
-        //echo "settings \n";
-        if ( empty( $settings ) ) {
+        //echo "set_setting \n";
+        if ( empty( $setting_name ) ) {
             return;
         }
 
         switch ( $setting_name ) {
             // Admin Menu Icon
             case 'icon':
-                add_action( 'admin_head', function() {
+                add_action( 'admin_head', function() use( $setting_value ) {
                     echo '<style>#adminmenu li#menu-posts-'. $this->post_type .' div.wp-menu-image:before { content: "' . $setting_value . '"; }</style>' . "\n";
                 } );
                 break;
@@ -264,7 +264,6 @@ abstract class DO_Custom_Post_Type {
             // Gated
             case 'gated':
                 if ( $setting_value ) {
-                    do_var_dump($this);exit;
                     new DO_Gated( $this );
                 }
                 break;
@@ -573,8 +572,7 @@ abstract class DO_Custom_Post_Type {
             // Given args
             $this->post_type_args
         );
-        do_var_dump($this->post_type);
-        do_var_dump($args);
+        
         // Register the post type
         register_post_type( $this->post_type, $args );
 
@@ -613,7 +611,6 @@ abstract class DO_Custom_Post_Type {
             // Given args
             $this->post_type_args
         );
-        //do_var_dump($args);
         // Register the post type
         register_post_type( $this->post_type, $args );
     }
@@ -1186,7 +1183,6 @@ abstract class DO_Custom_Post_Type {
                 foreach ( array_keys( $this->bonus_fields ) as $bonus_key ) {
                     $backup_values = $wpdb->query( "UPDATE $wpdb->postmeta SET meta_key = REPLACE(meta_key, '$bonus_key', 'BAK$bonus_key') WHERE post_id = $post_id and meta_key = '$bonus_key';" );
                 }
-
                 //do_var_dump($_POST);exit;
                 //do_var_dump($this->meta_fields);exit;
 
@@ -1591,7 +1587,7 @@ abstract class DO_Custom_Post_Type {
             // Add fields
             $data->data = do_api_custom_data( $post, $this->post_type_details );
             $data->data = do_array_from_object( $data->data );
-            
+            //do_var_dump($data);
             return $data;
         }, 10, 3 );
     }
