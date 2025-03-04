@@ -69,7 +69,6 @@ const LinearContent: React.FC<PanelProps> = ( {
                                         'aria-selected': 'true', 
                                         onClick: ( e: MouseEvent ) => {
                                             e.preventDefault();
-                                            console.log('here');
                                             setCurrentTabID( contentBlockID );
                                         },
                                     } } 

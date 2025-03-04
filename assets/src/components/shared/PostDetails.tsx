@@ -13,7 +13,6 @@ const PostDetails: React.FC<PostDetailsProps> = ( {
     podcastSeries,
     description,
 } ): JSX.Element => {
-    console.log('here');
     return (
         <div id="post-details">
             { author ? 

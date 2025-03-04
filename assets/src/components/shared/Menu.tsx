@@ -34,7 +34,6 @@ const Menu: React.FC<MenuProps> = ( { name } ) => {
             const haveChildren: any = {};
             // First loop - gather information about depth and children
             navMenu.forEach( ( item: any, index: number ) => {
-                //console.log(item);
                 const itemParent: number = Number( item.menu_item_parent );
                 let currentDepth: number = 0;
                 // Figure out the depth

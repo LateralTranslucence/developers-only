@@ -1,0 +1,2 @@
+import{W as a}from"./index-Dbx2BdPS.js";const i=async r=>{try{const t=new URLSearchParams(r).toString(),e=`${a}/archive/?${t}`;doEnv!=="prod"&&console.log("doGetArchivePosts "+e);const o=await fetch(e),s=await o.json();return{totalPages:o.headers.get("x-wp-totalpages"),totalPosts:o.headers.get("x-wp-total"),allHeaders:o.headers,json:s}}catch(t){throw console.error("Error fetching archive posts: ",t),t}};export{i as d};
+//# sourceMappingURL=doGetArchivePosts-Dh6-Cc7G.js.map

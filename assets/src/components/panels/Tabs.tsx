@@ -12,6 +12,7 @@ import { Tab } from '@/utils/types/Tab';
 import '@/styles/components/select-list.scss';
 import '@/styles/components/blocks.scss';
 import '@/styles/components/tabs.scss';
+import CTAs from '../shared/CTAs';
 
 const Tabs: React.FC<PanelProps> = ( { 
     post, 
@@ -79,8 +80,8 @@ const Tabs: React.FC<PanelProps> = ( {
                                 } ) }
                                 </ul>
                             : null }
-                            { tab.cta_url ?
-                                <CTA url={ tab.cta_url } modal={ tab.cta_modal } text={ tab.cta_text } classes={ [ 'solid-button' ] } />
+                            { tab.cta ?
+                                <CTAs ctas={ tab.cta } />
                             : null }
                         </MUITabs.Panel>
                     );
