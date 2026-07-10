@@ -45,7 +45,7 @@ const Blocks:React.FC<PanelProps> = ( {
                 { blocks.map( ( block: BlockItem, index: number ) => {
                     if (block.hidden) return null;
                     return (
-                        <li key={ index } className={ 'blocks__item' + ( block.cta_url && ! block.cta_text ? ' blocks__item--has-link' : '' ) }>
+                        <li key={ index } className={ '' + ( block.cta_url && ! block.cta_text ? ' --has-link' : '' ) }>
                             { block.cta_url && ! block.cta_text ?
                                 <CTA url={ block.cta_url } modal={ block.cta_modal } classes={ [ 'blocks__link' ] }>
                                     <BlockContent block={ block } />

@@ -44,7 +44,7 @@ const Stats: React.FC<PanelProps> = ( {
 
     if ( stats.length > 0 ) {
         return (
-            <ul className="stats">
+            <ul className="stats blocks blocks--four">
                 { stats.map( ( stat, index ) => (
                     <StatItem key={ index } stat={ stat } />
                 ) ) }

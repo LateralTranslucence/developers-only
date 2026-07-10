@@ -20,7 +20,7 @@ ul.blocks {
     &--slider {
         flex-wrap: nowrap;
         justify-content: flex-start;
-        > li.blocks__item {
+        > li {
             margin-bottom: 0;
         }
     }
@@ -39,13 +39,13 @@ ul.blocks {
 
     // Card/Post
     &--card, &--post, &--list {
-        > li.blocks__item {
+        > li {
             background-color: $transparent;
             position: relative;
         }
         @media(min-width: 481px) {
-            &.blocks--one > li.blocks__item {
-                &.blocks__item--has-link {
+            &.blocks--one > li {
+                &--has-link {
                     .blocks__link {
                         display: grid;
                         grid-template-columns: 35% auto;
@@ -67,7 +67,7 @@ ul.blocks {
     }
     // Plain
     &--plain {
-        > li.blocks__item {
+        > li {
             @include max-600 {
                 div.blocks__content {
                     padding: 0;
@@ -78,7 +78,7 @@ ul.blocks {
     // Posts
     &--post {
         justify-content: flex-start;
-        > li.blocks__item {
+        > li {
             h2, h3 {
                 @include font(medium);
                 font-size: 1em; // 16px
@@ -92,19 +92,19 @@ ul.blocks {
             }
         }
     }
-}
-
-li.blocks__item {
-    list-style: none;
-    margin: 0;
-    padding: 1em;
-    text-align: left;
-    position: relative;
-    overflow: hidden;
-    h2, h3, h4, h5 {
-        font-size: 1.563em; // 25px
+    > li {
+        list-style: none;
+        margin: 0;
+        padding: 1em;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+        h2, h3, h4, h5 {
+            font-size: 1.563em; // 25px
+        }
     }
 }
+
 // Open-ended: rendered via CTA, which may be an <a>, <span>, or router <Link>
 .blocks__link {
     display: block;

@@ -21,7 +21,7 @@ const DefaultList: React.FC<PartialTemplateProps> = ( {
     };
 
     return (
-        <li key={ index } data-index={ index } className={ 'blocks__item blocks__item--has-link' + ( showFeatured && post.is_featured ? ' featured' : '' ) }>
+        <li key={ index } data-index={ index } className={ ' --has-link' + ( showFeatured && post.is_featured ? ' featured' : '' ) }>
             <CTA { ...ctaSettings }>
                 <div className="blocks__content">
                     <Heading tag="h3" pretitle={ post.post_type_details.post_type_display_name } title={ post.post_title } />

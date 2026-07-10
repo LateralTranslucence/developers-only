@@ -50,8 +50,8 @@
       "panelwrapper.css"
     ]
   },
-  "_PartialTemplateLoader-DBgDW9XC.js": {
-    "file": "PartialTemplateLoader-DBgDW9XC.js",
+  "_PartialTemplateLoader-gQevf-qY.js": {
+    "file": "PartialTemplateLoader-gQevf-qY.js",
     "name": "PartialTemplateLoader",
     "imports": [
       "_rolldown-runtime-CNC7AqOf.js",
@@ -94,8 +94,8 @@
       "_Helmet-D9eZ5x9I.js"
     ]
   },
-  "_TemplateLoader-C55p5enu.js": {
-    "file": "TemplateLoader-C55p5enu.js",
+  "_TemplateLoader-DdJamLi4.js": {
+    "file": "TemplateLoader-DdJamLi4.js",
     "name": "TemplateLoader",
     "imports": [
       "_rolldown-runtime-CNC7AqOf.js",
@@ -196,7 +196,7 @@
     ]
   },
   "app/components/panels/Blocks.tsx": {
-    "file": "Blocks-A4Zv-5ZT.js",
+    "file": "Blocks-DD3bA467.js",
     "name": "Blocks",
     "src": "app/components/panels/Blocks.tsx",
     "isDynamicEntry": true,
@@ -224,7 +224,7 @@
     ]
   },
   "app/components/panels/DecisionTree.tsx": {
-    "file": "DecisionTree-CEGsWWpl.js",
+    "file": "DecisionTree-9UJc9ZjT.js",
     "name": "DecisionTree",
     "src": "app/components/panels/DecisionTree.tsx",
     "isDynamicEntry": true,
@@ -285,7 +285,7 @@
     ]
   },
   "app/components/panels/Gallery.tsx": {
-    "file": "Gallery-DB3A7-yg.js",
+    "file": "Gallery-DLCWxp3m.js",
     "name": "Gallery",
     "src": "app/components/panels/Gallery.tsx",
     "isDynamicEntry": true,
@@ -301,7 +301,7 @@
     ]
   },
   "app/components/panels/Posts.tsx": {
-    "file": "Posts-CBpA1xCB.js",
+    "file": "Posts-CLPebxCp.js",
     "name": "Posts",
     "src": "app/components/panels/Posts.tsx",
     "isDynamicEntry": true,
@@ -311,7 +311,7 @@
       "_getArrayField-BFOcSGch.js",
       "_getBooleanField-CJpnrxHn.js",
       "_getStringField-C5V1BH3y.js",
-      "_PartialTemplateLoader-DBgDW9XC.js"
+      "_PartialTemplateLoader-gQevf-qY.js"
     ],
     "css": [
       "posts.css",
@@ -320,7 +320,7 @@
     ]
   },
   "app/components/panels/Quotes.tsx": {
-    "file": "Quotes-DsGFp8j5.js",
+    "file": "Quotes-DEGvdoIa.js",
     "name": "Quotes",
     "src": "app/components/panels/Quotes.tsx",
     "isDynamicEntry": true,
@@ -335,7 +335,7 @@
     ]
   },
   "app/components/panels/Search.tsx": {
-    "file": "Search-0Bq3iJj_.js",
+    "file": "Search-DoGpAIi3.js",
     "name": "Search",
     "src": "app/components/panels/Search.tsx",
     "isDynamicEntry": true,
@@ -345,7 +345,7 @@
       "_api-JLg7AJpe.js",
       "_panels-4ASK18Mt.js",
       "_FormFieldLoader-CMkMafOE.js",
-      "_PartialTemplateLoader-DBgDW9XC.js"
+      "_PartialTemplateLoader-gQevf-qY.js"
     ],
     "css": [
       "search.css",
@@ -354,7 +354,7 @@
     ]
   },
   "app/components/panels/Stats.tsx": {
-    "file": "Stats-C2zQZQd9.js",
+    "file": "Stats-D-82YoCi.js",
     "name": "Stats",
     "src": "app/components/panels/Stats.tsx",
     "isDynamicEntry": true,
@@ -400,7 +400,7 @@
     ]
   },
   "app/components/panels/TextMedia.tsx": {
-    "file": "TextMedia-CUQVp495.js",
+    "file": "TextMedia-DbV1A6mq.js",
     "name": "TextMedia",
     "src": "app/components/panels/TextMedia.tsx",
     "isDynamicEntry": true,
@@ -412,18 +412,18 @@
       "_MediaLoader-DzP9-i80.js"
     ],
     "css": [
-      "single.css"
+      "textmedia.css"
     ]
   },
   "app/components/templates/LandingPage.tsx": {
-    "file": "LandingPage-B6Nr_voi.js",
+    "file": "LandingPage-CYQ2rtzh.js",
     "name": "LandingPage",
     "src": "app/components/templates/LandingPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-CNC7AqOf.js",
       "_CTA-BHy7GlJi.js",
-      "_TemplateLoader-C55p5enu.js",
+      "_TemplateLoader-DdJamLi4.js",
       "_getArrayField-BFOcSGch.js",
       "_getBooleanField-CJpnrxHn.js",
       "_getStringField-C5V1BH3y.js",
@@ -451,14 +451,14 @@
     ]
   },
   "app/components/templates/Page404.tsx": {
-    "file": "Page404-Cyev3bEZ.js",
+    "file": "Page404-BVEeXhi1.js",
     "name": "Page404",
     "src": "app/components/templates/Page404.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-CNC7AqOf.js",
       "_CTA-BHy7GlJi.js",
-      "_TemplateLoader-C55p5enu.js",
+      "_TemplateLoader-DdJamLi4.js",
       "_SEOTags-SGIi1AWC.js",
       "_Helmet-D9eZ5x9I.js"
     ],
@@ -467,7 +467,7 @@
     ]
   },
   "app/components/templates/block/DefaultBlock.tsx": {
-    "file": "DefaultBlock-BXR-Mheo.js",
+    "file": "DefaultBlock-BWQas8pd.js",
     "name": "DefaultBlock",
     "src": "app/components/templates/block/DefaultBlock.tsx",
     "isDynamicEntry": true,
@@ -477,7 +477,7 @@
     ]
   },
   "app/components/templates/list/DefaultList.tsx": {
-    "file": "DefaultList-BQuSQRiK.js",
+    "file": "DefaultList-BeXxzC1Y.js",
     "name": "DefaultList",
     "src": "app/components/templates/list/DefaultList.tsx",
     "isDynamicEntry": true,
@@ -491,7 +491,7 @@
     ]
   },
   "app/components/templates/simple/DefaultSimple.tsx": {
-    "file": "DefaultSimple--wTQhXTA.js",
+    "file": "DefaultSimple-CL1Hyzlc.js",
     "name": "DefaultSimple",
     "src": "app/components/templates/simple/DefaultSimple.tsx",
     "isDynamicEntry": true,
@@ -502,14 +502,14 @@
     ]
   },
   "app/components/templates/single/Blog.tsx": {
-    "file": "Blog-CsSBkC0K.js",
+    "file": "Blog-BNJKq358.js",
     "name": "Blog",
     "src": "app/components/templates/single/Blog.tsx",
     "isDynamicEntry": true,
     "imports": [
       "_rolldown-runtime-CNC7AqOf.js",
       "_CTA-BHy7GlJi.js",
-      "_TemplateLoader-C55p5enu.js",
+      "_TemplateLoader-DdJamLi4.js",
       "_getMediaField-DEcDuXAG.js",
       "_getStringField-C5V1BH3y.js",
       "_SEOTags-SGIi1AWC.js",
@@ -557,14 +557,14 @@
     ]
   },
   "app/index.tsx": {
-    "file": "index-LTMeuRFB.js",
+    "file": "index-BYD9VCA_.js",
     "name": "index",
     "src": "app/index.tsx",
     "isEntry": true,
     "imports": [
       "_rolldown-runtime-CNC7AqOf.js",
       "_CTA-BHy7GlJi.js",
-      "_TemplateLoader-C55p5enu.js"
+      "_TemplateLoader-DdJamLi4.js"
     ],
     "css": [
       "index.css"
@@ -588,70 +588,10 @@
     "src": "app/styles/devo-global.scss",
     "isEntry": true,
     "assets": [
-      "BentonSans-Regular-DA2OeHGv.woff2",
-      "BentonSans-Regular-3gTGdInv.woff",
-      "BentonSans-Medium-CwCh6Oql.woff2",
-      "BentonSans-Medium-dUuRXQ4w.woff",
-      "BentonSans-Bold-Cn41NaHg.woff2",
-      "BentonSans-Bold-BfVfVuJD.woff",
-      "BentonSans-CondensedRegular-fA1AfzXb.woff2",
-      "BentonSans-CondensedRegular-CTKHl2ot.woff",
-      "BentonSans-CondensedMedium-vBk2rP9R.woff2",
-      "BentonSans-CondensedMedium-BwbkUaVf.woff",
-      "BentonSans-CondensedBold-OpS57Tm5.woff2",
-      "BentonSans-CondensedBold-BUyIc3wz.woff",
       "fa-solid-900-Iz_TytpP.woff2",
       "fa-regular-400-WLfxSHV3.woff2",
       "fa-brands-400-BK5CuonO.woff2"
     ]
-  },
-  "app/styles/fonts/BentonSans/BentonSans-Bold.woff": {
-    "file": "BentonSans-Bold-BfVfVuJD.woff",
-    "src": "app/styles/fonts/BentonSans/BentonSans-Bold.woff"
-  },
-  "app/styles/fonts/BentonSans/BentonSans-Bold.woff2": {
-    "file": "BentonSans-Bold-Cn41NaHg.woff2",
-    "src": "app/styles/fonts/BentonSans/BentonSans-Bold.woff2"
-  },
-  "app/styles/fonts/BentonSans/BentonSans-CondensedBold.woff": {
-    "file": "BentonSans-CondensedBold-BUyIc3wz.woff",
-    "src": "app/styles/fonts/BentonSans/BentonSans-CondensedBold.woff"
-  },
-  "app/styles/fonts/BentonSans/BentonSans-CondensedBold.woff2": {
-    "file": "BentonSans-CondensedBold-OpS57Tm5.woff2",
-    "src": "app/styles/fonts/BentonSans/BentonSans-CondensedBold.woff2"
-  },
-  "app/styles/fonts/BentonSans/BentonSans-CondensedMedium.woff": {
-    "file": "BentonSans-CondensedMedium-BwbkUaVf.woff",
-    "src": "app/styles/fonts/BentonSans/BentonSans-CondensedMedium.woff"
-  },
-  "app/styles/fonts/BentonSans/BentonSans-CondensedMedium.woff2": {
-    "file": "BentonSans-CondensedMedium-vBk2rP9R.woff2",
-    "src": "app/styles/fonts/BentonSans/BentonSans-CondensedMedium.woff2"
-  },
-  "app/styles/fonts/BentonSans/BentonSans-CondensedRegular.woff": {
-    "file": "BentonSans-CondensedRegular-CTKHl2ot.woff",
-    "src": "app/styles/fonts/BentonSans/BentonSans-CondensedRegular.woff"
-  },
-  "app/styles/fonts/BentonSans/BentonSans-CondensedRegular.woff2": {
-    "file": "BentonSans-CondensedRegular-fA1AfzXb.woff2",
-    "src": "app/styles/fonts/BentonSans/BentonSans-CondensedRegular.woff2"
-  },
-  "app/styles/fonts/BentonSans/BentonSans-Medium.woff": {
-    "file": "BentonSans-Medium-dUuRXQ4w.woff",
-    "src": "app/styles/fonts/BentonSans/BentonSans-Medium.woff"
-  },
-  "app/styles/fonts/BentonSans/BentonSans-Medium.woff2": {
-    "file": "BentonSans-Medium-CwCh6Oql.woff2",
-    "src": "app/styles/fonts/BentonSans/BentonSans-Medium.woff2"
-  },
-  "app/styles/fonts/BentonSans/BentonSans-Regular.woff": {
-    "file": "BentonSans-Regular-3gTGdInv.woff",
-    "src": "app/styles/fonts/BentonSans/BentonSans-Regular.woff"
-  },
-  "app/styles/fonts/BentonSans/BentonSans-Regular.woff2": {
-    "file": "BentonSans-Regular-DA2OeHGv.woff2",
-    "src": "app/styles/fonts/BentonSans/BentonSans-Regular.woff2"
   },
   "app/styles/fonts/FontAwesome/fa-brands-400.woff2": {
     "file": "fa-brands-400-BK5CuonO.woff2",

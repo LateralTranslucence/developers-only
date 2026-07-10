@@ -32,7 +32,7 @@ const Gallery: React.FC<PanelProps> = ( {
                                 ctaSettings.url = mediaItem.url;
                             }
                             return (
-                                <li className="blocks__item" key={ index }>
+                                <li key={ index }>
                                     <CTA { ...ctaSettings }>
                                         <MediaLoader media={ mediaItem.media } size={ 'logo' } loop={ mediaItem.video_loop } />
                                         { mediaItem.title ?

@@ -3,7 +3,7 @@
 
 ul.blocks.blocks--list {
     justify-content: center;
-    > li.blocks__item {
+    > li {
         width: 100%;
         @include max-900 {
             width: 100%;

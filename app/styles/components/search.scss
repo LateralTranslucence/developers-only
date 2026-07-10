@@ -29,7 +29,7 @@ p#search-results-statement {
 ul.search__results {
     justify-content: flex-start;
     margin: 0;
-    li.blocks__item {
+    > li {
         margin-bottom: 2em;
         justify-content: flex-start;
         height: 400px;

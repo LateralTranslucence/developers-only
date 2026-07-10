@@ -25,7 +25,7 @@ const DefaultSimple: React.FC<PartialTemplateProps> = ( {
     };
 
     return (
-        <li key={ index } className={ 'blocks__item blocks__item--has-link' + ( showFeatured && post.is_featured ? ' featured' : '' ) }>
+        <li key={ index } className={ ' --has-link' + ( showFeatured && post.is_featured ? ' featured' : '' ) }>
             <CTA { ...ctaSettings }>
                 <Image image={ image } size="square_600" />
                 <Heading tag="h3" title={ post.post_title } />

@@ -20,7 +20,7 @@ const Quotes: React.FC<PanelProps> = ( {
             <ul className="panel-testimonial-carousel blocks blocks--card">
                 { testimonialCarouselItems.map( ( item: Quote, index: number ) => {
                     return (
-                        <li className="blocks__item" key={ index }>
+                        <li key={ index }>
                             <div className="quote">
                                 { parse( item.quote ) }
                             </div>

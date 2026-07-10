@@ -13,7 +13,7 @@ const DefaultBlock: React.FC<PartialTemplateProps> = ( {
     type,
 } ): JSX.Element => {
     return (
-        <li className="blocks__item blocks__item--has-link">
+        <li className=" --has-link">
             <CTA classes={ [ 'blocks__link' ] } url={ post.permalink } text={ post.post_title }>
                 <Image image={ post.post_thumbnail } size="square_600" classes={ [ 'blocks__thumbnail' ] } />
                 <div className="blocks__content">

@@ -59,7 +59,7 @@ const RecentPosts: React.FC<RecentPostsProps> = ( {
                             classes: [ 'blocks__link' ],
                         };
                         return (
-                            <li key={ index } className="blocks__item blocks__item--has-link">
+                            <li key={ index } className=" --has-link">
                                 <CTA { ...ctaSettings }>
                                     { parse( post.post_title ) }
                                 </CTA>

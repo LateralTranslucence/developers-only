@@ -38,7 +38,7 @@ const DecisionTree:React.FC<PanelProps> = ( {
                     if ( index < 2 ) {
                         const animation: CustomAttributes = openTree === null ? ( index === 0 ? { 'data-aos': 'fade-right' } : { 'data-aos': 'fade-left' } ) : {};
                         return (
-                            <li key={ index } data-index={ index } className={ 'blocks__item decision-tree__card' + ( openTree === index ? ' decision-tree__card--open' : '' ) } { ...animation }>
+                            <li key={ index } data-index={ index } className={ ' decision-tree__card' + ( openTree === index ? ' decision-tree__card--open' : '' ) } { ...animation }>
                                 <div className="blocks__content">
                                     <Heading tag="h3" title={ card.title } />
                                     <span className="decision-tree__overview">
