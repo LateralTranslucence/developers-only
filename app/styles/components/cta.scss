@@ -1,0 +1,51 @@
+@use '../abstracts' as *;
+
+section.panel-type-cta {
+    div.container {
+        display: grid;
+        grid-template-columns: 60% 40%;
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+            "header cta"
+            "copy   cta";
+        justify-content: stretch;
+        align-items: center;
+        header {
+            grid-area: header;
+            margin-bottom: 0;
+            text-align: left;
+        }
+        div.panel-copy-wrapper {
+            grid-area: copy;
+            margin-bottom: 0;
+            max-width: 100%;
+            width: 100%;
+            text-align: left;
+            > p {
+                margin-top: 0.5em;
+            }
+        }
+        p.panel-cta {
+            grid-area: cta;
+            justify-self: end;
+            margin-top: 0;
+        }
+        @include max-900 {
+            display: flex;
+            flex-direction: column;
+            header, div.panel-copy-wrapper {
+                text-align: center;
+            }
+            p.panel-cta {
+                margin-top: 2.25em;
+            }
+        }
+    }
+    // Basic avatar background positioning
+    &.has-avatar {
+        background-position-x: 110%;
+        @include max-900 {
+            background-position-x: 50%;
+        }
+    }
+}

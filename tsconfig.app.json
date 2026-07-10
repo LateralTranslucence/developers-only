@@ -7,7 +7,7 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "paths": {
-        "@/*": ["./assets/src/*"]
+        "@/*": ["./app/*"]
     },
 
     /* Bundler mode */
@@ -27,6 +27,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["./assets/src/**/*", "./assets/src/global.d.ts", "./assets/src/declaration.d.ts"],
-  "exclude": ["./node_modules", "./assets/dist"] 
+  "include": ["./app/**/*", "./app/global.d.ts", "./app/declaration.d.ts"],
+  "exclude": ["./node_modules", "./app/dist"] 
 }

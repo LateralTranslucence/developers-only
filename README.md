@@ -1,16 +1,16 @@
 {DevelopersOnly} React
 
 developers-only/
-├── assets/
-│   ├── images/          # Static images
-│   ├── js/              # Static JavaScript files
+├── app/
+│   ├── public/images/          # Static images
+│   ├── public/js/              # Static JavaScript files
 │   └── styles/          # SCSS stylesheets
 ├── build/               # Build outputs
-├── inc/                 # PHP includes
+├── api/                 # PHP includes
 │   ├── classes/         # PHP classes
 │   ├── fields/          # PHP fields
 │   └── libs/            # PHP libraries
-├── src/                 # Source code for the application
+├──                  # Source code for the application
 │   ├── api/             # API calls
 │   ├── components/      # React components
 │   │   ├── forms/       # Form field components

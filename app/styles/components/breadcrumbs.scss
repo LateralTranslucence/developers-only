@@ -1,0 +1,29 @@
+@use '../abstracts' as *;
+
+ul.breadcrumbs {
+    font-size: 0.75em;
+    margin: 0;
+    display: flex;
+
+    @include print {
+        display: none;
+    }
+}
+
+li.breadcrumbs__item {
+    margin: 0 0.5em 0 0;
+    padding: 0;
+    list-style: none;
+
+    &:not(:last-child)::after {
+        content: '\f0da';
+        @include font(icon);
+        margin-left: 0.25em;
+        line-height: 1em;
+    }
+}
+
+// Open-ended: rendered via CTA, which may be an <a>, <span>, or router <Link>
+.breadcrumbs__link {
+    line-height: 1em;
+}

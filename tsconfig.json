@@ -11,9 +11,8 @@
       "allowImportingTsExtensions": true,
   
       /* Paths */
-      "baseUrl": "./",
       "paths": {
-        "@/*": ["./assets/src/*"]
+        "@/*": ["./app/*"]
       },
   
       /* Type Checking */
@@ -30,6 +29,6 @@
       /* No Emitting Files */
       "noEmit": true
     },
-    "include": ["./assets/src/**/*", "./vite.config.ts"],
-    "exclude": ["./node_modules", "./assets/dist"]
+    "include": ["./app/**/*", "./vite.config.ts" /*, "app/js/MLSSearch.ts"*/],
+    "exclude": ["./node_modules", "./public/dist"]
   }

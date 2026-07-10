@@ -1,0 +1,33 @@
+@use '../abstracts' as *;
+
+// Screen Reader
+.screenReader {
+    display: none !important;
+}
+
+// Text align
+.text-align-left {
+    text-align: left;
+}
+.text-align-right {
+    text-align: right;
+}
+.text-align-center {
+    text-align: center;
+}
+
+// Misc
+.footnote {
+    font-size: 0.75rem;
+    line-height: 1em;
+    opacity: .5;
+}
+.small {
+    font-size: 0.85rem;
+}
+.large {
+    font-size: 1.125rem;
+}
+.red-text {
+    color: red !important; // override more specific selectors
+}

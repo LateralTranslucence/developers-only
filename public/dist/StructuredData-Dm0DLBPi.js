@@ -1,0 +1,2 @@
+import"./rolldown-runtime-CNC7AqOf.js";import{f as e,x as t}from"./CTA-BHy7GlJi.js";import{t as n}from"./Helmet-D9eZ5x9I.js";t();var r=e(),i=({post:e})=>e&&e.schema?(0,r.jsx)(n,{children:(0,r.jsx)(`script`,{type:`application/ld+json`,children:JSON.stringify(e.schema)})}):null;export{i as t};
+//# sourceMappingURL=StructuredData-Dm0DLBPi.js.map

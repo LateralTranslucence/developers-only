@@ -1,0 +1,2 @@
+var e=e=>e==null?0:Array.isArray(e)||typeof e==`string`?e.length:typeof e==`number`?e.toString().length:typeof e==`object`?Object.keys(e).length:0;export{e as t};
+//# sourceMappingURL=length-CzgHFhaM.js.map

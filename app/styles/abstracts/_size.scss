@@ -1,0 +1,25 @@
+@use 'color' as *;
+@use 'function' as function;
+
+// Radii
+$border_radius: 2.25rem;
+$max_radius: 100em;
+
+// Padding
+$padding: 5rem;
+
+// Margins
+$block_margin: 2.25rem;
+
+// Opacity
+$hover_opacity: 0.5;
+
+// Block shadow
+$block_shadow: 0 0.1875rem 0.75rem function.setColor($black, 0.2);
+$block_shadow_hover: 0 0.1875rem 0.75rem function.setColor($black, 0.5);
+
+// Global Header height
+$heading_height: 13.125rem;
+
+// Admin bar height
+$admin_bar_height: 32px;

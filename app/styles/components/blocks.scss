@@ -1,0 +1,133 @@
+@use '../abstracts' as *;
+
+// Panel
+section.panel-type-blocks {
+    header.panel-header {
+        text-align: center;
+    }
+    p.panel-cta {
+        text-align: center;
+    }
+}
+// Default Blocks
+ul.blocks {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    column-gap: 2rem;
+    row-gap: 2rem;
+    &--slider {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        > li.blocks__item {
+            margin-bottom: 0;
+        }
+    }
+    &--one {
+        grid-template-columns: repeat(1, 1fr);
+    }
+    &--two {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    &--three {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    &--four {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    // Card/Post
+    &--card, &--post, &--list {
+        > li.blocks__item {
+            background-color: $transparent;
+            position: relative;
+        }
+        @media(min-width: 481px) {
+            &.blocks--one > li.blocks__item {
+                &.blocks__item--has-link {
+                    .blocks__link {
+                        display: grid;
+                        grid-template-columns: 35% auto;
+                        grid-template-areas: "thumbnail content";
+                        figure.blocks__thumbnail {
+                            grid-area: thumbnail;
+                            height: 100%;
+                            figure.image {
+                                height: 100%;
+                            }
+                        }
+                        div.blocks__content {
+                            grid-area: content;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Plain
+    &--plain {
+        > li.blocks__item {
+            @include max-600 {
+                div.blocks__content {
+                    padding: 0;
+                }
+            }
+        }
+    }
+    // Posts
+    &--post {
+        justify-content: flex-start;
+        > li.blocks__item {
+            h2, h3 {
+                @include font(medium);
+                font-size: 1em; // 16px
+                line-height: 1.25em; // 20px
+            }
+            p {
+                font-size: 0.75em;
+            }
+            div.blocks__content {
+                padding: 1.5em;
+            }
+        }
+    }
+}
+
+li.blocks__item {
+    list-style: none;
+    margin: 0;
+    padding: 1em;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+    h2, h3, h4, h5 {
+        font-size: 1.563em; // 25px
+    }
+}
+// Open-ended: rendered via CTA, which may be an <a>, <span>, or router <Link>
+.blocks__link {
+    display: block;
+    height: 100%;
+    h2, h3, h4, h5 {
+        margin-right: 0;
+        &:not(.has-pretitle) {
+            padding: 0;
+        }
+    }
+    &:hover {
+        text-decoration: none;
+    }
+    figure.image {
+        width: 100%;
+        &.logo, &.svg-wrapper {
+            margin: 3.5em 2em 0 2em;
+            max-width: calc(100% - 4em);
+        }
+    }
+}
+div.blocks__content {
+    width: 100%;
+    height: auto;
+    padding: 2em;
+}

@@ -1,0 +1,142 @@
+@use '../abstracts' as *;
+
+section.panel-type-decision-tree {
+    header.panel-header {
+        text-align: center;
+    }
+    ul.decision-tree.blocks--card {
+        width: 150%;
+        justify-content: flex-start;
+        li.decision-tree__card {
+            min-height: 19em;
+            div.blocks__content {
+                padding-top: 3em;
+            }
+            span.decision-tree__detail {
+                display: none;
+                width: 100%;
+                flex-direction: row;
+            }
+            span.decision-tree__detail-copy {
+                width: 65%;
+                padding-right: 10%;
+            }
+            span.decision-tree__detail-list {
+                width: 35%;
+                ul {
+                    margin: 0;
+                    > li {
+                        list-style: none;
+                        margin: 0;
+                        position: relative;
+                        a {
+                            &.has-icon {
+                                display: flex;
+                                flex-direction: row;
+                                align-items: center;
+                                figure.image {
+                                    margin: 0 0.75em 0 ;
+                                    width: 35px !important; // override inline style
+                                    height: 35px !important; // override inline style
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            button.decision-tree__expand, button.decision-tree__collapse {
+                background: transparent;
+                border: none;
+                font-size: 1em;
+                position: absolute;
+                right: 5.5em;
+                cursor: pointer;
+                > span {
+                    display: none;
+                }
+                &::before {
+                    @include font(icon);
+                    display: block;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 1.75em;
+                    height: 1.75em;
+                    font-size: 2em;
+                    line-height: 1.75em;
+                    text-align: center;
+                }
+                &:focus {
+                    outline: none;
+                    &::before {
+                        outline: 2px currentColor dashed;
+                    }
+                }
+            }
+            button.decision-tree__expand {
+                bottom: 5.5em;
+                &::before {
+                    content: '\2b';
+                }
+            }
+            button.decision-tree__collapse {
+                display: none;
+                top: 2em;
+                &::before {
+                    content: '\f00d';
+                }
+            }
+            &.decision-tree__card--open {
+                width: calc(50% - 3em);
+                span.decision-tree__overview {
+                    display: none;
+                }
+                span.decision-tree__detail {
+                    display: flex;
+                }
+                button.decision-tree__expand {
+                    display: none;
+                }
+                button.decision-tree__collapse {
+                    display: inline;
+                }
+            }
+        }
+        &.decision-tree--1-open {
+            margin-left: -25%;
+        }
+        @include max-1024 {
+            li.decision-tree__card--open {
+                width: calc(60% - 3em);
+            }
+            &.decision-tree--1-open {
+                margin-left: -35%;
+            }
+        }
+        @include max-900 {
+            li.decision-tree__card {
+                width: calc(35% - 3em);
+            }
+            li.decision-tree__card--open {
+                width: calc(55% - 3em);
+                span.decision-tree__detail {
+                    flex-direction: column;
+                }
+                span.decision-tree__detail-copy {
+                    width: 100%;
+                    margin-top: 2em;
+                }
+            }
+        }
+        @include max-768 {
+            width: 100%;
+            li.decision-tree__card, li.decision-tree__card--open {
+                width: 100%;
+                margin-right: 0 !important;
+            }
+            &.decision-tree--1-open {
+                margin-left: 0;
+            }
+        }
+    }
+}

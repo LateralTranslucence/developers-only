@@ -1,0 +1,39 @@
+@use '../abstracts' as *;
+
+// Select List
+ul.select-list, menu.select-list {
+    @include select_list();
+}
+span.select-list-toggle {
+    display: block;
+    cursor: pointer;
+    width: 100%;
+    height: auto;
+    padding: 0.6em 1.5em 0.5em 0.75em;
+    overflow: hidden;
+    position: relative;
+
+    &::after {
+        content: '\f0d7';
+        @include font(icon);
+        font-size: 1em;
+        text-align: center;
+        line-height: 22px;
+        position: absolute;
+        display: block;
+        width: 15px;
+        top: calc(50% - 12px);
+        right: 10px;
+    }
+    &.open {
+        &::after {
+            content: '\f0d8';
+        }
+    }
+    &.mobile-toggle {
+        display: none;
+        @include max-900 {
+            display: block;
+        }
+    }
+}

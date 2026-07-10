@@ -1,0 +1,24 @@
+// NOTE: some styles for list are included in components/blocks to avoid repitition
+@use '../abstracts' as *;
+
+ul.blocks.blocks--list {
+    justify-content: center;
+    > li.blocks__item {
+        width: 100%;
+        @include max-900 {
+            width: 100%;
+            > li, > li.open {
+                width: 100%;
+            }
+        }
+        div.blocks__content {
+            padding: 2em 2em 2em 3.5em;
+        }
+        h3 {
+            @include font(roman);
+            font-size: 1.5em;
+            line-height: 1.257em;
+            margin-bottom: 0;
+        }
+    }
+}

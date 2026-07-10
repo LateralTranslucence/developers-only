@@ -1,0 +1,115 @@
+@use '../abstracts' as *;
+
+html {
+    scroll-padding-top: calc($heading_height + 1rem);
+    background: var(--backgroundColor);
+    font-size: 0.83333333vw; // 16px @ 1920
+    @include max-900 {
+        font-size: 1.25vw;
+    }
+    @include max-600 {
+        font-size: 2vw;
+    }
+    &.translated-ltr, &.translated-rtl {
+        header#header {
+            margin-top: 39px;
+        }
+    }
+}
+body {
+    @include font(regular);
+    color: var(--textColor);
+    font-size: 1rem;
+    line-height: 1.4;
+    overflow-x: hidden;
+}
+div#root {
+    min-height: 100vh;
+    position: relative;
+    z-index: 0;
+}
+
+p {
+    letter-spacing: -0.02em;
+}
+* + p {
+    margin: 1em 0 0 0;
+}
+i, em {
+    color: inherit;
+}
+b, strong {
+    @include font(bold);
+}
+a {
+    &:hover {
+        cursor: pointer;
+    }
+}
+a, button, input {
+    &:focus {
+        outline: 1px dashed setColor($black, 0.75);
+    }
+}
+sub, sup {
+    font-size: 0.75em;
+    line-height: 1;
+    position: relative;
+    vertical-align: baseline;
+}
+sup {
+    top: -0.5em;
+}
+sub {
+    bottom: -0.25em;
+}
+h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.03em;
+    * + & {
+        margin-top: 1em;
+    }
+    sup {
+        font-size: 0.6em;
+    }
+}
+h1 {
+    margin: 0;
+    @include font(medium);
+    font-size: 6.25rem;
+    line-height: 1;
+}
+h2 {
+    @include font(condBold);
+    font-size: 5.125rem;
+}
+h3 {
+    @include font(medium);
+}
+h4 {
+    
+}
+
+ol, ul {
+    margin: 0;
+    li {
+        margin: 1em 0 0 1.5em;
+        padding-left: 0.75em;
+    }
+}
+menu, nav > ul {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    list-style: none;
+    align-items: center;
+    > li {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+}
+
+blockquote {
+    
+}

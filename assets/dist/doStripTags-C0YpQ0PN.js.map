@@ -1,1 +1,0 @@
-{"version":3,"file":"doStripTags-C0YpQ0PN.js","sources":["../src/utils/helpers/doStripTags.ts"],"sourcesContent":["const doStripTags = ( string: string ): string => {\n    return string.replace(/(<([^>]+)>)/gi, '');\n}\nexport default doStripTags;"],"names":["doStripTags","string"],"mappings":"AAAM,MAAAA,EAAgBC,GACXA,EAAO,QAAQ,gBAAiB,EAAE"}

@@ -1,1 +1,0 @@
-export const WPAPIEndpoint: string = homeURL + '/wp-json/wp/v2';

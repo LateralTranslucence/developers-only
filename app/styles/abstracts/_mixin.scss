@@ -1,0 +1,97 @@
+@use 'breakpoint';
+@use 'color';
+@use 'font';
+@use 'function';
+@use 'size';
+
+
+// Miscellaneous (alpha order)
+
+@mixin iconPsudoElement($color) {
+    content: '';
+    width: 1em;
+    height: 1em;
+    @include font.font(icon);
+    font-size: 1rem;
+    color: function.setColor($color);
+    line-height: 1;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@mixin underline($color) {
+    text-decoration: none;
+    position: relative;
+    &::after {
+        content: '';
+        width: 0;
+        height: 0;
+        display: block;
+        border-bottom: 1px $color solid;
+        transition: all 0.3s ease;
+    }
+    &:hover {
+        &::after {
+            width: 100%;
+        }
+    }
+}
+
+
+
+
+
+@mixin select_list() {
+    display: none;
+    &.open {
+        display: flex;
+    }
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 100%;
+    max-height: 50vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin: 0 auto;
+    padding: 0.75rem;
+    position: absolute;
+    top: calc(100% + 0.1875rem);
+    z-index: 99999;
+    height: auto;
+    > li {
+        @include font.font(regular);
+        font-size: 1rem;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        text-align: left;
+        > a, > span, > button {
+            &, &:hover {
+                @include font.font(regular);
+                font-size: 1rem;
+                display: block;
+                text-align: left;
+                padding: 0.75em;
+                margin: 0;
+                line-height: 1.15;
+                text-transform: none;
+                opacity: 1;
+                &::after {
+                    display: none;
+                }
+            }
+            &[aria-selected="true"] {
+                cursor: default;
+                &::after {
+                    display: none;
+                }
+            }
+        }
+    }
+}

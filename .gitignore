@@ -1,4 +1,4 @@
-*~
+~*
 .DS_Store
 .svn
 .cvs
@@ -7,7 +7,6 @@
 *.rb
 Thumbs.db
 .sass-cache
-
 
 /node_modules
 

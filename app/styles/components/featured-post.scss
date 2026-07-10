@@ -1,0 +1,36 @@
+@use '../abstracts' as *;
+
+section.panel-type-featured-post {
+    div.container {
+        padding: 7.5%;
+        margin: 50px auto;
+        background-image: var(--background-image);
+        background-size: cover;
+        background-position: 50% 50%;
+        background-repeat: no-repeat;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        min-height: 600px;
+        display: flex;
+        align-items: center;
+        @include max-600 {
+            background-image: var(--mobile-background-image);
+        }
+    }
+    div.featured-post {
+        width: 50%;
+        position: relative;
+        z-index: 99;
+    }
+    @include max-800 {
+        div.featured-post {
+            width: 75%;
+        }
+    }
+    @include max-600 {
+        div.featured-post {
+            width: 100%;
+        }
+    }
+}

@@ -1,0 +1,51 @@
+@use '../abstracts' as *;
+
+main.single-legal {
+    aside#legal-index {
+        margin-bottom: 4em;
+        > div.legal-index-wrapper {
+            border-radius: $border_radius;
+            box-shadow: $block_shadow;
+            padding: 1.5em;
+            h2 {
+                font-size: 1.563em; // 25px
+            }
+            ul#recent-posts {
+                &.blocks {
+                    > li.blocks__item {
+                        width: 100%;
+                        padding: 0.5em 0;
+                        margin-left: auto;
+                        margin-right: auto;
+                        margin-bottom: 0.25em;
+                        > a {
+                            color: $white;
+                            padding: 0 0 0 1.5em;
+                            position: relative;
+                            &.blocks__link {
+                                &:hover {
+                                    text-decoration: underline;
+                                }
+                                &:after {
+                                    display: none;
+                                }
+                            }
+                            &::before {
+                                content: '\f0da';
+                                @include font(icon);
+                                color: $white;
+                                display: block;
+                                position: absolute;
+                                left: 0;
+                                top: 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        @include print {
+            display: none;
+        }
+    }
+}

@@ -1,0 +1,1 @@
+{"version":3,"file":"getBooleanField-CJpnrxHn.js","names":[],"sources":["../../app/utils/helpers/getBooleanField.ts"],"sourcesContent":["const getBooleanField = ( fields: Record<string, unknown>, key: string ): boolean => {\n    return Boolean( fields[ key ] );\n};\nexport default getBooleanField;\n"],"mappings":"AAAA,IAAM,GAAoB,EAAiC,IAChD,EAAS,EAAQ"}

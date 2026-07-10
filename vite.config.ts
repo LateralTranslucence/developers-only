@@ -6,38 +6,34 @@ import { fileURLToPath } from 'url';
 export default defineConfig({
     plugins: [react()],
     base: '',
+    publicDir: false,
     build: {
         manifest: true,
         cssCodeSplit: true,
-        outDir: './assets/dist', 
+        outDir: './public/dist', 
         assetsDir: '', 
         emptyOutDir: true,
         sourcemap: true,
         rollupOptions: {
             input: {
-                index: path.resolve(__dirname, './assets/src/index.tsx'),
-                'do-global': path.resolve(__dirname, './assets/src/styles/do-global.scss'),
-                'do-admin': path.resolve(__dirname, './assets/src/styles/do-admin.scss'),
-                'do-login': path.resolve(__dirname, './assets/src/styles/do-login.scss'),
+                index: path.resolve(__dirname, './app/index.tsx'),
+                'devo-global': path.resolve(__dirname, './app/styles/devo-global.scss'),
+                'admin': path.resolve(__dirname, './app/styles/admin.scss'),
+                'login': path.resolve(__dirname, './app/styles/login.scss'),
             },
             output: {
                 assetFileNames: (assetInfo) => {
                     if (/\.(css)$/.test(assetInfo.name || '')) {
-                        return '[name][extname]';
+                        return ( assetInfo.name || '' ).toLowerCase();
                     }
-                    return '[name]-[hash][extname]'; 
-                },
-                manualChunks(id) {
-                    if (id.includes('node_modules')) {
-                      return 'vendor';
-                    }
+                    return '[name]-[hash][extname]';
                 },
             },
         },
     },
     resolve: {
         alias: {
-            '@': fileURLToPath(new URL('./assets/src', import.meta.url)),
+            '@': fileURLToPath(new URL('./app', import.meta.url)),
         },
     },
     server: {
@@ -52,9 +48,5 @@ export default defineConfig({
     },
     css: {
         devSourcemap: true,
-        modules: {
-            generateScopedName: '[name]__[local]__[hash:base64:5]',
-            localsConvention: 'camelCase',
-        }
     },
 });

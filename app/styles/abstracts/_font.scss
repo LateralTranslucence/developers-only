@@ -1,0 +1,39 @@
+// Font mixin
+@mixin font($type, $important: false) {
+    $important-suffix: '';
+
+    @if $important {
+        $important-suffix: ' !important';
+    }
+
+    @if $type == icon {
+        font-family: 'FontAwesomeSolid';
+    }
+    @if $type == brand {
+        font-family: 'FontAwesomeBrands';
+    }
+    @if $type == regular {
+        font-family: BentonSans, sans-serif#{$important-suffix};
+        font-weight: 400;
+    }
+    @if $type == bold {
+        font-family: BentonSansBold, sans-serif#{$important-suffix};
+        font-weight: 700;
+    }
+    @if $type == medium {
+        font-family: BentonSansMedium, sans-serif#{$important-suffix};
+        font-weight: 500;
+    }
+    @if $type == cond {
+        font-family: BentonSansCond, sans-serif#{$important-suffix};
+        font-weight: 400;
+    }
+    @if $type == condMedium {
+        font-family: BentonSansCondMedium, sans-serif#{$important-suffix};
+        font-weight: 500;
+    }
+    @if $type == condBold {
+        font-family: BentonSansCondBold, sans-serif#{$important-suffix};
+        font-weight: 500;
+    }
+}

@@ -1,0 +1,79 @@
+@use '../abstracts' as *;
+
+div.panel-slider-wrapper {
+    position: relative;
+}
+// Slider navigation
+ul.uk-dotnav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px 0 0 0;
+    > li {
+        margin: 0;
+        padding: 0.5em;
+        > a {
+            width: 2em;
+            height: .25em;
+            border: none;
+        }
+    }
+}
+// Arrows
+a.btn-down, a.btn-next, a.btn-previous, a.btn-up {
+    &::after {
+        @include font(icon);
+        display: inline-block;
+        width: 1.5em;
+        height: 1.5em;
+        text-align: center;
+    }
+}
+a.btn-down::after {
+    content: '\f078';
+}
+a.btn-next::after {
+    content: '\f054';
+}
+a.btn-previous::after {
+    content: '\f053';
+}
+a.btn-up::after {
+    content: '\f077';
+}
+
+// Buttons
+a.slider-buttons {
+    display: inline-block !important;
+    position: absolute;
+    font-size: 1em;
+    padding: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 9999;
+    &::after {
+        font-size: 1.25em;
+        line-height: 2.4em;
+        width: 2.4em;
+        height: 2.4em;
+        text-align: center;
+    }
+    &:focus {
+        color: inherit;
+    }
+    &.btn-previous {
+        left: 0;
+    }
+    &.btn-next {
+        right: 0px;
+    }
+    &.uk-invisible {
+        visibility: visible !important;
+        &::after {
+            cursor: default;
+        }
+    }
+    svg {
+        display: none;
+    }
+}

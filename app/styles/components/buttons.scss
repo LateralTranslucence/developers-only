@@ -1,0 +1,52 @@
+@use '../abstracts' as *;
+
+// Common Styles
+.solid-button, .solid-video, .text-button, .text-video, input.hs-button {
+    @include font(bold);
+    display: inline-block;
+    transition: all 0.3s linear;
+    width: fit-content;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    &:hover {
+        text-decoration: none;
+        transition: all 0.3s linear;
+    }
+    &, &::before, &::after {
+        cursor: pointer;
+    }
+    & + & {
+        margin-left: 1em;
+    }
+}
+
+.solid-button, input.hs-button, #form-submit {
+    padding: 0.75em 2.75em;
+    white-space: nowrap;
+    @include max-480 {
+        white-space: normal;
+    }
+}
+
+.solid-video {
+    padding: 0.75em 2.75em 0.75em 3.75em;
+    position: relative;
+    white-space: nowrap;
+}
+
+.text-button {
+    padding: 0.75em 0;
+}
+
+.text-video {
+    padding: 0.75em 0 0.75em 2em;
+    position: relative;
+    &::before {
+        left: 0;
+    }
+    &:hover {
+        &::before {
+            left: 0;
+        }
+    }
+}

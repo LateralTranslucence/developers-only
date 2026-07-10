@@ -1,0 +1,48 @@
+@use '../abstracts' as *;
+
+// Panels
+section.panel {
+    overflow: hidden;
+    background-image: var(--background-image);
+    background-size: cover;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    @include max-600 {
+        background-image: var(--mobile-background-image);
+    }
+    &.overlay {
+        position: relative;
+        z-index: 1;
+    }
+    header.panel-header {
+        margin-bottom: 3em;
+        h2 {
+            margin-bottom: 0;
+        }
+    }
+    div.container {
+        position: relative;
+        z-index: 1;
+        padding-top: 70px;
+        padding-bottom: 70px;
+    }
+    h2 {
+        &.has-pretitle::before {
+            font-size: 0.35em;
+        }
+    }
+    div.panel-copy-wrapper {
+        max-width: 65%;
+        margin: 0 auto 2em auto;
+        text-align: center;
+        @include max-900 {
+            max-width: 100%;
+        }
+    }
+    // Basic avatar background settings
+    &.has-avatar {
+        background-position: calc(50% + 250px) 0;
+        background-size: auto;
+        background-repeat: no-repeat;
+    }
+}
