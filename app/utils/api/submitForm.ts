@@ -1,15 +1,22 @@
 import { APIEndpoint } from '@/globalVariables';
 import { APIResult } from '../types/APIResult';
+import { Form } from '@/utils/types/Form';
 
  const submitForm: ( queryString: string ) => Promise<APIResult> = async ( queryString = '' ): Promise<APIResult> => {
     try {
-        const formSubmitEndpoint: string = `${APIEndpoint}/form-submit?${queryString}`;
+        const formSubmitEndpoint: string = `${APIEndpoint}/devo-form-submit/`;
         if ( window.devoEnv !== 'prod' ) {
             console.log( 'submitForm ' + formSubmitEndpoint );
         }
 
-        const response = await fetch( formSubmitEndpoint );
-        const json: Record<string, any> = await response.json();
+        const response = await fetch( formSubmitEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: queryString,
+        } );
+        const json: Form = await response.json();
         const result: APIResult = {
             totalPages: response.headers.get( 'x-wp-totalpages' ),
             totalPosts: response.headers.get( 'x-wp-total' ),

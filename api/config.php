@@ -25,7 +25,7 @@ define( 'DO_BLOG', TRUE );
 //define( 'DO_CUSTOMER_STORY', TRUE );
 //define( 'DO_EVENT', TRUE );
 define( 'DO_LANDING_PAGE', TRUE );
-//define( 'DO_LEGAL', TRUE );
+define( 'DO_LEGAL', TRUE );
 //define( 'DO_MEDIA_COVERAGE', TRUE );
 //define( 'DO_PODCAST', TRUE );
 //define( 'DO_PRESS_RELEASE', TRUE );

@@ -28,24 +28,23 @@ const RecentPosts: React.FC<RecentPostsProps> = ( {
     type = 'block',
     
 } ): JSX.Element | null => {
-    const postsArgs: SearchQueryArgs = {
-        post_type: postType,
-        posts_per_page: count,
-        orderby: 'date_desc',
-        post__not_in: postID ? [ postID ] : [],
-        nopaging: true,
-    };
-
     const [ recentPosts, setRecentPosts ] = useState<Array<Post>>( [] );
 
     useEffect( () => {
+        const postsArgs: SearchQueryArgs = {
+            post_type: postType,
+            posts_per_page: count,
+            orderby: 'date_desc',
+            post__not_in: postID ? [ postID ] : [],
+            nopaging: true,
+        };
         async function fetchData() {
             await getArchivePosts( postsArgs ).then( ( data: APIResult ) => {
                 setRecentPosts( data.json as Array<Post> );
             } );
         }
         fetchData();
-    }, [] );
+    }, [ count, postID, postType ] );
 
     function Posts() {
         return (

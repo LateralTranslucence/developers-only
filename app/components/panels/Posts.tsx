@@ -1,5 +1,5 @@
 import React, { JSX, useEffect, useRef, useState } from 'react';
-import { convertNumberToWords, getArrayField, getBooleanField, getStringField } from '@/utils/helpers';
+import { getArrayField, getBooleanField, getStringField } from '@/utils/helpers';
 import SliderNav from '@/components/shared/SliderNav';
 import PartialTemplateLoader from '@/loaders/PartialTemplateLoader';
 import { PanelProps } from '@/utils/types/PanelProps';

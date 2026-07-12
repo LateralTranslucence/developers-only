@@ -1,14 +1,15 @@
 import React from 'react';
-import { useContext, useEffect } from 'react';
-import { PageSlugContext } from '@/loaders/TemplateLoader';
+import { useEffect } from 'react';
+import { useCurrentPage } from '@/utils/stores/CurrentPage';
 import Hero from '@/components/shared/Hero';
 import SEOTags from '@/components/shared/SEOTags';
 import { TemplateLoaderProps } from '@/utils/types/TemplateLoaderProps';
 import { HeroProps } from '@/utils/types/HeroProps';
+import { Post } from '@/utils/types/Post';
 import '@/styles/pages/404.scss';
 
 const Page404: React.FC<TemplateLoaderProps> = ( { layoutClassesFunction } ) => {
-    const slug = useContext( PageSlugContext );
+    const slug = useCurrentPage( ( state ) => state.slug );
 
     // Settings
     const heroSettings: HeroProps = {
@@ -17,13 +18,13 @@ const Page404: React.FC<TemplateLoaderProps> = ( { layoutClassesFunction } ) => 
         ctas: [ { text: 'Go Back Home', url: '/', button_style: 'solid-button' }],
     };
 
-    const seoSettings: Record<string, any> = {
+    const seoSettings: Partial<Post> = {
         seo_title: 'Page Not Found',
         seo_site_name: '{DevelopersOnly}',
         seo_url: window.homeURL + '/' + slug + '/',
         seo_locale: 'en_US',
         seo_description: '',
-        noindex: true,
+        noindex: 'noindex',
     };
 
     // Set classes for <main>
@@ -32,7 +33,7 @@ const Page404: React.FC<TemplateLoaderProps> = ( { layoutClassesFunction } ) => 
         if ( layoutClassesFunction ) {
             layoutClassesFunction( [ 'page-404' ] );
         }
-    }, [ slug ] );
+    }, [ slug, layoutClassesFunction ] );
 
     return (
         <>

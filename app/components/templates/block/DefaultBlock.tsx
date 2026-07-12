@@ -5,12 +5,7 @@ import Image from '@/components/shared/Image';
 import { PartialTemplateProps } from '@/utils/types/PartialTemplateProps';
 
 const DefaultBlock: React.FC<PartialTemplateProps> = ( {
-    index,
-    panelSlider,
-    perRow,
     post,
-    showFeatured = false,
-    type,
 } ): JSX.Element => {
     return (
         <li className=" --has-link">

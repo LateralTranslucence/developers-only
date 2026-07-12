@@ -16,7 +16,7 @@ const Page: React.FC<TemplateProps> = ( {
         if ( post ) {
             layoutClasses( [ 'single-content-item', 'single-' + postType ] );
         }
-    }, [ postType ] );
+    }, [ postType, layoutClasses, post ] );
 
     if ( !post ) return null;
 

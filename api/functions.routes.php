@@ -270,7 +270,7 @@ function devo_form_query( $data ) {
 // Submit
 add_action( 'rest_api_init', function() {
     register_rest_route( 'wp/v2', '/devo-form-submit/', [
-        'methods' => 'GET',
+        'methods' => 'POST',
         'callback' => 'devo_form_submit_query',
         'permission_callback' => function () {
             return TRUE;
@@ -434,22 +434,3 @@ function devo_media_library_route( $data ) {
     return $media;
 }
 
-/* Get option */
-add_action( 'rest_api_init', function() {
-    register_rest_route( 'wp/v2', '/get-option/', [
-        'methods' => 'GET',
-        'callback' => 'devo_get_option_route',
-        'permission_callback' => function () {
-            return TRUE;
-        }
-    ] );
-} );
-function devo_get_option_route( $data ) {
-    $query_params = $data->get_params();
-    if ( isset( $query_params['name'] ) ) {
-        $option_value = get_option( $query_params['name'] );
-        return $option_value;
-    } else {
-        return [];
-    }
-}

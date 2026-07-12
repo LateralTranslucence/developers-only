@@ -3,11 +3,8 @@
  *
  */
 import React from 'react';
-import { CTASettings } from '@/utils/types/CTASettings';
-import CTA from '@/components/shared/CTA';
 import Logo from '@/components/shared/Logo';
 import Menu from '@/components/shared/Menu';
-import SearchForm from '@/components/layout/SearchForm';
 import '@/styles/components/sites-menu.scss';
 import '@/styles/components/header.scss';
 

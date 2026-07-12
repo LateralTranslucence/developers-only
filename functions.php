@@ -24,8 +24,13 @@ function devo_scripts() {
         $vite_files = json_decode( $manifest );
         if ( isset( $vite_files->{ $entry } ) ) {
             $index_file = $vite_files->{ $entry };
-            // Load React app
-            wp_enqueue_script( 'react-index', get_template_directory_uri() . '/public/dist/' . $index_file->file, [], DO_VER, TRUE );
+            // Load React app.
+            // $ver MUST be null (no ?ver= query): lazy chunks import this entry
+            // by its bare hashed filename, and a ?ver= query on the script tag
+            // would make the browser evaluate the module a second time under a
+            // different URL - mounting a second React root and crashing the app.
+            // The content hash in the filename already handles cache busting.
+            wp_enqueue_script( 'react-index', get_template_directory_uri() . '/public/dist/' . $index_file->file, [], null, TRUE );
             // Load global styles
             wp_enqueue_style( 'devo-global', get_template_directory_uri() . '/public/dist/devo-global.css', [], DO_VER );
             if ( isset( $index_file->css ) ) {
@@ -116,6 +121,7 @@ function devo_load_classes() {
         'landing-page',
         'simple-page',
         'blog',
+        'legal',
         'news',
         'icon',
     ];
@@ -135,6 +141,7 @@ function devo_create_objects() {
         ],
     ] );
     $site_settings->fields( [
+        'Logo' => 'media',
         'Header Script' => 'code',
         'Footer Script' => 'code',
     ], 'Misc' );
@@ -243,11 +250,14 @@ function devo_js_globals() {
     $relative_home_url = home_url( '', 'relative' );
     $site_language = substr( get_bloginfo( 'language' ), 0, 2 );
     $template_directory = get_template_directory_uri();
+    $site_settings_misc = get_option( 'site_settings_misc' );
+    $site_logo = isset( $site_settings_misc['logo'] ) && is_string( $site_settings_misc['logo'] ) ? $site_settings_misc['logo'] : '';
 ?>
 <script>
     window.devoEnv = "<?php echo DO_ENVIRONMENT ?>";
     window.homeURL = "<?php echo $home_url ?>";
     window.relativeHomeURL = "<?php echo $relative_home_url ?>";
+    window.devoLogo = "<?php echo esc_url( $site_logo ) ?>";
     window.menus = [];
 </script>
 <?php }

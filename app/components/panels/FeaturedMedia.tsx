@@ -1,7 +1,7 @@
 import React from 'react';
 import { Media } from '@/utils/types/Media';
 import { PanelProps } from '@/utils/types/PanelProps';
-import { getBooleanField, getMediaField, getObjectField, length } from '@/utils/helpers';
+import { getMediaField, getObjectField, length } from '@/utils/helpers';
 import CTA from '@/components/shared/CTA';
 import MediaLoader from '@/components/shared/MediaLoader';
 import '@/styles/components/featured-media.scss';

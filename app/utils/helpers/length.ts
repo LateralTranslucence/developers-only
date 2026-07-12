@@ -1,4 +1,4 @@
-const length = ( item: any ): number => {
+const length = ( item: unknown ): number => {
     // Null or undefined
     if ( item === null || item === undefined ) {
         return 0;

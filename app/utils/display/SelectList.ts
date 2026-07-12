@@ -3,7 +3,7 @@ export default class SelectList {
     constructor() {
         const selectListToggles: HTMLCollection = document.getElementsByClassName( 'select-list-toggle' );
         if ( selectListToggles ) {
-            [ ...selectListToggles ].forEach( ( selectList: Element, index: number ) => {
+            [ ...selectListToggles ].forEach( ( selectList: Element ) => {
                 // First remove the event listener, just in case, then add it back
                 selectList.removeEventListener( 'click', this.onClick );
                 selectList.addEventListener( 'click', this.onClick );

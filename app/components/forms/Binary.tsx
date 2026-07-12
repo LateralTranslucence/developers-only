@@ -4,13 +4,13 @@ import { FormFieldProps } from '@/utils/types/FormFieldProps';
 
 const Binary: React.FC<FormFieldProps> = ( { field, error = false } ) => {
     const currentValue: number = field.current_value ? field.current_value as number : 0;
-    const optionAttrs: Record<string, any> = {
+    const optionAttrs: React.InputHTMLAttributes<HTMLInputElement> = {
         type: 'checkbox',
         name: field.name,
         id: field.name,
         value: 1,
         className: 'form-field__checkbox',
-        defaultChecked: currentValue,
+        defaultChecked: Boolean( currentValue ),
     };
     return (
         <ul className="field-list">

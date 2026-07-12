@@ -1,3 +1,4 @@
+import { Breadcrumbs } from '@/utils/types/Breadcrumbs';
 import { Media } from '@/utils/types/Media';
 
 export interface Post<TFields extends Record<string, unknown> = Record<string, unknown>> {
@@ -43,7 +44,7 @@ export interface Post<TFields extends Record<string, unknown> = Record<string, u
     post_thumbnail: Media;
     post_type_details: {
         bonus_fields: Record<string, unknown>;
-        breadcrumbs: Array<Record<string, string>>;
+        breadcrumbs: Array<Breadcrumbs>;
         is_landing_page: boolean;
         meta_fields: Record<string, unknown>;
         meta_prefix: string;

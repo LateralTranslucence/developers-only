@@ -1,5 +1,5 @@
-import React, { useContext, useEffect } from 'react';
-import { PageSlugContext } from '@/loaders/TemplateLoader';
+import React, { useEffect, useMemo } from 'react';
+import { useCurrentPage } from '@/utils/stores/CurrentPage';
 import { TemplateProps } from '@/utils/types/TemplateProps';
 import { getArrayField, getNumberField, getStringField, sanitizeTitleWithDashes } from '@/utils/helpers';
 import Hero from '@/components/shared/Hero';
@@ -15,8 +15,8 @@ const LandingPage: React.FC<TemplateProps> = ( {
     layoutClasses = () => {},
     post,
 } ) => {
-    const slug = useContext( PageSlugContext );
-    const fields = post?.fields ?? {};
+    const slug = useCurrentPage( ( state ) => state.slug );
+    const fields = useMemo( () => post?.fields ?? {}, [ post ] );
     const metaPrefix: string = post?.post_type_details.meta_prefix ?? '';
     const pageSlug = getStringField( fields, metaPrefix + '_slug', post?.post_name ?? '' );
     const pageID: string = sanitizeTitleWithDashes( pageSlug );

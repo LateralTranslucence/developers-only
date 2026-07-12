@@ -1,9 +1,8 @@
 import React, { JSX, useEffect, useState } from 'react';
 import Tabs from '@/components/shared/Tabs';
-import { SelectList, VideosInTabs } from '@/utils/display';
+import { SelectList } from '@/utils/display';
 import { convertNumberToWords, parse, sanitizeTitleWithDashes } from '@/utils/helpers';
 import { getTabsPanelConfig } from '@/utils/panels';
-import CTA from '@/components/shared/CTA';
 import Heading from '@/components/shared/Heading';
 import MediaLoader from '@/components/shared/MediaLoader';
 import { PanelProps } from '@/utils/types/PanelProps';
@@ -24,7 +23,6 @@ const TabsPanel: React.FC<PanelProps> = ( {
 
     useEffect( () => {
         new SelectList();
-        new VideosInTabs();
     }, [] );
 
     if ( tabs.length > 0 ) {

@@ -15,17 +15,18 @@ import '@/styles/components/posts.scss';
 import '@/styles/pages/single.scss';
 
 const Legal: React.FC<TemplateProps> = ( {
-    post, 
-    iframe = false,
+    post,
     layoutClasses = () => {}
 } ): JSX.Element | null => {
 
-    if ( length( post ) ) {        
-
-        useEffect( () => {
-            // Set classes for <main>
+    useEffect( () => {
+        // Set classes for <main>
+        if ( length( post ) ) {
             layoutClasses( [ 'single-content-item', 'single-' + post.post_type_details.post_type ] );
-        }, [] );
+        }
+    }, [ post, layoutClasses ] );
+
+    if ( length( post ) ) {
 
         const legalEffectiveDate = getObjectField<DateTime>( post.fields, 'legal_effective_date' );
         const legalLastUpdatedDate = getObjectField<DateTime>( post.fields, 'legal_last_updated_date' );

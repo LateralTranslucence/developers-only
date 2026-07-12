@@ -15,7 +15,7 @@ const Panel: React.FC<PanelProps> = ( {
     panelPrefix = '',
     panelSuffix = panelNumber ? '_' + panelNumber : '',
 } ): JSX.Element | null => {
-    let panelHidden: boolean = getBooleanField( post.fields, panelPrefix + '_hide_panel' + panelSuffix );
+    const panelHidden: boolean = getBooleanField( post.fields, panelPrefix + '_hide_panel' + panelSuffix );
     const panelPretitle: string = getStringField( post.fields, panelPrefix + '_pretitle' + panelSuffix );
     const panelTitle: string = getStringField( post.fields, panelPrefix + '_title' + panelSuffix );
     const panelClass: string = getStringField( post.fields, panelPrefix + '_panel_class' + panelSuffix );
@@ -23,7 +23,7 @@ const Panel: React.FC<PanelProps> = ( {
     const panelID: string = getStringField( post.fields, panelPrefix + '_panel_id' + panelSuffix, panelTitle ? sanitizeTitleWithDashes( panelTitle ) : panelType );
     const panelCopy: string = getStringField( post.fields, panelPrefix + '_copy' + panelSuffix );
     const panelBackgroundSettings: BackgroundProps = getBackgroundField( post.fields, panelPrefix + '_background' + panelSuffix );
-    const panelAlignment: string = getStringField( post.fields, panelPrefix + '_alignment' + panelSuffix );
+    const panelAlignment: string = getStringField( post.fields, panelPrefix + '_media_alignment' + panelSuffix );
     const panelModal: boolean = panelType === 'form' && getBooleanField( post.fields, panelPrefix + '_modal' + panelSuffix );
     const panelOverlay: boolean = getBooleanField( post.fields, panelPrefix + '_overlay' + panelSuffix );
     const componentName: string = getStringField( post.fields, panelPrefix + '_component_name' + panelSuffix );

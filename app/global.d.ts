@@ -4,6 +4,7 @@ declare global {
     interface Window {
         homeURL: string;
         devoEnv: string;
+        devoLogo: string;
         relativeHomeURL: string;
         menus: Array<string>;
     }

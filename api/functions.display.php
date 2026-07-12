@@ -135,7 +135,7 @@ function devo_video( $video_url = FALSE, $settings = [] ) {
             <?php endif; ?>
         </span>
     </figure>
-    <? 
+    <?php
     $output = ob_get_contents();
     ob_end_clean();
     if ( $echo ) {

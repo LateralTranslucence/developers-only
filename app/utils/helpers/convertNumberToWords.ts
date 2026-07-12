@@ -63,7 +63,7 @@ const convertNumberToWords = ( number: number ): string => {
         case number < 21:
             string = dictionary[ number ];
             break;
-        case number < 100:
+        case number < 100: {
             let tens: number = number / 10;
             if ( String( tens ).indexOf( '.' ) > -1 ) {
                 const tensArray: Array<string> = String( tens ).split( '.' );
@@ -76,7 +76,8 @@ const convertNumberToWords = ( number: number ): string => {
                 string += hyphen + dictionary[ units ];
             }
             break;
-        case number < 1000:
+        }
+        case number < 1000: {
             let hundreds = number / 100;
             if ( String( hundreds ).indexOf( '.' ) > -1 ) {
                 const hundredsArray: Array<string> = String( hundreds ).split( '.' );
@@ -88,7 +89,8 @@ const convertNumberToWords = ( number: number ): string => {
                 string += conjunction + convertNumberToWords( remainder );
             }
             break;
-        default:
+        }
+        default: {
             const baseUnit: number = Math.pow( 1000, Math.floor( Math.log( number ) / Math.log( 1000 ) ) );
             let numBaseUnits: number = number / baseUnit;
             if ( String( numBaseUnits ).indexOf( '.' ) > -1 ) {
@@ -102,12 +104,13 @@ const convertNumberToWords = ( number: number ): string => {
                 string += convertNumberToWords( remainder );
             }
             break;
+        }
     }
     if ( fraction !== undefined ) {
         string += decimal;
         const words: Array<string> = [];
         const fractionArray: Array<string> = String( fraction ).split( '' );
-        fractionArray.forEach( ( fraction: string, index: number ) => {
+        fractionArray.forEach( ( fraction: string ) => {
             words.push( dictionary[ Number( fraction ) ] );
         } );
         string += words.join( ' ' );

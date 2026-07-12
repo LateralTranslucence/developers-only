@@ -16,6 +16,18 @@
     text-align: center;
 }
 
+// Inline logo in a heading (rendered by Heading.tsx when a logo is set)
+span.title-logo {
+    display: inline-block;
+    margin-right: 0.35em;
+    vertical-align: baseline;
+    > img {
+        height: 1em;
+        width: auto;
+        display: block;
+    }
+}
+
 // Misc
 .footnote {
     font-size: 0.75rem;

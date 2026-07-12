@@ -3,13 +3,18 @@ import { getArrayField, parse } from '@/utils/helpers';
 import { PanelProps } from '@/utils/types/PanelProps';
 import '@/styles/components/accordion.scss';
 
+interface AccordionItem {
+    title?: string;
+    text?: string;
+}
+
 const Accordion: React.FC<PanelProps> = ( {
     post,
     panelPrefix = '',
     panelSuffix = ''
 } ): JSX.Element | null => {
-    const accordionItems = getArrayField<Record<string, any>>( 
-        post.fields, 
+    const accordionItems = getArrayField<AccordionItem>(
+        post.fields,
         panelPrefix + '_accordion_items' + panelSuffix
     );
     const baseId = useId();
@@ -51,7 +56,7 @@ const Accordion: React.FC<PanelProps> = ( {
     if ( accordionItems.length > 0 ) {
         return (
             <ul className="accordion">
-                { accordionItems.map( ( item: Record<string, any>, index: number ) => {
+                { accordionItems.map( ( item: AccordionItem, index: number ) => {
                     const isOpen: boolean = openIndex === index;
                     const triggerId: string = `${ baseId }-trigger-${ index }`;
                     const panelId: string = `${ baseId }-panel-${ index }`;

@@ -8,11 +8,8 @@ import { CTASettings } from '@/utils/types/CTASettings';
 
 const DefaultList: React.FC<PartialTemplateProps> = ( {
     index,
-    panelSlider,
-    perRow,
     post,
     showFeatured = false,
-    type,
 } ): JSX.Element => {
     const ctaSettings: CTASettings = {
         url: post.permalink,

@@ -1,12 +1,13 @@
 import { ReactNode } from 'react';
 import { BackgroundProps } from '@/utils/types/BackgroundProps';
+import { Breadcrumbs } from '@/utils/types/Breadcrumbs';
 import { CTASettings } from '@/utils/types/CTASettings';
 import { ImageLink } from '@/utils/types/ImageLink';
 import { Media } from '@/utils/types/Media';
 
 export interface HeroProps {
     backgroundSettings?: BackgroundProps;
-    breadcrumbs?: Array<Record<string, any>>;
+    breadcrumbs?: Array<Breadcrumbs>;
     classes?: Array<string>;
     copy?: string;
     ctas?: Array<CTASettings>;

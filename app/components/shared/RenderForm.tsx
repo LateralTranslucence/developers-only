@@ -7,7 +7,7 @@ import { Form, FormField } from '@/utils/types/Form';
 import { APIResult } from '@/utils/types/APIResult';
 import '@/styles/components/forms.scss';
 
-const RenderForm: React.FC<{ formID: number; panelID: string; hiddenValues?: Record<string, any> }> = ( { formID, panelID = '', hiddenValues = {} } ): JSX.Element | null => {
+const RenderForm: React.FC<{ formID: number; panelID: string }> = ( { formID, panelID = '' } ): JSX.Element | null => {
     const [ form, setForm ] = useState<Form>();
     useEffect( () => {
         async function fetchData() {
@@ -16,7 +16,7 @@ const RenderForm: React.FC<{ formID: number; panelID: string; hiddenValues?: Rec
             } );
         }
         fetchData();
-    }, [] );
+    }, [formID] );
 
     // Handle form submit
     const formSubmit: ( e: React.BaseSyntheticEvent ) => Promise<void> = async ( e ): Promise<void> => {
@@ -27,16 +27,16 @@ const RenderForm: React.FC<{ formID: number; panelID: string; hiddenValues?: Rec
         // Create form data
         const formData: FormData = new FormData( form );
         // Update the query based on current form data
-        const formValues: Record<string, any> = {};
+        const formValues: Record<string, string> = {};
         for ( const field of formData.entries() ) {
-            const [ key, value ]: [ string, any ] = field;
+            const [ key, value ]: [ string, FormDataEntryValue ] = field;
             // If the key already exists, tack on
             if ( formValues[ key ] ) {
-                formValues[ key ] = formValues[ key ] + ',' + value;
-            } 
+                formValues[ key ] = formValues[ key ] + ',' + String( value );
+            }
             // otherwise add it
             else {
-                formValues[ key ] = value;
+                formValues[ key ] = String( value );
             }
         };
         // Convert formValues into a string
@@ -59,7 +59,7 @@ const RenderForm: React.FC<{ formID: number; panelID: string; hiddenValues?: Rec
     if ( form ) {
         const formSubmitted: boolean = form.submitted;
         const autoupdate: boolean = form.autoupdate && formSubmitted;
-        const error: Record<string, any> = form.error;
+        const error: Record<string, unknown> = form.error;
 
         const FormWrapper: React.FC<{ field: FormField, error: boolean }> = ( { field, error } ): JSX.Element => {
             if ( field.field_type !== 'hidden' ) {

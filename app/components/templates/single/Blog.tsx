@@ -1,6 +1,6 @@
 import React, { JSX } from 'react';
-import { useContext, useEffect } from 'react';
-import { PageSlugContext } from '@/loaders/TemplateLoader';
+import { useEffect } from 'react';
+import { useCurrentPage } from '@/utils/stores/CurrentPage';
 import { HeroProps } from '@/utils/types/HeroProps';
 import { TemplateProps } from '@/utils/types/TemplateProps';
 import { getMediaField, getStringField, parse } from '@/utils/helpers';
@@ -17,16 +17,15 @@ import '@/styles/components/posts.scss';
 
 const Blog: React.FC<TemplateProps> = ( {
     post,
-    iframe = false,
     layoutClasses = () => {}
 } ): JSX.Element | null => {
-    const slug: string = useContext( PageSlugContext );
+    const slug: string = useCurrentPage( ( state ) => state.slug );
 
     useEffect( () => {
         if ( post ) {
             layoutClasses( [ 'single-content-item', 'single-' + post.post_type_details.post_type ] );
         }
-    }, [ slug ] );
+    }, [ slug, post, layoutClasses ] );
 
     if ( !post ) return null;
 

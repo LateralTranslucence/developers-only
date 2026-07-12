@@ -5,10 +5,20 @@ import { PanelProps } from '@/utils/types/PanelProps';
 import '@/styles/components/blocks.scss';
 import '@/styles/components/stats.scss';
 
-const StatItem: React.FC<{ stat: Record<string, any> }> = ( { stat } ) => {
+// Shape produced by the PHP 'stats' field type
+interface Stat {
+    number?: number | string | boolean | null;
+    decimal?: boolean;
+    count_down?: boolean;
+    before_number?: string;
+    after_number?: string;
+    description?: string;
+}
+
+const StatItem: React.FC<{ stat: Stat }> = ( { stat } ) => {
     const countDown: boolean = Boolean( stat.count_down );
-    const from: number = countDown ? stat.number : 0;
-    const target: number = countDown ? 0 : stat.number;
+    const from: number = countDown ? Number( stat.number ) : 0;
+    const target: number = countDown ? 0 : Number( stat.number );
     const [ ref, value ] = useCountUp( target, { decimals: stat.decimal, from } );
 
     return (
@@ -40,7 +50,7 @@ const Stats: React.FC<PanelProps> = ( {
     panelPrefix = '',
     panelSuffix = '',
 } ): JSX.Element | null => {
-    const stats = getArrayField<Record<string, any>>( post.fields, panelPrefix + '_stats' + panelSuffix );
+    const stats = getArrayField<Stat>( post.fields, panelPrefix + '_stats' + panelSuffix );
 
     if ( stats.length > 0 ) {
         return (

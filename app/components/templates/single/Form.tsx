@@ -11,14 +11,13 @@ import '@/styles/components/forms.scss';
 
 const Form: React.FC<TemplateProps> = ( {
     post,
-    iframe = false,
     layoutClasses = () => {}
 } ): JSX.Element | null => {
     useEffect( () => {
         if ( post ) {
             layoutClasses( [ 'single-content-item', 'single-' + post.post_type ] );
         }
-    }, [] );
+    }, [layoutClasses, post] );
 
     if ( !post ) return null;
 

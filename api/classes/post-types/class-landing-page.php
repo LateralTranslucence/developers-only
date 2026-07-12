@@ -328,7 +328,6 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                 'Title' => 'text',
                 'Background' => 'background',
                 'Copy' => 'wp_editor',
-                'Media' => 'media',
                 'CTA' => 'cta',
             ],
             'posts' => array_merge( $this->set_panel_default_fields(), [

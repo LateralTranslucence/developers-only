@@ -36,6 +36,11 @@ header#header {
 
         a#logo {
             display: inline-block;
+            img.logo__image {
+                height: 2.5em;
+                width: auto;
+                display: block;
+            }
         }
 
         // Inline desktop menu instance

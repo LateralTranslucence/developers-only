@@ -1,7 +1,6 @@
 
 import React, { JSX } from 'react';
 import { getArrayField, parse } from '@/utils/helpers';
-import SliderNav from '@/components/shared/SliderNav';
 import { PanelProps } from '@/utils/types/PanelProps';
 import { Quote } from '@/utils/types/Quote';
 import '@/styles/components/blocks.scss';

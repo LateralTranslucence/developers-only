@@ -10,8 +10,6 @@ const Video: React.FC<VideoProps> = ( {
     id = '',
     label = 'Watch',
     loop = false,
-    playerNumber = Math.floor( Math.random() * 1000 ),
-    timestamp,
     url,
     videoDataAttr = {},
     width,

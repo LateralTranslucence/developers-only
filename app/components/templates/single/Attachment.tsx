@@ -9,10 +9,16 @@ import '@/styles/pages/single.scss';
 import '@/styles/pages/attachment.scss';
 
 const Attachment: React.FC<TemplateProps> = ( {
-    post, 
-    iframe = false,
+    post,
     layoutClasses = () => {}
 } ): JSX.Element | null => {
+
+    useEffect( () => {
+        // Set classes for <main>
+        if ( post ) {
+            layoutClasses( [ 'single-content-item', 'single-attachment' ] );
+        }
+    }, [ post, layoutClasses ] );
 
     if ( post ) {
 
@@ -26,11 +32,6 @@ const Attachment: React.FC<TemplateProps> = ( {
             customHTML: post.post_content,
             shareBar: true,
         };
-
-        useEffect( () => {
-            // Set classes for <main>
-            layoutClasses( [ 'single-content-item', 'single-attachment' ] );
-        }, [] );
 
         return (
             <>

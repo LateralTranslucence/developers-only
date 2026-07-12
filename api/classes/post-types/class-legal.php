@@ -1,8 +1,10 @@
 <?php
-// Legal
-class DO_Legal {
-    public function __construct() {
-        $legal = new DO_Custom_Post_Type( 'devo_legal', [
+class DO_Legal extends DO_Custom_Post_Type {
+    protected function post_type(): string {
+        return 'devo_legal';
+    }
+    protected function post_type_args(): array {
+        return [
             'labels' => [
                 'name' => 'Legal',
                 'menu_name' => 'Legal',
@@ -11,8 +13,10 @@ class DO_Legal {
                 'all_items' => 'Legal Entries',
                 'singular_name' => 'Legal Entry',
             ],
-        ] );
-        $legal->settings( [
+        ];
+    }
+    protected function settings(): array {
+        return [
             'display_name' => 'Legal',
             'post_title' => 'Title',
             'post_content' => 'Content',
@@ -26,7 +30,6 @@ class DO_Legal {
                 'description' => 'Description',
             ],
             'hide_field' => 'Hidden',
-            //'restrict_users' => [ 'legal', 'editor', 'administrator' ],
             'breadcrumbs' => [
                 'Legal &amp; Privacy' => '/legal/',
             ],
@@ -34,21 +37,27 @@ class DO_Legal {
                 '@type' => 'ItemPage',
                 'breadcrumb' => 'Breadcrumbs',
                 'headline' => 'Title',
-                //'image' => 'SEO Image',
                 'description' => 'Description',
             ],
-        ] );
-        $legal->meta_fields( [
-            'Title' => 'text',
-            'Slug' => 'varchar',
-            'Effective Date' => 'date',
-            'Last Updated Date' => 'date',
-            'Last Updated Change' => 'varchar',
-            'Description' => 'html',
-            'Content' => 'wp_editor',
-            'Hidden' => 'binary',
-        ] );
-        $legal->admin_fields( [ 'Title', 'Slug', 'Hidden', 'post_date' ] );
+        ];
+    }
+    // [ 'BoxName' => [ ... ] ]
+    protected function meta_fields(): array {
+        return [
+            'Legal' => [
+                'Title' => 'text',
+                'Slug' => 'varchar',
+                'Effective Date' => 'date',
+                'Last Updated Date' => 'date',
+                'Last Updated Change' => 'varchar',
+                'Description' => 'html',
+                'Content' => 'wp_editor',
+                'Hidden' => 'binary',
+            ],
+        ];
+    }
+    protected function admin_fields(): array {
+        return [ 'Title', 'Slug', 'Hidden', 'post_date' ];
     }
 }
-$devo_legal = new DO_Legal();
+$devo_legal = DO_Legal::get_instance();

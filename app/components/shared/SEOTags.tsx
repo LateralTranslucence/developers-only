@@ -1,13 +1,19 @@
-import React from 'react';
-import { Helmet } from 'react-helmet';
+import React, { useEffect } from 'react';
 import { stripTags } from '@/utils/helpers';
 import { Post } from '@/utils/types/Post';
 
-const SEOTags: React.FC<{ post: Post | Record<string, any> }> = ( { post } ) => {
-    const title = stripTags( post.seo_title ? post.seo_title : post.post_title );
+const SEOTags: React.FC<{ post: Partial<Post> }> = ( { post } ) => {
+    const title = stripTags( ( post.seo_title ? post.seo_title : post.post_title ) ?? '' );
+
+    // header.php server-renders these same tags (marked data-react-helmet) for
+    // crawlers; remove them once React takes over so they don't duplicate the
+    // React-19-hoisted tags below.
+    useEffect( () => {
+        document.head.querySelectorAll( '[data-react-helmet]' ).forEach( ( el ) => el.remove() );
+    }, [] );
 
     return (
-        <Helmet>
+        <>
             <title>{ title }</title>
             <link rel="canonical" href={ post.seo_url ? post.seo_url : post.guid } />
             <meta property="og:locale" content={ post.seo_locale ? post.seo_locale : '' } />
@@ -19,8 +25,8 @@ const SEOTags: React.FC<{ post: Post | Record<string, any> }> = ( { post } ) => 
             <meta property="og:site_name" content={ post.seo_site_name ? post.seo_site_name : '{DevelopersOnly}' } />
             <meta property="og:image" content={ post.seo_image ? post.seo_image : '' } />
             <meta name="twitter:card" content="summary_large_image" />
-            <meta name="robots" content={ post.noindex ? post.noindex : 'index, follow' }></meta>
-        </Helmet>
+            <meta name="robots" content={ post.noindex ? post.noindex : 'index, follow' } />
+        </>
     );
 };
 export default SEOTags;

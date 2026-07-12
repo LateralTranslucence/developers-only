@@ -1,12 +1,13 @@
 import React, { JSX } from 'react';
 import CTA from '@/components/shared/CTA';
+import { Breadcrumbs as BreadcrumbsType } from '@/utils/types/Breadcrumbs';
 import '@/styles/components/breadcrumbs.scss';
 
-const Breadcrumbs: React.FC<{ breadcrumbs: Array<Record<string, any>> }> = ( { breadcrumbs = [] } ): JSX.Element | null => {
+const Breadcrumbs: React.FC<{ breadcrumbs: Array<BreadcrumbsType> }> = ( { breadcrumbs = [] } ): JSX.Element | null => {
     if ( breadcrumbs.length > 0 ) {
         return (
             <ul className="breadcrumbs">
-                { breadcrumbs.map( ( crumb: Record<string, string>, index: number ) => {
+                { breadcrumbs.map( ( crumb: BreadcrumbsType, index: number ) => {
                     const text: string = crumb.text;
                     const url: string = crumb.url;
                     return (

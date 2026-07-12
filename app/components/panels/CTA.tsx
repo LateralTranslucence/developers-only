@@ -9,7 +9,7 @@ const CTA: React.FC<PanelProps> = ( {
     panelPrefix = '', 
     panelSuffix = ''
 } ): JSX.Element | null => {
-    const cta: Record<string, any> = ( post.fields[ panelPrefix + '_cta' + panelSuffix ] ?? {} ) as Record<string, any>;
+    const cta: Partial<CTASettings> = ( post.fields[ panelPrefix + '_cta' + panelSuffix ] ?? {} ) as Partial<CTASettings>;
     const ctas: Array<CTASettings> = [];
     ctas.push( {
         url: cta.url ? cta.url : '',

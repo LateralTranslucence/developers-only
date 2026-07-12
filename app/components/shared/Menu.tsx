@@ -79,7 +79,7 @@ const Menu: React.FC<MenuProps> = ( { name } ) => {
         }
 
         fetchMenus();
-    }, [ name, navMenus ] );
+    }, [ name, navMenus, fetchMenus ] );
     
     const navMenu: Array<MenuItem> = Array.isArray( navMenus[ name ] ) ? navMenus[ name ] : [];
 

@@ -7,7 +7,7 @@ import { ImageProps } from '@/utils/types/ImageProps';
 import { VideoProps } from '@/utils/types/VideoProps';
 
 interface MediaLoaderProps extends Partial<VideoProps> {
-    [ key: string ]: any;
+    [ key: string ]: unknown;
     id?: string;
     loop?: boolean;
     media: Media;

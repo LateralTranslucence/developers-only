@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { MouseEvent, ReactNode } from 'react';
 import { URLObject } from '@/utils/types/URLObject';
 import { CustomAttributes } from '@/utils/types/CustomAttributes';
 
@@ -12,7 +12,7 @@ export interface CTASettings {
     iframeName?: string;
     modal?: boolean;
     modal_class?: string;
-    onClick?: (e: any) => void;
+    onClick?: ( e: MouseEvent ) => void;
     target?: string;
     text?: string;
     url?: string | URLObject;

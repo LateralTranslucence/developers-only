@@ -1,32 +1,31 @@
 import React from 'react';
 import { ComponentLoaderMap } from '@/utils/types/ComponentLoaderMap';
 // Single Templates
-import { createContext, lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { getPost } from '@/utils/api';
+import { useCurrentPage } from '@/utils/stores/CurrentPage';
 import { TemplateLoaderProps } from '@/utils/types/TemplateLoaderProps';
 import { TemplateProps } from '@/utils/types/TemplateProps';
 import { APIResult } from '@/utils/types/APIResult';
 import { Post } from '@/utils/types/Post';
 const Blog = lazy( () => import( '@/components/templates/single/Blog' ) );
 const Form = lazy( () => import( '@/components/templates/single/Form' ) );
+const Legal = lazy( () => import( '@/components/templates/single/Legal' ) );
 const SimplePage = lazy( () => import( '@/components/templates/single/SimplePage' ) );
 const LandingPage = lazy( () => import( '@/components/templates/LandingPage' ) );
 const Page404 = lazy( () => import( '@/components/templates/Page404' ) );
 
 const templates: ComponentLoaderMap = {
-    'agents': LandingPage,
     'blog': Blog,
-    'communities': LandingPage,
     'form': Form,
     'landing-page': LandingPage,
+    'legal': Legal,
     'simple-page': SimplePage,
     '404': Page404,
 };
 
-export const PageSlugContext = createContext('');
-
 const ContentReady: React.FC<{ onLoad?: () => void; children: React.ReactNode }> = ( { onLoad, children } ) => {
-    useEffect( () => { onLoad?.(); }, [] );
+    useEffect( () => { onLoad?.(); }, [onLoad] );
     return <>{ children }</>;
 };
 
@@ -40,6 +39,12 @@ const TemplateLoader: React.FC<TemplateLoaderProps> = ( {
 } ) => {
     const [ post, setPost ] = useState<Post | undefined>( undefined );
     const [ loading, setLoading ] = useState<boolean>( true );
+    const setSlug = useCurrentPage( ( state ) => state.setSlug );
+
+    // Make the current page slug available to templates via the CurrentPage store
+    useEffect( () => {
+        setSlug( slug );
+    }, [ setSlug, slug ] );
     let finalPostType: string = postType;
     if ( finalPostType === 'media' ) {
         // rename
@@ -88,9 +93,7 @@ const TemplateLoader: React.FC<TemplateLoaderProps> = ( {
             return (
                 <Suspense fallback={ null }>
                     <ContentReady onLoad={ onLoad }>
-                        <PageSlugContext.Provider value={ slug }>
-                            <TemplateName post={ post } iframe={ iframe ? iframe : false } layoutClasses={ layoutClassesFunction } />
-                        </PageSlugContext.Provider>
+                        <TemplateName post={ post } iframe={ iframe ? iframe : false } layoutClasses={ layoutClassesFunction } />
                     </ContentReady>
                 </Suspense>
             );

@@ -19,7 +19,7 @@ const Checkbox: React.FC<FormFieldProps> = ( { field, error = false } ) => {
             { getFieldOptionsArray( field.options ).map( ( option, index: number ) => {
                 const optionValue = option.value ?? option.name ?? '';
                 const id: string = field.name + '_' + optionValue.replace( ' ', '-' ).toLowerCase();
-                const optionAttrs: Record<string, any> = {
+                const optionAttrs: React.InputHTMLAttributes<HTMLInputElement> = {
                     type: 'checkbox',
                     name: field.name,
                     id: id,

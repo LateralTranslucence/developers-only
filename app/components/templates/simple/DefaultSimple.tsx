@@ -9,11 +9,8 @@ import { Media } from '@/utils/types/Media';
 
 const DefaultSimple: React.FC<PartialTemplateProps> = ( {
     index,
-    panelSlider,
-    perRow,
     post,
     showFeatured = false,
-    type,
 } ): JSX.Element => {
     const image: Media = post.post_type_details.post_thumbnail ? getMediaField( post.fields, metaFieldKey( post.post_type_details.post_thumbnail, post.post_type_details.meta_prefix ) ) : {} as Media;
 

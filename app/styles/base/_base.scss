@@ -1,8 +1,6 @@
 @use '../abstracts' as *;
 
 html {
-    scroll-padding-top: calc($heading_height + 1rem);
-    background: var(--backgroundColor);
     font-size: 0.83333333vw; // 16px @ 1920
     @include max-900 {
         font-size: 1.25vw;
@@ -10,19 +8,16 @@ html {
     @include max-600 {
         font-size: 2vw;
     }
-    &.translated-ltr, &.translated-rtl {
-        header#header {
-            margin-top: 39px;
-        }
-    }
 }
+
 body {
     @include font(regular);
-    color: var(--textColor);
-    font-size: 1rem;
+    color: inherit;
+    font-size: 1.25rem;
     line-height: 1.4;
     overflow-x: hidden;
 }
+
 div#root {
     min-height: 100vh;
     position: relative;
@@ -35,12 +30,14 @@ p {
 * + p {
     margin: 1em 0 0 0;
 }
+
 i, em {
     color: inherit;
 }
 b, strong {
     @include font(bold);
 }
+
 a {
     &:hover {
         cursor: pointer;
@@ -48,7 +45,7 @@ a {
 }
 a, button, input {
     &:focus {
-        outline: 1px dashed setColor($black, 0.75);
+        outline: 1px dashed inherit;
     }
 }
 sub, sup {
@@ -64,6 +61,8 @@ sub {
     bottom: -0.25em;
 }
 h1, h2, h3, h4, h5, h6 {
+    @include font(bold);
+    line-height: 1.1;
     letter-spacing: -0.03em;
     * + & {
         margin-top: 1em;
@@ -74,19 +73,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 h1 {
     margin: 0;
-    @include font(medium);
     font-size: 6.25rem;
-    line-height: 1;
 }
 h2 {
-    @include font(condBold);
     font-size: 5.125rem;
 }
 h3 {
-    @include font(medium);
+    font-size: 4rem;
 }
 h4 {
-    
+    font-size: 3rem;
 }
 
 ol, ul {
