@@ -17,8 +17,7 @@ developers-only/
 ├── api/                     # PHP: custom post types, REST routes, helpers
 │   ├── classes/             # DO_* classes (post types in classes/post-types/)
 │   ├── fields/              # PHP field definitions
-│   ├── libs/                # PHP libraries (SendGrid, etc.)
-│   └── config.php           # Feature flags (post types, taxonomies, utilities)
+│   └── libs/                # PHP libraries (SendGrid, etc.)
 ├── app/                     # React/TypeScript SPA source
 │   ├── components/
 │   │   ├── forms/           # Form field components

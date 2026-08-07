@@ -21,9 +21,7 @@ const Heading: React.FC<HeadingProps> = ( {
     const Tag: ElementType = trimChar( tag, '<>' ) as ElementType;
     const hasPretitle: boolean = Boolean( pretitle );
     const hasPublishDate: boolean = Boolean( publishDate );
-    // Per-heading media wins; otherwise fall back to the site-wide Logo option
-    const logoMedia = typeof logo === 'object' ? logo : undefined;
-    const logoURL: string = logo ? ( ( logoMedia?.full as MediaItem )?.url ?? window.devoLogo ?? '' ) : '';
+    const logoURL: string = ( logo?.full as MediaItem | undefined )?.url ?? '';
     const hasLogo: boolean = Boolean( logoURL );
     // Either has-date OR has-pretitle, not both
     if ( hasPublishDate ) {

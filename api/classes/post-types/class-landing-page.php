@@ -524,9 +524,11 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                 'label' => 'Text + Media',
                 'value' => 'text-media',
             ],
-            
+
         ];
-        return $panel_types;
+        // Lets extensions (see extensions/README.md) register additional
+        // panel types into the CMS dropdown without editing this file.
+        return apply_filters( 'devo_panel_types', $panel_types );
     }
 
     public function panel_control_fields( $field_label_prefix = FALSE ): array {

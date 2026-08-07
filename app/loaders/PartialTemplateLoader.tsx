@@ -5,18 +5,12 @@ import { PartialTemplateProps } from '@/utils/types/PartialTemplateProps';
 // Block
 const DefaultBlock = lazy( () => import( '@/components/templates/block/DefaultBlock' ) );
 
-// List
-const DefaultList = lazy( () => import( '@/components/templates/list/DefaultList' ) );
-
 // Simple
 const DefaultSimple = lazy( () => import( '@/components/templates/simple/DefaultSimple' ) );
 
 const templates: Record<string, ComponentLoaderMap> = {
     block: {
         default: DefaultBlock,
-    },
-    list: {
-        default: DefaultList,
     },
     simple: {
         default: DefaultSimple,

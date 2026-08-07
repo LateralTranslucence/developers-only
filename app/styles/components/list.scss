@@ -5,12 +5,6 @@ ul.blocks.blocks--list {
     justify-content: center;
     > li {
         width: 100%;
-        @include max-900 {
-            width: 100%;
-            > li, > li.open {
-                width: 100%;
-            }
-        }
         div.blocks__content {
             padding: 2em 2em 2em 3.5em;
         }

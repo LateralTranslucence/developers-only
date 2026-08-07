@@ -7,17 +7,20 @@ section.panel-type-gallery {
     ul.panel-gallery.blocks--logos {
         margin: 4em 0 0 0;
         > li {
-            margin-bottom: 2em;
+            padding: 0;
             align-items: center;
-            figure.image {
-                margin: 0 auto;
-                padding-top: 50px !important;
-                background-size: contain;
-                background-position: 50%;
-            }
-            a:hover figure.image {
-                transform: none;
-            }
+        }
+    }
+    button.panel-gallery__trigger {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        &:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
         }
     }
 }

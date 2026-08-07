@@ -5,7 +5,7 @@
  */
 ?>
 <!DOCTYPE html>
-<html <?php language_attributes() ?> data-theme="light">
+<html <?php language_attributes() ?>>
 <head>
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta charset="<?php bloginfo( 'charset' ) ?>">
@@ -61,12 +61,16 @@ else : ?>
 <?php wp_head(); ?>
 
 <?php if ( DO_ENVIRONMENT == 'prod' ) : ?>
-    <!-- Google Tag Manager -->
     <meta name="google-site-verification" content="sIIblhof2iVPtZYF2dA7_GUbot9ZXpZP6KIocWi8q2E" />
+    <?php // Google Tag Manager - only with cookie consent (see CookieConsent.tsx, which
+          // sets the cookie and injects GTM immediately on accept without a reload) ?>
+    <?php if ( isset( $_COOKIE['devo_cookie_consent'] ) && $_COOKIE['devo_cookie_consent'] === 'accepted' ) : ?>
+    <!-- Google Tag Manager -->
     <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-PJ878CTW');</script>
+    })(window,document,'script','dataLayer','<?php echo esc_js( DO_GTM_ID ) ?>');</script>
     <!-- End Google Tag Manager -->
+    <?php endif; ?>
 <?php endif; ?>

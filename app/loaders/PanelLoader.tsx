@@ -2,6 +2,7 @@ import React from 'react';
 import { Suspense, lazy } from 'react';
 import { ComponentLoaderMap } from '@/utils/types/ComponentLoaderMap';
 import { PanelProps } from '@/utils/types/PanelProps';
+import { pascalToKebab } from '@/utils/helpers';
 const Accordion = lazy( () => import( '@/components/panels/Accordion' ) );
 const Blocks = lazy( () => import( '@/components/panels/Blocks' ) );
 const CTA = lazy( () => import( '@/components/panels/CTA' ) );
@@ -35,6 +36,21 @@ const components: ComponentLoaderMap<PanelProps> = {
     'text': Text,
     'text-media': TextMedia,
 };
+
+// Auto-discover extension panel components (extensions/app/components/panels/*.tsx)
+// - see extensions/README.md. A file's PascalCase name becomes its kebab-case
+// panel type key (e.g. CustomStats.tsx -> 'custom-stats'), matched against the
+// 'devo_panel_types' key registered on the PHP side. Core panels above always
+// win on a name collision.
+const extensionPanels = import.meta.glob<{ default: React.ComponentType<PanelProps> }>( '/extensions/app/components/panels/*.tsx' );
+for ( const path in extensionPanels ) {
+    const name = path.replace( /^.*\//, '' ).replace( /\.tsx$/, '' );
+    const key = pascalToKebab( name );
+    if ( ! ( key in components ) ) {
+        components[ key ] = lazy( extensionPanels[ path ] );
+    }
+}
+
 const PanelLoader: React.FC<PanelProps> = ( props ) => {
     const ComponentName = props.name ? components[ props.name ] : null;
 

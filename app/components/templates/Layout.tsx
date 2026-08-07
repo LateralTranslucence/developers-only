@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import TemplateLoader from '@/loaders/TemplateLoader';
 import BackToTopButton from '@/components/shared/BackToTopButton';
+import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import Loading from '@/components/shared/Loading';
@@ -58,22 +59,26 @@ const Layout: React.FC<LayoutProps> = ( { iframe = false, postType: propPostType
             <ScrollToTop />
             { iframe ?
                 <main id="content" className={ mainElementClasses }>
-                    <TemplateLoader 
-                        layoutClassesFunction={ layoutClasses }
-                        postType={ finalPostType } 
-                        queryString={ window.location.search.replace( '?', '' ) }
-                        slug={ finalSlug } />
+                    <ErrorBoundary resetKey={ location.pathname + location.search }>
+                        <TemplateLoader
+                            layoutClassesFunction={ layoutClasses }
+                            postType={ finalPostType }
+                            queryString={ window.location.search.replace( '?', '' ) }
+                            slug={ finalSlug } />
+                    </ErrorBoundary>
                 </main>
             : <>
                 { !contentLoaded && <Loading /> }
                 <Header />
                 <main id="content" className={ [ mainElementClasses, contentLoaded ? 'content-loaded' : '' ].filter( Boolean ).join( ' ' ) }>
-                    <TemplateLoader
-                        layoutClassesFunction={ layoutClasses }
-                        onLoad={ handleLoad }
-                        postType={ finalPostType }
-                        queryString={ window.location.search.replace( '?', '' ) }
-                        slug={ finalSlug } />
+                    <ErrorBoundary resetKey={ location.pathname + location.search } onError={ handleLoad }>
+                        <TemplateLoader
+                            layoutClassesFunction={ layoutClasses }
+                            onLoad={ handleLoad }
+                            postType={ finalPostType }
+                            queryString={ window.location.search.replace( '?', '' ) }
+                            slug={ finalSlug } />
+                    </ErrorBoundary>
                 </main>
                 <BackToTopButton />
                 { contentLoaded && <Footer /> }

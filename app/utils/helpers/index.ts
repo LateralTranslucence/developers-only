@@ -22,6 +22,7 @@ export { default as isEmail } from '@/utils/helpers/isEmail';
 export { default as length } from '@/utils/helpers/length';
 export { default as metaFieldKey } from '@/utils/helpers/metaFieldKey';
 export { default as panelClasses } from '@/utils/helpers/panelClasses';
+export { default as pascalToKebab } from '@/utils/helpers/pascalToKebab';
 export { default as parse } from '@/utils/helpers/parse';
 export { default as pluralize } from '@/utils/helpers/pluralize';
 export { default as range } from '@/utils/helpers/range';

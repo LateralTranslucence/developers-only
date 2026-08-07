@@ -6,8 +6,7 @@ export interface HeadingProps {
     classes?: Array<string>;
     ctas?: Array<CTASettings>;
     id?: string;
-    // Media = per-heading logo image; true = use the site-wide Logo option
-    logo?: Media | boolean;
+    logo?: Media;
     pretitle?: string;
     publishDate?: string;
     subtitle?: string;

@@ -11,7 +11,9 @@ const Image: React.FC<ImageProps> = ( {
 } ) => {
     const type = image.type;
     const finalSize: string | undefined = type === 'image' ? ( size ? size : 'full' ) : undefined;
-    const sizedImage: MediaItem | Media | undefined = finalSize ? ( image[ finalSize ] ? image[ finalSize ] as MediaItem : undefined ) : image;
+    // Fall back to 'full' if the requested size doesn't exist on this media
+    // object (e.g. a size that isn't registered via add_image_size)
+    const sizedImage: MediaItem | Media | undefined = finalSize ? ( ( image[ finalSize ] ?? image[ 'full' ] ) as MediaItem | undefined ) : image;
     if ( sizedImage || url ) {
         const isIcon: boolean = type === 'icon';
         const wrapperClasses = [ 'image', ...classes ];

@@ -8,21 +8,32 @@ import { TemplateLoaderProps } from '@/utils/types/TemplateLoaderProps';
 import { TemplateProps } from '@/utils/types/TemplateProps';
 import { APIResult } from '@/utils/types/APIResult';
 import { Post } from '@/utils/types/Post';
-const Blog = lazy( () => import( '@/components/templates/single/Blog' ) );
+import { pascalToKebab } from '@/utils/helpers';
 const Form = lazy( () => import( '@/components/templates/single/Form' ) );
-const Legal = lazy( () => import( '@/components/templates/single/Legal' ) );
 const SimplePage = lazy( () => import( '@/components/templates/single/SimplePage' ) );
 const LandingPage = lazy( () => import( '@/components/templates/LandingPage' ) );
 const Page404 = lazy( () => import( '@/components/templates/Page404' ) );
 
 const templates: ComponentLoaderMap = {
-    'blog': Blog,
     'form': Form,
     'landing-page': LandingPage,
-    'legal': Legal,
     'simple-page': SimplePage,
     '404': Page404,
 };
+
+// Auto-discover extension single-post templates
+// (extensions/app/components/templates/single/*.tsx) - see extensions/README.md.
+// A file's PascalCase name becomes its kebab-case post type key (e.g.
+// CaseStudy.tsx -> 'case-study'), matched against the post type slug returned
+// by the REST API. Core templates above always win on a name collision.
+const extensionTemplates = import.meta.glob<{ default: React.ComponentType<TemplateProps> }>( '/extensions/app/components/templates/single/*.tsx' );
+for ( const path in extensionTemplates ) {
+    const name = path.replace( /^.*\//, '' ).replace( /\.tsx$/, '' );
+    const key = pascalToKebab( name );
+    if ( ! ( key in templates ) ) {
+        templates[ key ] = lazy( extensionTemplates[ path ] );
+    }
+}
 
 const ContentReady: React.FC<{ onLoad?: () => void; children: React.ReactNode }> = ( { onLoad, children } ) => {
     useEffect( () => { onLoad?.(); }, [onLoad] );

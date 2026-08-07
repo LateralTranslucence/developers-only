@@ -7,7 +7,7 @@
 
 // Miscellaneous (alpha order)
 
-@mixin iconPsudoElement($color) {
+@mixin iconPseudoElement($color: '0, 0%, 0%') {
     content: '';
     width: 1em;
     height: 1em;

@@ -3,8 +3,10 @@ import type * as React from 'react';
 declare global {
     interface Window {
         homeURL: string;
+        dataLayer?: Array<Record<string, unknown>>;
+        devoCookieConsentText: string;
         devoEnv: string;
-        devoLogo: string;
+        devoGTM: string;
         relativeHomeURL: string;
         menus: Array<string>;
     }

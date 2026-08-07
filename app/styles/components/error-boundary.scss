@@ -1,0 +1,11 @@
+@use '../abstracts' as *;
+
+div.error-boundary {
+    width: 100%;
+    padding: 4em 1em;
+    text-align: center;
+
+    p.error-boundary__message {
+        margin-bottom: 1em;
+    }
+}

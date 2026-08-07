@@ -2,6 +2,7 @@
  * FOOTER
  */
 import React from 'react';
+import CookieConsent from '@/components/layout/CookieConsent';
 import Menu from '@/components/shared/Menu';
 import '@/styles/components/footer.scss';
 
@@ -17,7 +18,7 @@ const Footer: React.FC = () => {
                 <Menu name="legal-nav" />
                 <p className="footer__year">© { footerYear } { '{DevelopersOnly}' }</p>
             </div>
-            { /* TODO: Cookie Consent */ }
+            <CookieConsent />
         </footer>
     );
 };

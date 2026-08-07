@@ -18,6 +18,7 @@ export default defineConfig({
             input: {
                 index: path.resolve(__dirname, './app/index.tsx'),
                 'devo-global': path.resolve(__dirname, './app/styles/devo-global.scss'),
+                'extensions-global': path.resolve(__dirname, './extensions/app/styles/extensions-global.scss'),
                 'admin': path.resolve(__dirname, './app/styles/admin.scss'),
                 'login': path.resolve(__dirname, './app/styles/login.scss'),
             },

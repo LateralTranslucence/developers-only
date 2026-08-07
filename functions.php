@@ -1,6 +1,7 @@
 <?php
 // Define constants
 define( 'DO_VER', DO_ENVIRONMENT == 'local' ? time() : 'DEPLOY_TIMESTAMP' );
+define( 'DO_GTM_ID', 'GTM-PJ878CTW' );
 
 // Include Helper Functions
 include_once( __DIR__ . '/api/functions.helpers.php' );
@@ -12,6 +13,14 @@ require( __DIR__ . '/api/functions.routes.php' );
 require( __DIR__ . '/api/functions.shortcodes.php' );
 // Disable Comments
 require( __DIR__ . '/api/disable-comments.php' );
+
+// Include Extension flat files (extensions/api/*.php, not its classes/
+// subfolder) - see extensions/README.md. Auto-discovered by glob, so
+// dropping a file here is enough; nothing above needs to change.
+foreach ( glob( __DIR__ . '/extensions/api/*.php' ) as $devo_extension_file ) {
+    require_once( $devo_extension_file );
+}
+unset( $devo_extension_file );
 
 // Scripts
 function devo_scripts() {
@@ -33,6 +42,8 @@ function devo_scripts() {
             wp_enqueue_script( 'react-index', get_template_directory_uri() . '/public/dist/' . $index_file->file, [], null, TRUE );
             // Load global styles
             wp_enqueue_style( 'devo-global', get_template_directory_uri() . '/public/dist/devo-global.css', [], DO_VER );
+            // Load extension global styles (extensions/app/styles/extensions-global.scss)
+            wp_enqueue_style( 'extensions-global', get_template_directory_uri() . '/public/dist/extensions-global.css', [ 'devo-global' ], DO_VER );
             if ( isset( $index_file->css ) ) {
                 wp_enqueue_style( 'react-index', get_template_directory_uri() . '/public/dist/' . current( $index_file->css ), [], DO_VER );
             }
@@ -120,14 +131,23 @@ function devo_load_classes() {
     $post_types = [
         'landing-page',
         'simple-page',
-        'blog',
-        'legal',
-        'news',
         'icon',
     ];
     devo_load_class_files( $post_types, 'post-types' );
 }
 add_action( 'after_setup_theme', 'devo_load_classes', 0 );
+
+// Extension post type classes (extensions/api/classes/post-types/class-*.php)
+// - see extensions/README.md. Discovered by glob rather than a hand-maintained
+// array, so dropping a file in is enough to register it; no core file changes.
+// Registered immediately after devo_load_classes (same hook/priority, added
+// second) so DO_Custom_Post_Type already exists for extension classes to extend.
+function devo_load_extension_classes() {
+    foreach ( glob( __DIR__ . '/extensions/api/classes/post-types/class-*.php' ) as $devo_extension_class_file ) {
+        require_once( $devo_extension_class_file );
+    }
+}
+add_action( 'after_setup_theme', 'devo_load_extension_classes', 0 );
 
 function devo_create_objects() {
     // Site Settings
@@ -141,7 +161,7 @@ function devo_create_objects() {
         ],
     ] );
     $site_settings->fields( [
-        'Logo' => 'media',
+        'Cookie Consent Text' => 'html',
         'Header Script' => 'code',
         'Footer Script' => 'code',
     ], 'Misc' );
@@ -251,13 +271,14 @@ function devo_js_globals() {
     $site_language = substr( get_bloginfo( 'language' ), 0, 2 );
     $template_directory = get_template_directory_uri();
     $site_settings_misc = get_option( 'site_settings_misc' );
-    $site_logo = isset( $site_settings_misc['logo'] ) && is_string( $site_settings_misc['logo'] ) ? $site_settings_misc['logo'] : '';
+    $cookie_consent_text = isset( $site_settings_misc['cookie_consent_text'] ) && is_string( $site_settings_misc['cookie_consent_text'] ) ? $site_settings_misc['cookie_consent_text'] : '';
 ?>
 <script>
     window.devoEnv = "<?php echo DO_ENVIRONMENT ?>";
     window.homeURL = "<?php echo $home_url ?>";
     window.relativeHomeURL = "<?php echo $relative_home_url ?>";
-    window.devoLogo = "<?php echo esc_url( $site_logo ) ?>";
+    window.devoGTM = "<?php echo esc_js( DO_GTM_ID ) ?>";
+    window.devoCookieConsentText = <?php echo wp_json_encode( $cookie_consent_text ) ?>;
     window.menus = [];
 </script>
 <?php }

@@ -1,0 +1,2 @@
+import"./rolldown-runtime-CNC7AqOf.js";import{S as e,d as t,f as n}from"./helpers-mlWE4EZK.js";import{t as r}from"./getArrayField-BFOcSGch.js";e();var i=n(),a=({post:e,panelPrefix:n=``,panelSuffix:a=``})=>(0,i.jsx)(t,{ctas:r(e.fields,n+`_ctas`+a)});export{a as default};
+//# sourceMappingURL=Text-CuSuL15z.js.map

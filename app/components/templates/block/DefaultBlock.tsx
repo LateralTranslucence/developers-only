@@ -13,8 +13,8 @@ const DefaultBlock: React.FC<PartialTemplateProps> = ( {
                 <Image image={ post.post_thumbnail } size="square_600" classes={ [ 'blocks__thumbnail' ] } />
                 <div className="blocks__content">
                     <Heading tag="h3" title={ post.post_title } />
-                    <span className="type">{post.post_type_details.post_type_display_name}</span>
-                    <span className="date">{post.post_date.formatted}</span>
+                    <span className="blocks__post-type">{ post.post_type_details.post_type_display_name }</span>
+                    <span className="blocks__date">{ post.post_date.formatted }</span>
                 </div>
             </CTA>
         </li>

@@ -8,54 +8,21 @@ header#header {
     top: 0;
     left: 0;
 
-    // Off-canvas mobile menu instance: rendered as a direct child of
-    // header#header, separate from the inline desktop instance in nav#mainNav.
-    > menu.menu {
-        display: none;
-        &.open {
-            display: flex;
-            flex-direction: column;
-        }
-        button#mainNavClose {
-            align-self: flex-end;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            > span {
-                display: none;
-            }
-        }
-    }
-
-    nav#mainNav.container {
+    nav#mainNav {
         display: flex;
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        padding: 1em 0;
-
         a#logo {
             display: inline-block;
-            img.logo__image {
-                height: 2.5em;
-                width: auto;
-                display: block;
-            }
         }
 
-        // Inline desktop menu instance
         menu.menu {
             display: flex;
             flex-direction: row;
             align-items: center;
             margin: 0;
             padding: 0;
-
-            // Not applicable to the inline instance - only the off-canvas one
-            button#mainNavClose {
-                display: none;
-            }
-
             li {
                 list-style: none;
                 position: relative;
@@ -85,51 +52,72 @@ header#header {
                 }
             }
         }
-
-        button#navToggle {
+        button#navToggle, button#navClose {
             display: none;
+            width: 3rem;
+            aspect-ratio: 1;
             background: transparent;
             border: none;
+            position: relative;
             cursor: pointer;
+            &::before {
+                @include iconPseudoElement();
+                content: '\f0c9';
+                font-size: 2rem;
+            }
             > span {
                 display: none;
             }
         }
-    }
-
-    // Mobile: hide the inline menu, show the toggle + off-canvas menu instead
-    @include max-1024 {
-        nav#mainNav.container {
-            menu.menu {
-                display: none;
+        button#navClose {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            &::before {
+                content: '\f00d';
             }
+        }
+        @include max-600 {
             button#navToggle {
                 display: block;
             }
-        }
-        > menu.menu.open {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1000;
-            overflow-y: auto;
-            li.hasChildren {
-                > button.dropdownToggle {
+            menu.menu {
+                display: none;
+                width: 100%;
+                max-width: 18rem;
+                height: 100vh;
+                padding: 4rem 2rem;
+                flex-direction: column;
+                align-items: flex-start;
+                justify-content: flex-start;
+                gap: 1rem;
+                font-size: 1.5rem;
+                background: setColor($white);
+                position: fixed;
+                top: 0;
+                right: 0;
+                z-index: 9999;
+                > ul {
+                    width: 100%;
+                    flex-direction: column;
+                    > li {
+                        width: 100%;
+                        > a {
+                            color: setColor($black);
+                        }
+                    }
+                }
+            }
+            &.mobileOpen {
+                button#navClose {
                     display: block;
                 }
-                > menu.subMenu {
-                    display: none;
-                    position: static;
-                }
-                &.open > menu.subMenu {
+                menu.menu {
                     display: flex;
                 }
             }
         }
     }
-
     @include print {
         display: none;
     }

@@ -130,23 +130,14 @@ class DO_Form_Field_API_Display {
         $gallery = is_array( $raw_gallery ) ? $raw_gallery : [];
         $data = [];
         foreach ( $gallery as $media_elements ) {
-            $media_title = isset( $media_elements['title'] ) && strlen( $media_elements['title'] ) ? $media_elements['title'] : '';
-            $media_file = isset( $media_elements['media'] ) && strlen( $media_elements['media'] ) ? $media_elements['media'] : '';
-            $media_url = isset( $media_elements['url'] ) && strlen( $media_elements['url'] ) ? $media_elements['url'] : '';
-            $media_cta_modal = isset( $media_elements['modal'] ) && strlen( $media_elements['modal'] ) ? (bool) $media_elements['modal'] : FALSE;
-            $media_cta_modal_class = isset( $media_elements['modal_class'] ) && strlen( $media_elements['modal_class'] ) ? $media_elements['modal_class'] : '';
-            $media_video_loop = isset( $media_elements['video_loop'] ) && strlen( $media_elements['video_loop'] ) ? (bool) $media_elements['video_loop'] : FALSE;
-            $media_type = devo_media_type( $media_file );
+            $media_title = isset( $media_elements->title ) && strlen( $media_elements->title ) ? $media_elements->title : '';
+            $media_file = isset( $media_elements->media ) && strlen( $media_elements->media ) ? $media_elements->media : '';
             $image_api_field = $this->media( $media_file );
             $data[] = [
                 'title' => $media_title,
                 'media' => $image_api_field,
-                'url' => $media_url,
-                'modal' => $media_cta_modal,
-                'modal_class' => $media_cta_modal_class,
-                'video_loop' => $media_video_loop,
             ];
-        } 
+        }
         return $data;
     }
 
