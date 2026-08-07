@@ -1,3 +1,49 @@
 // Global styles for the extensions/ layer.
-// Imported the same way as app/styles/devo-global.scss - use @use to pull in
-// core abstracts (@/styles/abstracts/...) if extension styles need them.
+//
+// This is the "deep-field" theming layer for the Astronomy demo site. The
+// framework's own stylesheets are structural only - no brand colors, no
+// backgrounds, no shadows - so everything visual lives here and core files stay
+// untouched.
+//
+// -- Why every component rule is nested under #root -------------------------
+//
+// extensions-global.css is enqueued after devo-global.css, but the per-component
+// stylesheets (accordion.css, blocks.css, …) are code-split by Vite and injected
+// into <head> at runtime when their component chunk loads, so they land *after*
+// this file and win every specificity tie. Scoping this layer to #root (the
+// element the React app mounts into, so an ancestor of everything it renders)
+// adds one id to each selector, which beats any class-only framework rule
+// regardless of source order. Rules that must sit outside the app root - :root
+// tokens, @font-face, html/body, keyframes - live in abstracts/ and base/.
+
+@charset 'utf-8';
+
+@use 'abstracts';
+
+@use 'fonts/fonts';
+
+@use 'base/base';
+@use 'base/elements';
+
+@use 'components/panels';
+@use 'components/buttons';
+@use 'components/media';
+@use 'components/header';
+@use 'components/hero';
+@use 'components/accordion';
+@use 'components/blocks';
+@use 'components/cta';
+@use 'components/decision-tree';
+@use 'components/featured';
+@use 'components/forms';
+@use 'components/gallery';
+@use 'components/cards';
+@use 'components/search';
+@use 'components/stats';
+@use 'components/tabs';
+@use 'components/text';
+@use 'components/footer';
+
+// Demo chrome: the "01 · panel-type-accordion" eyebrows that let a developer map
+// the page back to a template file. Remove this line to drop them.
+@use 'components/demo-annotations';

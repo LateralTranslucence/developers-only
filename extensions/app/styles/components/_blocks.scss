@@ -1,0 +1,80 @@
+@use '../abstracts' as *;
+
+// Every grid panel in the theme is built on ul.blocks. The framework pins the
+// column count; this design lets the columns reflow intrinsically instead, so
+// the fixed repeat(N, 1fr) tracks become auto-fit + minmax.
+#root {
+    ul.blocks {
+        column-gap: 32px;
+        row-gap: 32px;
+
+        &--one { grid-template-columns: 1fr; }
+        &--two { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        &--three { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+        &--four { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+
+        > li {
+            padding: 0;
+            overflow: visible;
+            background: none;
+        }
+    }
+
+    div.blocks__content {
+        padding: 0;
+    }
+
+    // Blocks panel -----------------------------------------------------------
+    // Bare cells: an image, a heading, copy, and a link pinned to the bottom so
+    // the links line up across a row of uneven cards. No card chrome.
+    section.panel-type-blocks {
+        header.panel-header {
+            text-align: left;
+        }
+
+        ul.blocks > li,
+        ul.blocks > li > a.blocks__link {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        div.blocks__content {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 18px;
+
+            > * {
+                margin: 0;
+            }
+
+            figure.image {
+                aspect-ratio: 4 / 3;
+                border: 1px solid var(--devo-border);
+            }
+
+            > h3 {
+                @include display(24px, 1.22, normal);
+                font-size: 24px; // framework sets 1.563em on block headings
+            }
+
+            > p {
+                @include body-copy(15px, 1.62);
+                color: var(--devo-text-dim);
+            }
+
+            // Pins the link to the bottom of the cell.
+            > .text-button {
+                margin-top: auto;
+
+                &::after {
+                    content: ' →';
+                    // The self-hosted latin subset has no U+2192; let the
+                    // system stack draw the arrow.
+                    font-family: ui-monospace, monospace;
+                }
+            }
+        }
+    }
+}

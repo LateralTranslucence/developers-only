@@ -1,0 +1,78 @@
+@use '../abstracts' as *;
+
+#root {
+    section.panel-type-cta {
+        position: relative;
+        background: linear-gradient(180deg, var(--devo-bg-cta-top) 0%, var(--devo-bg-cta-bottom) 100%);
+        background-image: linear-gradient(180deg, var(--devo-bg-cta-top) 0%, var(--devo-bg-cta-bottom) 100%);
+
+        // Glow anchored below the panel, bleeding past both edges.
+        &::before {
+            content: '';
+            position: absolute;
+            inset: auto -20% -60% -20%;
+            height: 560px;
+            background: radial-gradient(
+                50% 60% at 50% 50%,
+                var(--devo-accent-glow),
+                rgba(7, 8, 11, 0) 72%
+            );
+            pointer-events: none;
+        }
+
+        > div.container {
+            // The framework lays this panel out as a header/copy/CTA grid;
+            // this design centres a single column.
+            // Children stay stretched rather than centred as flex items -
+            // shrink-to-fit would let a long headline overflow the measure.
+            display: flex;
+            flex-direction: column;
+            max-width: calc(840px + (var(--devo-gutter) * 2));
+            padding-block: 120px;
+            text-align: center;
+        }
+
+        header.panel-header {
+            margin-bottom: 0;
+            text-align: center;
+
+            &::before {
+                color: var(--devo-accent-eyebrow);
+                margin-bottom: 20px;
+            }
+
+            > h2 {
+                @include display(clamp(36px, 5vw, 64px), 1.04);
+
+                // Where the copy breaks the headline, the trailing line is set
+                // in italic accent.
+                em, i {
+                    font-style: italic;
+                    color: var(--devo-accent);
+                }
+            }
+        }
+
+        div.panel-copy-wrapper {
+            max-width: 600px;
+            margin: 26px 0 0;
+            text-align: center;
+
+            > p {
+                @include body-copy(18px, 1.65);
+                color: var(--devo-text-muted);
+            }
+        }
+
+        p.panel-ctas {
+            justify-content: center;
+            margin-top: 36px;
+
+            > .solid-button,
+            > .button {
+                @include accent-button(52px, 32px, 12px, 0.1em);
+                box-shadow: var(--devo-accent-shadow);
+            }
+        }
+    }
+}

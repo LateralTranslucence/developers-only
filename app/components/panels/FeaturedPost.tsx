@@ -6,6 +6,7 @@ import { Post } from '@/utils/types/Post';
 import { getMediaField, getObjectField, getStringField, length, parse } from '@/utils/helpers';
 import CTA from '@/components/shared/CTA';
 import Heading from '@/components/shared/Heading';
+import Image from '@/components/shared/Image';
 import '@/styles/components/featured-post.scss';
 
 const FeaturedPost: React.FC<PanelProps> = ( {
@@ -37,13 +38,16 @@ const FeaturedPost: React.FC<PanelProps> = ( {
     if ( length( image ) && length( title ) ) {
         return (
             <div className="featured-post">
-                <Heading tag="h3" pretitle={ pretitle } title={ title } />
-                <div className="featured-post__excerpt">{ parse( description ) }</div>
-                { length( url ) ?
-                    <p className="featured-post__cta">
-                        <CTA text={ ctaText } url={ url } classes={ [ 'solid-button' ] } { ...target } />
-                    </p>
-                : null }
+                <Image image={ image } size="square_600" classes={ [ 'featured-post__image' ] } />
+                <div className="featured-post__content">
+                    <Heading tag="h3" pretitle={ pretitle } title={ title } />
+                    <div className="featured-post__excerpt">{ parse( description ) }</div>
+                    { length( url ) ?
+                        <p className="featured-post__cta">
+                            <CTA text={ ctaText } url={ url } classes={ [ 'solid-button' ] } { ...target } />
+                        </p>
+                    : null }
+                </div>
             </div>
         );
     } else {

@@ -1,0 +1,159 @@
+@use '../abstracts' as *;
+
+#root {
+    // Featured media ---------------------------------------------------------
+    // One edge-to-edge cinematic frame with a soft wash over the middle.
+    section.panel-type-featured-media {
+        header.panel-header {
+            margin-bottom: 40px;
+            text-align: left;
+        }
+
+        figure.image,
+        figure.video {
+            max-width: 100%;
+            margin: 0;
+            border: 1px solid var(--devo-border);
+            position: relative;
+
+            &::after {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(
+                    40% 55% at 50% 50%,
+                    rgba(157, 180, 255, 0.10),
+                    transparent 70%
+                );
+                pointer-events: none;
+            }
+        }
+    }
+
+    // Featured post ----------------------------------------------------------
+    // A single card split down the middle by one shared border.
+    section.panel-type-featured-post {
+        > div.container {
+            display: flex;
+            // The framework centres this container's items; the eyebrow would
+            // shrink-to-fit and float to the middle.
+            align-items: stretch;
+            min-height: 0;
+            margin: 0 auto;
+            padding: var(--devo-panel-padding) var(--devo-gutter);
+            background-image: none;
+        }
+
+        div.featured-post {
+            width: 100%;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+            border: 1px solid var(--devo-border);
+            background: var(--devo-surface);
+        }
+
+        figure.featured-post__image {
+            aspect-ratio: 4 / 3;
+            height: 100%;
+            margin: 0;
+            border-right: 1px solid var(--devo-border);
+        }
+
+        div.featured-post__content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 18px;
+            padding: 48px 44px;
+
+            > * {
+                margin: 0;
+            }
+        }
+
+        h3 {
+            @include display(clamp(30px, 3.4vw, 44px), 1.08, normal);
+        }
+
+        div.featured-post__excerpt > p {
+            @include body-copy(16px, 1.65);
+            max-width: 46ch;
+            color: var(--devo-text-dim);
+        }
+
+        p.featured-post__cta {
+            margin-top: 6px;
+
+            > .solid-button {
+                @include accent-button(44px, 24px, 11px, 0.1em);
+                align-self: flex-start;
+            }
+        }
+
+        @include below($bp-stack) {
+            div.featured-post {
+                grid-template-columns: 1fr;
+            }
+
+            figure.featured-post__image {
+                border-right: 0;
+                border-bottom: 1px solid var(--devo-border);
+            }
+
+            div.featured-post__content {
+                padding: 36px 28px;
+            }
+        }
+    }
+
+    // Quotes -----------------------------------------------------------------
+    section.panel-type-quotes {
+        > div.container {
+            max-width: calc(900px + (var(--devo-gutter) * 2));
+            text-align: center;
+        }
+
+        // The demo ships this panel with no quotes; without this it would
+        // render as 224px of empty band plus a stray rule.
+        &:has(ul.panel-testimonial-carousel:empty) > div.container {
+            padding-block: 0;
+        }
+
+        ul.panel-testimonial-carousel {
+            grid-template-columns: 1fr;
+            row-gap: 56px;
+        }
+
+        div.quote {
+            @include display(clamp(26px, 3.4vw, 42px), 1.28);
+
+            > p {
+                font: inherit;
+                color: inherit;
+            }
+
+            em, i {
+                color: var(--devo-accent);
+            }
+        }
+
+        // 34px hairline - label - 34px hairline
+        p.attribution {
+            @include mono(12px, 400, 0.1em);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 32px;
+            color: var(--devo-text-dim);
+
+            &::before,
+            &::after {
+                content: '';
+                width: 34px;
+                height: 1px;
+                background: var(--devo-hairline);
+            }
+        }
+    }
+}

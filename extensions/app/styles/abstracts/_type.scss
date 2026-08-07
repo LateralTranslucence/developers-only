@@ -1,0 +1,117 @@
+// Type roles and repeated treatments from the design system.
+//
+// Every role in the handoff's type table maps to one of these, so a size change
+// happens in one place rather than across seventeen panel partials.
+
+// Instrument Serif - display headings, stat numerals, blockquote
+@mixin display($size, $line-height: 1.02, $letter-spacing: -0.02em) {
+    font-family: var(--devo-font-display);
+    font-weight: 400;
+    font-style: normal;
+    font-size: $size;
+    line-height: $line-height;
+    letter-spacing: $letter-spacing;
+    color: var(--devo-text-strong);
+}
+
+// Hanken Grotesk - body copy
+@mixin body-copy($size: 17px, $line-height: 1.68, $weight: 300) {
+    font-family: var(--devo-font-body);
+    font-weight: $weight;
+    font-size: $size;
+    line-height: $line-height;
+    letter-spacing: normal;
+    text-wrap: pretty;
+}
+
+// JetBrains Mono - every UI label, eyebrow, button, date and nav item
+@mixin mono($size: 11px, $weight: 400, $letter-spacing: 0.16em, $line-height: 1) {
+    font-family: var(--devo-font-mono);
+    font-weight: $weight;
+    font-size: $size;
+    line-height: $line-height;
+    letter-spacing: $letter-spacing;
+}
+
+// A letter-spaced uppercase mono label inside a fixed-height button wraps to two
+// lines at line-height 1 and reads as broken, so nowrap is part of the role.
+@mixin mono-label($size: 12px, $weight: 500, $letter-spacing: 0.1em) {
+    @include mono($size, $weight, $letter-spacing);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+// The eyebrow above each panel heading, e.g. "02 · panel-type-blocks"
+@mixin eyebrow {
+    @include mono(11px, 400, 0.16em);
+    display: block;
+    color: var(--devo-text-faint);
+}
+
+// Striped placeholder used wherever an image slot has no image yet
+@mixin stripes($period: 20px) {
+    background: repeating-linear-gradient(
+        135deg,
+        var(--devo-stripe-a) 0 calc($period / 2),
+        var(--devo-stripe-b) calc($period / 2) $period
+    );
+}
+
+// Buttons -------------------------------------------------------------------
+
+@mixin button-base($height, $padding-inline) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    height: $height;
+    padding: 0 $padding-inline;
+    border-radius: var(--devo-radius);
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+
+    // The theme wraps CTA labels in a <span>; keep the label from wrapping
+    // regardless of which element carries the type.
+    &, > span {
+        white-space: nowrap;
+    }
+}
+
+@mixin accent-button($height: 48px, $padding-inline: 26px, $size: 12px, $letter-spacing: 0.08em) {
+    @include button-base($height, $padding-inline);
+    @include mono-label($size, 500, $letter-spacing);
+    background: var(--devo-accent);
+    border: 0;
+    color: var(--devo-bg);
+
+    &:hover,
+    &:focus-visible {
+        background: var(--devo-accent-hover);
+        color: var(--devo-bg);
+    }
+}
+
+@mixin ghost-button($height: 48px, $padding-inline: 26px, $size: 12px, $letter-spacing: 0.08em) {
+    @include button-base($height, $padding-inline);
+    @include mono-label($size, 500, $letter-spacing);
+    background: none;
+    border: 1px solid var(--devo-border-hover);
+    color: var(--devo-text);
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--devo-border-bright);
+        color: var(--devo-text);
+    }
+}
+
+// The prototype has no focus rings; the theme should.
+@mixin focus-ring($offset: 2px) {
+    &:focus {
+        outline: none;
+    }
+    &:focus-visible {
+        outline: 2px solid var(--devo-accent);
+        outline-offset: $offset;
+    }
+}

@@ -1,5 +1,5 @@
 import React, { JSX } from 'react';
-import { getArrayField, parse } from '@/utils/helpers';
+import { addCommas, getArrayField, parse } from '@/utils/helpers';
 import useCountUp from '@/utils/hooks/useCountUp';
 import { PanelProps } from '@/utils/types/PanelProps';
 import '@/styles/components/blocks.scss';
@@ -30,7 +30,7 @@ const StatItem: React.FC<{ stat: Stat }> = ( { stat } ) => {
                     : null }
                     { stat.number !== '' && stat.number !== false && stat.number !== null ?
                         <figure className={ 'stats__value' + ( stat.decimal ? ' stats__value--decimal' : '' ) + ( countDown ? ' stats__value--down' : '' ) }>
-                            { value }
+                            { addCommas( value ) }
                         </figure>
                     : null }
                     { stat.after_number ?

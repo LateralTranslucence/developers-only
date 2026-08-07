@@ -1,0 +1,38 @@
+@use '../abstracts' as *;
+
+// Image frames are square-cornered everywhere in this design. The striped
+// placeholder sits behind every frame so an empty or still-loading slot reads
+// as an intentional slot rather than a hole.
+#root {
+    figure.image {
+        @include stripes(20px);
+        border-radius: 0;
+
+        > img.image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        // The framework maps cinema_* to 3:2; the design's featured media slot
+        // is 16:9.
+        &.cinema_400,
+        &.cinema_600,
+        &.cinema_1000 {
+            aspect-ratio: 16 / 9;
+        }
+
+        // fallback1.jpg is the theme's "this post has no thumbnail" asset - a
+        // light grey stock frame that reads as a bright hole in a near-black
+        // page. Drop it and let the striped placeholder behind the frame stand
+        // in, which is the treatment this design specifies for an empty slot.
+        > img.image[src$='fallback1.jpg'] {
+            opacity: 0;
+        }
+    }
+
+    figure.video {
+        border-radius: 0;
+    }
+}

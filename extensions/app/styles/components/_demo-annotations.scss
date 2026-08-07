@@ -1,0 +1,76 @@
+@use '../abstracts' as *;
+
+// Panel-class eyebrows: "02 · panel-type-blocks".
+//
+// These are demo chrome, not part of the panel design. The astronomy page's
+// second job is cataloguing the panel types the theme ships, so each panel is
+// labelled with the CSS class it actually renders and a developer can map the
+// page back to a template file. The number comes from a counter, so panels can
+// be reordered in wp-admin without touching this file.
+//
+// Delete this partial (and its @use in extensions-global.scss) to drop the
+// annotations without disturbing any panel styling.
+
+$panel-eyebrows: (
+    'accordion':      'panel-type-accordion',
+    'blocks':         'panel-type-blocks · blocks--four',
+    'cta':            'panel-type-cta · has-background',
+    'decision-tree':  'panel-type-decision-tree',
+    'featured-media': 'panel-type-featured-media · cinema_1000',
+    'featured-post':  'panel-type-featured-post',
+    'form':           'panel-type-form',
+    'gallery':        'panel-type-gallery · blocks--logos',
+    'posts':          'panel-type-posts · blocks--three',
+    'quotes':         'panel-type-quotes',
+    'search':         'panel-type-search',
+    'stats':          'panel-type-stats',
+    'tabs':           'panel-type-tabs',
+    'text':           'panel-type-text · overlay',
+);
+
+#root {
+    article#contentWrapper {
+        counter-reset: devo-panel;
+    }
+
+    section.panel {
+        counter-increment: devo-panel;
+    }
+
+    // Sits above the heading where a panel has one, and at the top of the
+    // container where it does not (featured post, tabs).
+    header.panel-header::before,
+    section.panel:not(:has(> div.container > header.panel-header)) > div.container::before {
+        @include eyebrow;
+        content: counter(devo-panel, decimal-leading-zero) ' · ' var(--devo-panel-class);
+        margin-bottom: 14px;
+    }
+
+    section.panel:not(:has(> div.container > header.panel-header)) > div.container::before {
+        margin-bottom: 32px;
+    }
+
+    @each $type, $label in $panel-eyebrows {
+        section.panel-type-#{$type} {
+            --devo-panel-class: '#{$label}';
+        }
+    }
+
+    // Text + media alternates sides, and the class that drives it is the label
+    // worth showing.
+    section.panel-type-text-media {
+        &.even { --devo-panel-class: 'panel-type-text-media · even'; }
+        &.odd { --devo-panel-class: 'panel-type-text-media · odd'; }
+    }
+
+    // The hero is numbered 00 in the design and labelled with the post type
+    // rather than a panel class.
+    header#hero > div.container::before {
+        @include mono-label(11px, 500, 0.18em);
+        content: 'devo_landing_page';
+        display: block;
+        margin-bottom: 26px;
+        color: var(--devo-accent);
+        text-transform: none;
+    }
+}

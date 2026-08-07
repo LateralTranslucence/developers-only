@@ -1,0 +1,88 @@
+@use '../abstracts' as *;
+
+// Element defaults inside the app root. See extensions-global.scss for why
+// everything in this layer is scoped to #root.
+#root {
+    a {
+        color: var(--devo-accent);
+        text-decoration: none;
+        transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+
+        &:hover {
+            color: var(--devo-accent-hover);
+        }
+    }
+
+    // The framework's default is a dashed outline on :focus, which fires on
+    // mouse clicks too. Swap it for a keyboard-only accent ring.
+    a, button, input, select, textarea, [tabindex] {
+        @include focus-ring;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--devo-font-display);
+        font-weight: 400;
+        color: var(--devo-text-strong);
+    }
+
+    p {
+        letter-spacing: normal;
+        text-wrap: pretty;
+    }
+
+    strong, b {
+        font-family: inherit;
+        font-weight: 600;
+    }
+
+    em, i {
+        font-style: italic;
+    }
+
+    // Rendered by CTAs.tsx / Text.tsx even when a panel has no CTAs; an empty
+    // <p> would still take a line box and open a gap under the copy.
+    p.panel-ctas:empty,
+    p.featured-post__cta:empty,
+    div.featured-post__excerpt:empty {
+        display: none;
+    }
+
+    // Framework list defaults (1em top margin, 1.5em indent, 0.75em padding on
+    // every li) fight every grid in this design, so lists reset to nothing...
+    ul, ol {
+        > li {
+            margin: 0;
+            padding-left: 0;
+        }
+    }
+
+    // ...and prose lists - the ones inside editor-authored copy - opt back into
+    // real list styling.
+    div.panel-copy-wrapper,
+    div.accordion__panel,
+    div.tabs__copy,
+    div.featured-post__excerpt,
+    span.decision-tree__detail-copy {
+        ul, ol {
+            margin: 1em 0 0;
+            padding-left: 1.25em;
+
+            > li {
+                margin: 0.4em 0 0;
+                padding-left: 0.35em;
+
+                &::marker {
+                    color: var(--devo-accent);
+                }
+            }
+        }
+
+        ul > li {
+            list-style: disc;
+        }
+
+        ol > li {
+            list-style: decimal;
+        }
+    }
+}

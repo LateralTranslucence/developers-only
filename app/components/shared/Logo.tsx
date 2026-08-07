@@ -11,7 +11,8 @@ const Logo: React.FC<LogoProps> = ( { id = '' } )=> {
             url={ window.homeURL + '/' }
             id={ id }
         >
-            <span>{ '{Developers_Only}' }</span>
+            { /* Braces are split out so a theme can accent them independently */ }
+            <span><span className="logo__brace">{ '{' }</span>Developers_Only<span className="logo__brace">{ '}' }</span></span>
         </CTA>
     );
 };

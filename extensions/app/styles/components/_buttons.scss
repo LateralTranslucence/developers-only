@@ -1,0 +1,40 @@
+@use '../abstracts' as *;
+
+// Shared CTA treatments. Panels that need a different size (the CTA panel's
+// 52px, the featured post's 44px) restate the mixin with their own metrics.
+#root {
+    .solid-button,
+    input.hs-button {
+        @include accent-button(48px, 26px, 12px, 0.1em);
+        margin: 0;
+    }
+
+    // The framework's generic link CTA. In this design it is a mono label in
+    // the accent, used for the block links and the decision-tree list.
+    .text-button {
+        @include mono-label(11px, 500, 0.1em);
+        display: inline-block;
+        width: fit-content;
+        padding: 0;
+        margin: 0;
+        color: var(--devo-accent);
+
+        &:hover {
+            color: var(--devo-accent-hover);
+        }
+    }
+
+    // A CTA rendered with no URL degrades to a <span>; it should not look
+    // clickable.
+    span.solid-button,
+    span.text-button {
+        cursor: default;
+    }
+
+    p.panel-ctas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin: 40px 0 0;
+    }
+}

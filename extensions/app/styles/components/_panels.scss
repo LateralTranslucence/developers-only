@@ -1,0 +1,76 @@
+@use '../abstracts' as *;
+
+// The shell every panel shares: container metrics, the closing hairline, the
+// panel header and its lead paragraph.
+#root {
+    div.container {
+        max-width: var(--devo-container);
+        margin-inline: auto;
+        padding-inline: var(--devo-gutter);
+
+        @include below($bp-tight) {
+            padding-inline: 20px;
+        }
+    }
+
+    section.panel {
+        border-bottom: 1px solid var(--devo-rule);
+
+        > div.container {
+            padding-block: var(--devo-panel-padding);
+        }
+    }
+
+    header.panel-header {
+        margin-bottom: 48px;
+
+        > h2 {
+            @include display(clamp(36px, 4.4vw, 58px), 1.02);
+            margin: 0;
+        }
+
+        // 48px to content, but only 24px when a lead paragraph follows - the
+        // paragraph carries the rest of the gap.
+        &:has(+ div.panel-copy-wrapper) {
+            margin-bottom: 24px;
+        }
+    }
+
+    div.panel-copy-wrapper {
+        max-width: 62ch;
+        margin: 0 0 44px;
+        text-align: left;
+
+        > p {
+            @include body-copy(17px, 1.68);
+            color: var(--devo-text-dim);
+
+            + p {
+                margin-top: 1.1em;
+            }
+        }
+    }
+
+    // Heading.tsx exposes the pretitle as a data attribute but the framework
+    // never renders it. It is the post-type badge in this design.
+    [data-pretitle]::before {
+        content: attr(data-pretitle);
+        @include mono-label(10px, 500, 0.18em);
+        display: block;
+        margin-bottom: 14px;
+        color: var(--devo-accent);
+    }
+
+    // Loading / empty states, in the mono-comment idiom the design uses for
+    // machine voice. Not designed in the prototype; see the handoff.
+    div.loading {
+        @include mono(12px, 400, 0.1em);
+        padding: 120px var(--devo-gutter);
+        color: var(--devo-text-fainter);
+        text-align: center;
+
+        &::before {
+            content: '// loading…';
+        }
+    }
+}

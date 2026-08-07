@@ -1,0 +1,75 @@
+// Deep-field design tokens.
+//
+// Colors, type stacks and metrics live as custom properties on :root so the
+// palette can be re-pointed without recompiling. Breakpoints have to resolve at
+// build time, so those stay SCSS variables.
+
+// Breakpoints
+$bp-nav: 860px;        // header link row collapses into #navToggle
+$bp-tabs: 900px;       // tabs rail collapses into .tabs__nav-toggle
+$bp-stack: 900px;      // two-column panels stack
+$bp-narrow: 600px;
+$bp-tight: 480px;      // container gutter tightens
+
+@mixin below($width) {
+    @media (max-width: $width) { @content; }
+}
+
+:root {
+    // Surfaces
+    --devo-bg: #07080b;
+    --devo-bg-cta-top: #0a0d16;
+    --devo-bg-cta-bottom: #0c1020;
+    --devo-bg-stats-bottom: #0a0c12;
+    --devo-surface: #0b0e14;
+    --devo-surface-2: #0d1017;
+    --devo-surface-open: #0c1017;
+    --devo-surface-hover: #141926;
+    --devo-stripe-a: #12151d;
+    --devo-stripe-b: #0e1118;
+
+    // Text
+    --devo-text: #e9eaf0;
+    --devo-text-strong: #f4f5f9;
+    --devo-text-muted: #a9adbc;
+    --devo-text-dim: #8e93a4;
+    --devo-text-faint: #707588;
+    --devo-text-fainter: #6e7386;
+    --devo-text-faintest: #5d6274;
+    --devo-text-disabled: #4d5262;
+
+    // Accent - there is exactly one accent hue. Do not add a second.
+    --devo-accent: #9db4ff;
+    --devo-accent-hover: #c6d4ff;
+    --devo-accent-eyebrow: #8fa4e6;
+    --devo-accent-soft: rgba(157, 180, 255, 0.10);
+    --devo-accent-wash: rgba(157, 180, 255, 0.07);
+    --devo-accent-wash-hover: rgba(157, 180, 255, 0.16);
+    --devo-accent-glow: rgba(157, 180, 255, 0.22);
+    --devo-accent-border: rgba(157, 180, 255, 0.38);
+    --devo-accent-border-soft: rgba(157, 180, 255, 0.5);
+    --devo-accent-border-open: rgba(157, 180, 255, 0.45);
+    --devo-accent-shadow: 0 0 40px rgba(157, 180, 255, 0.28);
+    --devo-violet-glow: rgba(120, 90, 220, 0.14);
+    // Red-shifted accent for errors, held in the palette's lightness/chroma band
+    --devo-error: oklch(0.72 0.12 25);
+
+    // Lines
+    --devo-rule: rgba(255, 255, 255, 0.07);
+    --devo-border: rgba(255, 255, 255, 0.09);
+    --devo-border-strong: rgba(255, 255, 255, 0.13);
+    --devo-border-hover: rgba(255, 255, 255, 0.16);
+    --devo-border-bright: rgba(255, 255, 255, 0.4);
+    --devo-hairline: rgba(255, 255, 255, 0.2);
+
+    // Type
+    --devo-font-display: 'Instrument Serif', Georgia, serif;
+    --devo-font-body: 'Hanken Grotesk', system-ui, sans-serif;
+    --devo-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+    // Metrics
+    --devo-radius: 2px;
+    --devo-container: 1220px;
+    --devo-gutter: 32px;
+    --devo-panel-padding: 112px;
+}

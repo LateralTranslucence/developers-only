@@ -30,6 +30,13 @@ const useCountUp = ( target: number, options: CountUpOptions = {} ) => {
             }
         };
 
+        // Counting up is decorative; readers who ask for reduced motion get the
+        // final value straight away.
+        if ( window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches ) {
+            setValue( target );
+            return;
+        }
+
         const observer = new IntersectionObserver(
             ( entries ) => {
                 if ( entries[ 0 ].isIntersecting ) {

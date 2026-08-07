@@ -1,0 +1,61 @@
+@use '../abstracts' as *;
+
+// The framework sizes the root in vw (16px @ 1920) so every rem scales with the
+// viewport. This design is specified in fixed px with clamp() carrying the fluid
+// type, so pin the root to 16px and let clamp() do the scaling instead.
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+body {
+    @include body-copy(17px, 1.68);
+    background: var(--devo-bg);
+    color: var(--devo-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+// The framework lays the app root out as a grid. A grid item's containing
+// block is its own grid area, so header#header's `position: sticky` has no room
+// to travel and the header scrolls away. A flex column gives the header the
+// full column as its containing block, which is what this design needs.
+// (body already carries overflow-x: hidden; repeating it here would make the
+// root its own scroll container and break sticky a second way.)
+div#root {
+    display: flex;
+    flex-direction: column;
+    background: var(--devo-bg);
+
+    main#content {
+        flex: 1;
+    }
+}
+
+// Motion --------------------------------------------------------------------
+
+@keyframes devoGlow {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 0.85; }
+}
+
+@keyframes devoRise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+}
+
+// Honour a reduced-motion preference across every animated element the theme
+// adds - the hero glow, panel enters and the stats count-up all opt out.
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

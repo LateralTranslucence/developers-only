@@ -1,0 +1,150 @@
+@use '../abstracts' as *;
+
+#root {
+    header#header {
+        background: rgba(7, 8, 11, 0.78);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--devo-rule);
+
+        nav#mainNav {
+            height: 68px;
+            gap: 24px;
+            padding-block: 0;
+        }
+
+        a#logo {
+            @include mono(15px, 500, -0.02em);
+            color: var(--devo-text);
+
+            &:hover {
+                color: var(--devo-text);
+            }
+        }
+
+        // Logo.tsx wraps the braces so they can carry the accent.
+        span.logo__brace {
+            color: var(--devo-accent);
+        }
+
+        menu.menu {
+            gap: 28px;
+
+            > li > a,
+            > li > span {
+                @include mono(13px, 400, 0.02em);
+                color: var(--devo-text-dim);
+
+                &:hover {
+                    color: var(--devo-text);
+                }
+            }
+
+            // Give a nav item the "button" class in wp-admin to render it as
+            // the header CTA ("Get the theme" in the design).
+            > li.button > a,
+            > li.cta > a {
+                @include button-base(36px, 16px);
+                @include mono-label(12px, 500, 0.06em);
+                background: var(--devo-accent-wash);
+                border: 1px solid var(--devo-accent-border);
+                color: var(--devo-accent);
+
+                &:hover {
+                    background: var(--devo-accent-wash-hover);
+                    color: var(--devo-accent-hover);
+                }
+            }
+
+            menu.subMenu {
+                gap: 0;
+                padding: 12px 0;
+                background: var(--devo-surface);
+                border: 1px solid var(--devo-border);
+
+                > li > a {
+                    display: block;
+                    padding: 8px 18px;
+                    white-space: nowrap;
+                }
+            }
+        }
+
+        button#navToggle,
+        button#navClose,
+        button#mainNavClose {
+            width: 2.5rem;
+            color: var(--devo-text);
+
+            // The framework's 2rem icon is heavy against 15px mono; bring it
+            // down to the weight the rest of the header runs at.
+            &::before {
+                font-size: 1.25rem;
+            }
+
+            &:hover {
+                color: var(--devo-accent);
+            }
+        }
+
+        // The design collapses the link row at ~860px; the framework only does
+        // it at 600. Widen the trigger - the framework's rules still apply
+        // below 600, this just brings the switch forward.
+        @include below($bp-nav) {
+            nav#mainNav {
+                button#navToggle {
+                    display: block;
+                }
+
+                menu.menu {
+                    display: none;
+                    width: 100%;
+                    max-width: 18rem;
+                    height: 100vh;
+                    padding: 4rem 2rem;
+                    flex-direction: column;
+                    align-items: flex-start;
+                    justify-content: flex-start;
+                    gap: 1.25rem;
+                    background: var(--devo-surface);
+                    border-left: 1px solid var(--devo-border);
+                    position: fixed;
+                    top: 0;
+                    right: 0;
+                    z-index: 9999;
+
+                    > li {
+                        width: 100%;
+
+                        > a {
+                            color: var(--devo-text-dim);
+
+                            &:hover {
+                                color: var(--devo-text);
+                            }
+                        }
+                    }
+                }
+
+                &.mobileOpen menu.menu {
+                    display: flex;
+                }
+            }
+        }
+    }
+
+    // Skip link - visible only once focused.
+    > a.screenReader:focus-visible {
+        @include mono-label(11px, 500, 0.1em);
+        display: inline-flex !important; // .screenReader is display:none !important
+        align-items: center;
+        height: 40px;
+        padding: 0 18px;
+        background: var(--devo-accent);
+        color: var(--devo-bg);
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 10000;
+    }
+}

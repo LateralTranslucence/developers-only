@@ -1,0 +1,177 @@
+@use '../abstracts' as *;
+
+// The framework lays this panel out as an over-wide track that slides sideways
+// when a card opens. This design keeps two cards in a plain grid and expands
+// one in place, so most of the framework's geometry is unwound here.
+#root {
+    section.panel-type-decision-tree {
+        header.panel-header {
+            text-align: left;
+        }
+
+        ul.decision-tree.blocks--card {
+            width: 100%;
+            margin-left: 0;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            column-gap: 24px;
+            row-gap: 24px;
+            align-items: start;
+
+            &.decision-tree--0-open,
+            &.decision-tree--1-open {
+                margin-left: 0;
+            }
+
+            li.decision-tree__card {
+                width: auto;
+                min-height: 0;
+                margin-right: 0;
+                padding: 36px 32px;
+                border: 1px solid var(--devo-border);
+                background: var(--devo-surface);
+                transition: border-color 0.25s ease, background 0.25s ease;
+
+                div.blocks__content {
+                    padding: 0;
+                }
+
+                > div.blocks__content > h3 {
+                    @include display(28px, 1.18, normal);
+                    font-size: 28px; // framework sets 1.563em on block headings
+                    margin: 0 0 12px;
+                }
+
+                span.decision-tree__overview {
+                    display: block;
+
+                    > p {
+                        @include body-copy(16px, 1.6);
+                        margin: 0;
+                        color: var(--devo-text-dim);
+                    }
+                }
+
+                // Framework toggles display:none/flex here, which cannot be
+                // transitioned; drive it from max-height instead.
+                span.decision-tree__detail {
+                    display: block;
+                    flex-direction: column;
+                    max-height: 0;
+                    margin-top: 0;
+                    overflow: hidden;
+                    opacity: 0;
+                    transition:
+                        max-height 0.38s ease,
+                        opacity 0.3s ease,
+                        margin-top 0.3s ease;
+                }
+
+                span.decision-tree__detail-copy,
+                span.decision-tree__detail-list {
+                    display: block;
+                    width: 100%;
+                    padding-right: 0;
+                }
+
+                span.decision-tree__detail-copy {
+                    > p {
+                        @include body-copy(15px, 1.7);
+                        margin: 0 0 20px;
+                        color: var(--devo-text-muted);
+                    }
+                }
+
+                // Hairline rows: a 1px gap over the rule colour fakes the
+                // dividers without a border on each row.
+                span.decision-tree__detail-list ul {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1px;
+                    margin: 0;
+                    background: var(--devo-rule);
+                    border: 1px solid var(--devo-rule);
+
+                    > li {
+                        margin: 0;
+                        padding: 0;
+                        list-style: none;
+
+                        > a.text-button {
+                            @include mono(13px, 400, normal, 1.4);
+                            display: block;
+                            width: auto;
+                            padding: 14px 16px;
+                            background: var(--devo-surface-2);
+                            color: var(--devo-accent-hover);
+                            text-transform: none;
+
+                            &:hover {
+                                background: var(--devo-surface-hover);
+                                color: var(--devo-accent-hover);
+                            }
+                        }
+                    }
+                }
+
+                // One toggle in two halves: the framework renders separate
+                // Expand and Close buttons and swaps which one is displayed.
+                button.decision-tree__expand,
+                button.decision-tree__collapse {
+                    @include ghost-button(38px, 16px, 11px, 0.1em);
+                    position: static;
+                    inset: auto;
+                    margin-top: 24px;
+
+                    &::before {
+                        content: none;
+                    }
+
+                    > span {
+                        display: inline;
+                    }
+
+                    &:hover {
+                        border-color: var(--devo-accent);
+                        color: var(--devo-accent);
+                    }
+                }
+
+                // ghost-button sets a display, so each half has to restate
+                // which state it belongs to.
+                button.decision-tree__expand {
+                    display: inline-flex;
+                }
+
+                button.decision-tree__collapse {
+                    display: none;
+                }
+
+                &.decision-tree__card--open {
+                    width: auto;
+                    border-color: var(--devo-accent-border-open);
+                    background: var(--devo-surface-open);
+
+                    // The overview stays put; the detail opens beneath it.
+                    span.decision-tree__overview {
+                        display: block;
+                    }
+
+                    span.decision-tree__detail {
+                        display: block;
+                        max-height: 480px;
+                        margin-top: 26px;
+                        opacity: 1;
+                    }
+
+                    button.decision-tree__expand {
+                        display: none;
+                    }
+
+                    button.decision-tree__collapse {
+                        display: inline-flex;
+                    }
+                }
+            }
+        }
+    }
+}

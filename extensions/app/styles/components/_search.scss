@@ -1,0 +1,216 @@
+@use '../abstracts' as *;
+
+#root {
+    section.panel-type-search {
+        header.panel-header {
+            margin-bottom: 40px;
+            text-align: left;
+        }
+
+        // Filter row -----------------------------------------------------------
+        form.search ul.search__filter-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 0 0 26px;
+            padding: 0;
+
+            > li.search__filter {
+                flex: 1 1 260px;
+                max-width: none;
+                margin: 0;
+                padding: 0;
+                position: relative;
+
+                &.search__filter--search {
+                    display: flex;
+                    gap: 12px;
+                }
+            }
+
+            input[type='search'],
+            input[type='text'] {
+                height: 48px;
+                padding: 0 16px;
+                background: var(--devo-surface);
+            }
+
+            select {
+                height: 48px;
+                padding: 0 14px;
+                background: var(--devo-surface);
+            }
+        }
+
+        button.search-submit {
+            @include ghost-button(48px, 18px, 11px, 0.1em);
+            flex: 0 0 auto;
+
+            // The framework draws a magnifier glyph over a hidden label; this
+            // design has no icon font, so show the label instead.
+            > span {
+                display: inline;
+
+                &::before,
+                &::after {
+                    content: none;
+                }
+
+                > span {
+                    display: inline;
+                }
+            }
+
+            &:hover {
+                border-color: var(--devo-accent);
+                color: var(--devo-accent);
+            }
+        }
+
+        // Result bar -----------------------------------------------------------
+        div#search-results-statement-orderby-wrapper {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--devo-border);
+
+            > p#search-results-statement {
+                @include mono(12px, 400, normal);
+                flex: 0 1 auto;
+                margin: 0;
+                color: var(--devo-text-dim);
+                text-align: left;
+            }
+
+            > div#search-orderby-wrapper {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-top: 0;
+            }
+
+            span#search-orderby-label {
+                @include mono-label(11px, 400, 0.1em);
+                width: auto;
+                color: var(--devo-text-fainter);
+            }
+
+            select#search-orderby {
+                width: auto;
+                height: 36px;
+                background: var(--devo-surface);
+            }
+        }
+
+        // A criterion chip - the framework's remove button.
+        button.search__remove-criteria {
+            @include mono(12px, 400, normal);
+            padding: 4px 10px;
+            border: 1px solid var(--devo-border-strong);
+            border-radius: var(--devo-radius);
+            background: var(--devo-surface);
+            color: var(--devo-accent);
+
+            &::after {
+                content: '×';
+                font-family: var(--devo-font-mono);
+                position: static;
+                margin-left: 8px;
+                transform: none;
+            }
+
+            &:hover {
+                border-color: var(--devo-accent);
+            }
+        }
+
+        // Results --------------------------------------------------------------
+        ul.search__results {
+            // auto-fill so a short result set keeps card-sized cards.
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            column-gap: 20px;
+            row-gap: 20px;
+
+            > li {
+                height: auto;
+                margin-bottom: 0;
+            }
+
+            a.blocks__link {
+                gap: 12px;
+                padding: 14px;
+            }
+
+            div.blocks__content {
+                gap: 12px;
+
+                > h3 {
+                    @include display(19px, 1.24, normal);
+                    order: 2;
+                    margin: 0;
+                    padding: 0;
+                    font-size: 19px;
+                }
+
+                span.blocks__date {
+                    font-size: 11px;
+                }
+            }
+        }
+
+        p.search__no-results {
+            @include mono(12px, 400, 0.04em, 1.6);
+            padding: 48px 0;
+            color: var(--devo-text-dim);
+            text-align: center;
+
+            &::before {
+                content: '// ';
+            }
+        }
+
+        // Pagination -----------------------------------------------------------
+        div#search-nav-wrapper {
+            @include mono(12px, 400, normal);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin: 36px 0 0;
+            color: var(--devo-text-fainter);
+            text-align: left;
+
+            button {
+                @include ghost-button(36px, 14px, 12px, normal);
+                border-color: rgba(255, 255, 255, 0.1);
+                text-transform: none;
+                color: var(--devo-text);
+
+                &[disabled] {
+                    color: var(--devo-text-disabled);
+                    cursor: default;
+
+                    &:hover {
+                        border-color: rgba(255, 255, 255, 0.1);
+                        color: var(--devo-text-disabled);
+                    }
+                }
+            }
+
+            span {
+                padding: 0;
+            }
+
+            span.search__nav-current-page {
+                color: var(--devo-text);
+                text-decoration: none;
+            }
+
+            span.search__nav-text {
+                color: var(--devo-text-fainter);
+            }
+        }
+    }
+}
