@@ -2,82 +2,80 @@
 
 // The post card shared by the Posts panel, the Search results and any archive
 // grid: thumbnail, post-type badge, title, date, inside one bordered surface.
-#root {
-    ul.blocks--post {
-        > li {
-            display: flex;
-            height: auto; // framework fixes search cards at 400px
-            margin-bottom: 0;
-            overflow: visible;
-        }
+ul.blocks--post {
+    > li {
+        display: flex;
+        height: auto; // framework fixes search cards at 400px
+        margin-bottom: 0;
+        overflow: visible;
+    }
 
-        a.blocks__link {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            width: 100%;
-            padding: 16px;
-            border: 1px solid var(--devo-border);
-            background: var(--devo-surface);
+    a.blocks__link {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        width: 100%;
+        padding: 16px;
+        border: 1px solid var(--devo-border);
+        background: var(--devo-surface);
+        color: var(--devo-text);
+        transition: border-color 0.2s ease;
+
+        &:hover {
+            border-color: var(--devo-accent-border-soft);
             color: var(--devo-text);
-            transition: border-color 0.2s ease;
-
-            &:hover {
-                border-color: var(--devo-accent-border-soft);
-                color: var(--devo-text);
-            }
-        }
-
-        figure.blocks__thumbnail {
-            aspect-ratio: 1;
-            margin: 0;
-        }
-
-        div.blocks__content {
-            display: flex;
-            flex: 1;
-            flex-direction: column;
-            gap: 16px;
-            padding: 0;
-
-            // Source order is title → post type → date; the design leads with
-            // the post-type badge.
-            > h3 {
-                @include display(22px, 1.24, normal);
-                order: 2;
-                margin: 0;
-                padding: 0;
-                font-size: 22px;
-            }
-
-            span.blocks__post-type {
-                @include mono-label(10px, 500, 0.16em);
-                order: 1;
-                color: var(--devo-accent);
-            }
-
-            span.blocks__date {
-                @include mono(12px, 400, normal);
-                order: 3;
-                margin-top: auto;
-                color: var(--devo-text-fainter);
-            }
         }
     }
 
-    // Posts panel ------------------------------------------------------------
-    section.panel-type-posts,
-    section.panel-type-archive {
-        header.panel-header {
-            text-align: left;
+    figure.blocks__thumbnail {
+        aspect-ratio: 1;
+        margin: 0;
+    }
+
+    div.blocks__content {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        gap: 16px;
+        padding: 0;
+
+        // Source order is title → post type → date; the design leads with
+        // the post-type badge.
+        > h3 {
+            @include display(22px, 1.24, normal);
+            order: 2;
+            margin: 0;
+            padding: 0;
+            font-size: 22px;
         }
 
-        // auto-fill, not auto-fit: a panel holding a single post should get one
-        // card-sized card, not one card stretched across 1220px.
-        ul.blocks--three {
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            column-gap: 24px;
-            row-gap: 24px;
+        span.blocks__post-type {
+            @include mono-label(10px, 500, 0.16em);
+            order: 1;
+            color: var(--devo-accent);
         }
+
+        span.blocks__date {
+            @include mono(12px, 400, normal);
+            order: 3;
+            margin-top: auto;
+            color: var(--devo-text-fainter);
+        }
+    }
+}
+
+// Posts panel ------------------------------------------------------------
+section.panel-type-posts,
+section.panel-type-archive {
+    header.panel-header {
+        text-align: left;
+    }
+
+    // auto-fill, not auto-fit: a panel holding a single post should get one
+    // card-sized card, not one card stretched across 1220px.
+    ul.blocks--three {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        column-gap: 24px;
+        row-gap: 24px;
     }
 }

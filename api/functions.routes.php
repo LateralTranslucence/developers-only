@@ -267,6 +267,51 @@ function devo_form_query( $data ) {
     return $form;
 }
 
+/* Spam controls for the public submit endpoint.
+ *
+ * The route has to stay open to anonymous visitors, so it can't be protected by
+ * a nonce or a capability check. Instead it relies on two cheap, stateless-ish
+ * controls: a honeypot field that only automated clients fill in, and a per-IP
+ * rate limit. Both are filterable so a site can tune or disable them.
+ *
+ * Without these, an unauthenticated caller can create unlimited
+ * devo_form_submission posts and make the site send unlimited mail - including
+ * the confirmation email, whose recipient comes straight from the payload. */
+
+// Name of the honeypot input. Deliberately looks like a real field so bots fill
+// it; the rendered markup hides it and marks it aria-hidden for humans and AT.
+function devo_form_honeypot_field() {
+    return apply_filters( 'devo_form_honeypot_field', 'devo-form-website' );
+}
+
+// Submissions allowed from one IP per window. Set max to 0 to disable.
+function devo_form_rate_limit_settings() {
+    return [
+        'max' => (int) apply_filters( 'devo_form_rate_limit_max', 5 ),
+        'window' => (int) apply_filters( 'devo_form_rate_limit_window', 10 * MINUTE_IN_SECONDS ),
+    ];
+}
+
+// TRUE when this client has already used up its allowance. Counts the current
+// request, and refreshes the TTL so a client that keeps hammering stays blocked.
+function devo_form_rate_limit_exceeded() {
+    $settings = devo_form_rate_limit_settings();
+    if ( $settings['max'] < 1 ) {
+        return FALSE;
+    }
+    $ip = isset( $_SERVER['REMOTE_ADDR'] ) && is_string( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : '';
+    if ( ! $ip ) {
+        return FALSE;
+    }
+    $key = 'devo_form_rl_' . md5( $ip );
+    $count = (int) get_transient( $key );
+    if ( $count >= $settings['max'] ) {
+        return TRUE;
+    }
+    set_transient( $key, $count + 1, $settings['window'] );
+    return FALSE;
+}
+
 // Submit
 add_action( 'rest_api_init', function() {
     register_rest_route( 'wp/v2', '/devo-form-submit/', [
@@ -282,6 +327,29 @@ function devo_form_submit_query( $data ) {
     $form_id = isset( $query_params['devo-form-id'] ) ? $query_params['devo-form-id'] : FALSE;
     $form_post_id = isset( $query_params['devo-form-post-id'] ) ? $query_params['devo-form-post-id'] : FALSE;
     if ( $form_post_id ) {
+        // Honeypot. A browser leaves this empty; anything that fills it is
+        // automated. Answer exactly as if the submission succeeded so the caller
+        // learns nothing, but store nothing and send nothing.
+        $honeypot_field = devo_form_honeypot_field();
+        if ( isset( $query_params[ $honeypot_field ] ) && strlen( trim( (string) $query_params[ $honeypot_field ] ) ) ) {
+            $form = DO_Form_Builder::display( $form_post_id );
+            $form['submitted'] = TRUE;
+            $form['error'] = FALSE;
+            $form['missing_fields'] = [];
+            $form['alert_status'] = NULL;
+            $form['confirmation_status'] = NULL;
+            return $form;
+        }
+        // Rate limit. Returns the form with a notice rather than a WP_Error so
+        // the client keeps its existing response shape and can show the message.
+        if ( devo_form_rate_limit_exceeded() ) {
+            $form = DO_Form_Builder::display( $form_post_id );
+            $form['submitted'] = FALSE;
+            $form['error'] = TRUE;
+            $form['missing_fields'] = [];
+            $form['notice'] = __( 'Too many submissions from this connection. Please wait a few minutes and try again.', 'developers_only' );
+            return $form;
+        }
         // Get the form
         $form = DO_Form_Builder::display( $form_post_id );
         $form_fields = DO_Form_Builder::get_fields( $form_post_id, FALSE );
@@ -304,8 +372,11 @@ function devo_form_submit_query( $data ) {
                 $json_encode_me[ $form_field['label'] ] = $value;
                 // And to $form_values_array (for storing in the submissions post type)
                 $form_values_array[ $field_name ] = $form_field;
-                // Check to see if this is the email field
-                if ( strpos( $field_name, 'email' ) !== FALSE && $email_address === FALSE ) {
+                // Check to see if this is the email field. The value decides who
+                // the confirmation email is sent to, so only accept it if it is
+                // actually an address - otherwise the endpoint can be pointed at
+                // arbitrary recipients.
+                if ( strpos( $field_name, 'email' ) !== FALSE && $email_address === FALSE && is_email( $value ) ) {
                     $email_address = $value;
                 }
             }
@@ -321,6 +392,7 @@ function devo_form_submit_query( $data ) {
         $form['items'] = $form_items;
         $form['alert_status'] = NULL;
         $form['confirmation_status'] = NULL;
+        $form['notice'] = NULL;
         // If there is an error, return the form
         if ( $form['error'] ) {
             return $form;
@@ -350,7 +422,7 @@ function devo_form_submit_query( $data ) {
                     $options[ $map->value ] = $map->email_addresses;
                 }
                 $form_name = devo_get_post_meta( $form_post_id, 'form_form_name' );
-                $submission_email_subject = strlen( $subject = devo_get_post_meta( $form_post_id, 'form_email_subject' ) ) ? $subject : __( 'Submission from ' . $form_name . ' form', 'astraea' );
+                $submission_email_subject = strlen( $subject = devo_get_post_meta( $form_post_id, 'form_email_subject' ) ) ? $subject : sprintf( /* translators: %s: form name. */ __( 'Submission from %s form', 'developers_only' ), $form_name );
                 $submission_email_content = '';
                 $email_submissions_to = FALSE;
                 foreach ( $form_values_array as $field_name => $field_details ) {
@@ -370,7 +442,7 @@ function devo_form_submit_query( $data ) {
             // Simple send
             else if ( strlen( $email_submissions_to = devo_get_post_meta( $form_post_id, 'form_email_submissions_to' ) ) ) {
                 $form_name = devo_get_post_meta( $form_post_id, 'form_form_name' );
-                $submission_email_subject = strlen( $subject = devo_get_post_meta( $form_post_id, 'form_email_subject' ) ) ? $subject : __( 'Submission from ' . $form_name . ' form', 'astraea' );
+                $submission_email_subject = strlen( $subject = devo_get_post_meta( $form_post_id, 'form_email_subject' ) ) ? $subject : sprintf( /* translators: %s: form name. */ __( 'Submission from %s form', 'developers_only' ), $form_name );
                 $submission_email_content = '';
                 foreach ( $form_values_array as $field_name => $field_details ) {
                     $submission_email_content .= $field_details['label'] . ': ' . $field_details['current_value'] . '<br>';
@@ -384,7 +456,7 @@ function devo_form_submit_query( $data ) {
             // Confirmation Email (if applicable)
             if ( $email_address && strlen( $confirmation_email_content = devo_get_post_meta( $form_post_id, 'form_email_confirmation' ) ) ) {
                 $form_name = devo_get_post_meta( $form_post_id, 'form_form_name' );
-                $confirmation_email_subject = strlen( $subject = devo_get_post_meta( $form_post_id, 'form_email_subject' ) ) ? $subject : __( 'Submission of ' . $form_name . ' form', 'astraea' );
+                $confirmation_email_subject = strlen( $subject = devo_get_post_meta( $form_post_id, 'form_email_subject' ) ) ? $subject : sprintf( /* translators: %s: form name. */ __( 'Submission of %s form', 'developers_only' ), $form_name );
                 $send_confirmation = new DO_Send_Simple_Email( FALSE, FALSE, $email_address, $confirmation_email_subject, $confirmation_email_content );
                 $form['confirmation_status'] = [
                     'status_code' => $send_confirmation->status_code,

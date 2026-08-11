@@ -7,12 +7,19 @@ include locate_template( '/api/classes/post-types/class-form.php' );
 include locate_template( '/api/classes/post-types/class-form-submission.php' );
 
 class DO_Form_Builder {
-    private static $instance, $default_submitted_message;
+    private static $instance;
 
     private function __construct() {
-        self::$default_submitted_message = "Thank you for reaching out, we'll be in touch soon.";
         // Actions/Filters
         add_action( 'after_setup_theme', [ 'DO_Form_Builder', 'post_types' ], 3 );
+    }
+
+    /* Fallback message shown after a successful submission when a form does not
+     * define its own. This is a method rather than a static property so the
+     * string reaches __() as a literal - a variable can't be extracted into the
+     * POT - and so it is translated on use, after the textdomain has loaded. */
+    private static function default_submitted_message() {
+        return __( "Thank you for reaching out, we'll be in touch soon.", 'developers_only' );
     }
 
     public static function get_instance() {
@@ -38,13 +45,18 @@ class DO_Form_Builder {
             'submitted' => isset( $_POST ) && count( $_POST ),
             'error' => isset( $_POST['missing_fields'] ),
             'autoupdate' => (bool) devo_get_post_meta( $form_id, 'form_autoupdate' ),
-            'thank_you_message' => strlen( $thank_you = devo_get_post_meta( $form_id, 'form_thank_you_text' ) ) ? __( $thank_you, 'astraea' ) : __( self::$default_submitted_message, 'astraea' ),
+            'thank_you_message' => strlen( $thank_you = devo_get_post_meta( $form_id, 'form_thank_you_text' ) ) ? $thank_you : self::default_submitted_message(),
             'thank_you_redirect' => devo_get_post_meta( $form_id, 'form_thank_you_redirect' ),
             'submissions_email_to' => devo_get_post_meta( $form_id, 'form_email_submissions_to' ),
             'submissions_email_logic' => devo_get_post_meta( $form_id, 'form_email_submissions_logic' ),
             'submissions_email_subject' => devo_get_post_meta( $form_id, 'form_email_subject' ),
             'submissions_email_confirmation_copy' => devo_get_post_meta( $form_id, 'form_email_confirmation' ),
             'missing_fields' => [],
+            // Resolved server-side so the rendered input always matches what the
+            // submit route checks, even when the devo_form_honeypot_field filter
+            // has changed the name.
+            'honeypot_field' => devo_form_honeypot_field(),
+            'notice' => NULL,
             'items' => [],
         ];
         $form_items = self::form_items( $form_id );

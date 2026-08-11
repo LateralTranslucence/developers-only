@@ -1675,7 +1675,7 @@ function devo_read_time( $content = '', $wpm = 300 ) {
 	$clean_content = strip_tags( $clean_content );
 	$word_count = str_word_count( $clean_content );
 	$time = ceil( $word_count / $wpm );
-	return ( $time > 0 ? str_replace( 'X', $time, __( 'X minute read', 'astraea' ) ) : __( 'Less than 1 minute read', 'astraea' ) );
+	return ( $time > 0 ? str_replace( 'X', $time, __( 'X minute read', 'developers_only' ) ) : __( 'Less than 1 minute read', 'developers_only' ) );
 }
 
 // Replaces $find with $n, where $n is incremented for each $find

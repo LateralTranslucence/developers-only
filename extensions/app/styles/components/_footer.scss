@@ -1,109 +1,107 @@
 @use '../abstracts' as *;
 
-#root {
-    footer#footer {
-        padding: 64px 0;
-        background: var(--devo-bg);
+footer#footer {
+    padding: 64px 0;
+    background: var(--devo-bg);
 
-        > div.container {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-        }
-
-        menu#socialNavigation,
-        menu.menu {
-            gap: 20px;
-
-            > li > a {
-                @include mono(12px, 400, 0.04em);
-                color: var(--devo-text-dim);
-
-                &:hover {
-                    color: var(--devo-accent);
-                }
-            }
-        }
-
-        p.footer__year {
-            @include mono(12px, 400, normal);
-            color: var(--devo-text-faintest);
-        }
-    }
-
-    // Back to top - the design's footer anchor, kept as the framework's
-    // floating button (the handoff asks for one or the other, not both).
-    button.back-to-top {
-        @include mono-label(11px, 500, 0.1em);
+    > div.container {
         display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
         align-items: center;
-        justify-content: center;
-        gap: 8px;
-        width: auto;
-        height: 40px;
-        padding: 0 16px;
-        bottom: 32px;
-        right: 32px;
-        border: 1px solid var(--devo-border-hover);
-        border-radius: var(--devo-radius);
-        background: rgba(7, 8, 11, 0.78);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        color: var(--devo-text-dim);
-        transition: opacity 0.3s ease, color 0.2s ease, border-color 0.2s ease;
+        justify-content: space-between;
+        gap: 20px;
+    }
 
-        // Framework draws a FontAwesome arrow; this design uses a typographic
-        // one and no icon font.
-        &::before {
-            content: '↑';
-            font-family: var(--devo-font-mono);
-            font-size: 12px;
-            margin: 0;
-            order: 2;
-        }
+    menu#socialNavigation,
+    menu.menu {
+        gap: 20px;
 
-        &:hover {
-            width: auto;
-            border-color: var(--devo-accent);
-            color: var(--devo-accent);
-        }
+        > li > a {
+            @include mono(12px, 400, 0.04em);
+            color: var(--devo-text-dim);
 
-        @include below($bp-narrow) {
-            width: auto;
-            height: 36px;
-            padding: 0 12px;
-            bottom: 20px;
-            right: 20px;
+            &:hover {
+                color: var(--devo-accent);
+            }
         }
     }
 
-    // Cookie consent ---------------------------------------------------------
-    aside.cookie-consent {
-        padding: 20px var(--devo-gutter);
-        background: rgba(7, 8, 11, 0.92);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        border-top: 1px solid var(--devo-border);
+    p.footer__year {
+        @include mono(12px, 400, normal);
+        color: var(--devo-text-faintest);
+    }
+}
 
-        div.cookie-consent__copy > p {
-            @include body-copy(14px, 1.6);
-            color: var(--devo-text-dim);
+// Back to top - the design's footer anchor, kept as the framework's
+// floating button (the handoff asks for one or the other, not both).
+button.back-to-top {
+    @include mono-label(11px, 500, 0.1em);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: auto;
+    height: 40px;
+    padding: 0 16px;
+    bottom: 32px;
+    right: 32px;
+    border: 1px solid var(--devo-border-hover);
+    border-radius: var(--devo-radius);
+    background: rgba(7, 8, 11, 0.78);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    color: var(--devo-text-dim);
+    transition: opacity 0.3s ease, color 0.2s ease, border-color 0.2s ease;
+
+    // Framework draws a FontAwesome arrow; this design uses a typographic
+    // one and no icon font.
+    &::before {
+        content: '↑';
+        font-family: var(--devo-font-mono);
+        font-size: 12px;
+        margin: 0;
+        order: 2;
+    }
+
+    &:hover {
+        width: auto;
+        border-color: var(--devo-accent);
+        color: var(--devo-accent);
+    }
+
+    @include below($bp-narrow) {
+        width: auto;
+        height: 36px;
+        padding: 0 12px;
+        bottom: 20px;
+        right: 20px;
+    }
+}
+
+// Cookie consent ---------------------------------------------------------
+aside.cookie-consent {
+    padding: 20px var(--devo-gutter);
+    background: rgba(7, 8, 11, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid var(--devo-border);
+
+    div.cookie-consent__copy > p {
+        @include body-copy(14px, 1.6);
+        color: var(--devo-text-dim);
+    }
+
+    p.cookie-consent__actions {
+        gap: 12px;
+
+        button.cookie-consent__accept {
+            @include accent-button(40px, 22px, 11px, 0.1em);
         }
 
-        p.cookie-consent__actions {
-            gap: 12px;
-
-            button.cookie-consent__accept {
-                @include accent-button(40px, 22px, 11px, 0.1em);
-            }
-
-            button.cookie-consent__decline {
-                @include ghost-button(40px, 22px, 11px, 0.1em);
-                padding: 0 22px;
-            }
+        button.cookie-consent__decline {
+            @include ghost-button(40px, 22px, 11px, 0.1em);
+            padding: 0 22px;
         }
     }
 }

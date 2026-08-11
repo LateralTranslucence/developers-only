@@ -1,0 +1,227 @@
+# Copyright (C) 2026 Loren Rice
+# This file is distributed under the same license as the DevelopersOnly theme.
+msgid ""
+msgstr ""
+"Project-Id-Version: DevelopersOnly 1.0.0\n"
+"Report-Msgid-Bugs-To: loren@lateraltranslucence.com\n"
+"POT-Creation-Date: 2026-08-11 16:31-0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Domain: developers_only\n"
+
+#. translators: %s: singular post type name, e.g. "Case Study".
+#: api/classes/class-custom-post-type.php:534
+#, php-format
+msgid "Add New %s"
+msgstr ""
+
+#. translators: %s: singular post type name, e.g. "Case Study".
+#: api/classes/class-custom-post-type.php:536
+#, php-format
+msgid "Edit %s"
+msgstr ""
+
+#. translators: %s: singular post type name, e.g. "Case Study".
+#: api/classes/class-custom-post-type.php:538
+#, php-format
+msgid "New %s"
+msgstr ""
+
+#. translators: %s: singular post type name, e.g. "Case Study".
+#: api/classes/class-custom-post-type.php:540
+#, php-format
+msgid "View %s"
+msgstr ""
+
+#. translators: %s: plural post type name, e.g. "Case Studies".
+#: api/classes/class-custom-post-type.php:542
+#, php-format
+msgid "Search %s"
+msgstr ""
+
+#. translators: %s: lowercase plural post type name, e.g. "case studies".
+#: api/classes/class-custom-post-type.php:544
+#, php-format
+msgid "No %s found"
+msgstr ""
+
+#. translators: %s: lowercase plural post type name, e.g. "case studies".
+#: api/classes/class-custom-post-type.php:546
+#, php-format
+msgid "No %s found in Trash"
+msgstr ""
+
+#. translators: %s: lowercase singular post type name, e.g. "case study".
+#: api/classes/class-custom-post-type.php:548
+#, php-format
+msgid "Parent %s"
+msgstr ""
+
+#. translators: %s: name of the repeatable meta box, e.g. "Panel".
+#: api/classes/class-custom-post-type.php:672
+#, php-format
+msgid "Delete %s"
+msgstr ""
+
+#. translators: %s: name of the repeatable meta box, e.g. "Panel".
+#: api/classes/class-custom-post-type.php:774
+#, php-format
+msgid "Add %s"
+msgstr ""
+
+#: api/classes/class-custom-post-type.php:1058
+msgctxt "column name"
+msgid "Title"
+msgstr ""
+
+#: api/classes/class-custom-post-type.php:1060
+msgctxt "column name"
+msgid "Date"
+msgstr ""
+
+#: api/classes/class-custom-post-type.php:1062
+msgctxt "column name"
+msgid "Author"
+msgstr ""
+
+#: api/classes/class-custom-post-type.php:1064
+msgctxt "column name"
+msgid "Comments"
+msgstr ""
+
+#: api/classes/class-custom-post-type.php:1068
+msgctxt "column name"
+msgid "Tools"
+msgstr ""
+
+#: api/classes/class-form-builder.php:22
+msgid "Thank you for reaching out, we'll be in touch soon."
+msgstr ""
+
+#: api/classes/class-form-field-display.php:111
+msgid "+ Add"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:216
+#: api/classes/class-form-field-display.php:226
+#: api/classes/class-form-field-display.php:744
+msgid "True"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:225
+#: api/classes/class-form-field-display.php:797
+msgid "Select"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:227
+msgid "False"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:234
+msgid "Submit"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:243
+msgid "Solid Button"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:247
+msgid "Hollow Button"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:251
+msgid "Text Button"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:282
+msgid "Deselect All"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:282
+msgid "Select All"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:439
+msgid "Timezone"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:498
+#: api/classes/class-form-field-display.php:638
+msgid "Add Media"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:582
+msgid "Black"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:586
+msgid "White"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:722
+msgid "Minus"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:726
+msgid "Plus"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:794
+msgid "Hold cmd or ctrl to select multiple"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:820
+msgid "Select a State"
+msgstr ""
+
+#: api/classes/class-form-field-display.php:901
+msgid "Select a Year"
+msgstr ""
+
+#: api/functions.helpers.php:1678
+msgid "X minute read"
+msgstr ""
+
+#: api/functions.helpers.php:1678
+msgid "Less than 1 minute read"
+msgstr ""
+
+#: api/functions.routes.php:350
+msgid ""
+"Too many submissions from this connection. Please wait a few minutes and try "
+"again."
+msgstr ""
+
+#. translators: %s: form name.
+#: api/functions.routes.php:425 api/functions.routes.php:445
+#, php-format
+msgid "Submission from %s form"
+msgstr ""
+
+#. translators: %s: form name.
+#: api/functions.routes.php:459
+#, php-format
+msgid "Submission of %s form"
+msgstr ""
+
+#: functions.php:187
+msgid "Top Navigation"
+msgstr ""
+
+#: functions.php:188
+msgid "Main Navigation"
+msgstr ""
+
+#: functions.php:189
+msgid "Social Navigation"
+msgstr ""
+
+#: functions.php:190
+msgid "Legal Footer Navigation"
+msgstr ""

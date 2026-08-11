@@ -64,7 +64,7 @@ class DO_Menu_Custom_Fields {
             if ( $description ) {
                 echo '<span class="red small">' . $description . '</span><br>';
             }
-            echo '<label for="' . esc_attr( $key . '-' . $item_id ) . '">' . esc_html__( $label, 'astraea' ) . '</label>';
+            echo '<label for="' . esc_attr( $key . '-' . $item_id ) . '">' . $label . '</label>';
             echo $display->output;
             echo '</p>';
         }

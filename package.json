@@ -12,11 +12,11 @@
     "type": "module",
     "scripts": {
         "dev": "npx vite build --watch",
-        "build": "tsc -b && vite build",
-        "lint": "eslint ."
+        "build": "tsc -b && vite build && npm run verify:layers",
+        "lint": "eslint .",
+        "verify:layers": "node build/verify-layers.cjs"
     },
     "dependencies": {
-        "countup.js": "^2.10.0",
         "html-react-parser": "^6.0.0",
         "react": "^19.2.4",
         "react-dom": "^19.2.4",

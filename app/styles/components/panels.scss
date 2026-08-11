@@ -7,9 +7,6 @@ section.panel {
     background-size: cover;
     background-position: 50% 50%;
     background-repeat: no-repeat;
-    @include max-600 {
-        background-image: var(--mobile-background-image);
-    }
     &.overlay {
         position: relative;
         z-index: 1;

@@ -184,10 +184,10 @@ function devo_create_objects() {
 
 	// Register nav menus
 	register_nav_menus( [
-        'top-nav' => __( 'Top Navigation' ),
-        'main-nav' => __( 'Main Navigation' ),
-        'social-nav' => __( 'Social Navigation' ),
-        'legal-nav' => __( 'Legal Footer Navigation' ),
+        'top-nav' => __( 'Top Navigation', 'developers_only' ),
+        'main-nav' => __( 'Main Navigation', 'developers_only' ),
+        'social-nav' => __( 'Social Navigation', 'developers_only' ),
+        'legal-nav' => __( 'Legal Footer Navigation', 'developers_only' ),
 	] );
 }
 add_action( 'after_setup_theme', 'devo_create_objects', 1 );
@@ -407,7 +407,7 @@ add_filter( 'login_headerurl', 'devo_login_logo_url' );
 // Title
 if ( ! function_exists( 'devo_login_url_title' ) ) {
     function devo_login_url_title() {
-        return 'Astraea Foundation';
+        return '{Developers_Only}';
     }
 }
 add_filter( 'login_headertext', 'devo_login_url_title' );
@@ -533,19 +533,9 @@ function devo_case_insensitive_urls() {
 }
 add_action( 'init', 'devo_case_insensitive_urls' );
 
-// Add site ID to admin toolbar
-function devo_admin_menu_site_id( $wp_admin_bar ) {
-    $args = [
-        'id' => 'siteID',
-        'title' => 'Site ID: ' . get_current_blog_id(),
-    ];
-    $wp_admin_bar->add_node( $args );
-}
-//add_action( 'admin_bar_menu', 'devo_admin_menu_site_id', 20 );
-
 // Load Text Domain
 function devo_load_textdomain() {
-    load_theme_textdomain( 'astraea', get_template_directory() . '/languages' );
+    load_theme_textdomain( 'developers_only', get_template_directory() . '/languages' );
 }
 //add_action( 'after_setup_theme', 'devo_load_textdomain', 0 );
 

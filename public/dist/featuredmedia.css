@@ -1,1 +1,1 @@
-section.panel-type-featured-media header.panel-header{text-align:center}section.panel-type-featured-media figure.image,section.panel-type-featured-media figure.video{max-width:800px;margin:0 auto}section.panel-type-featured-media span.svg-wrapper.svg-fullwidth{max-width:100%}
+@layer framework{section.panel-type-featured-media header.panel-header{text-align:center}section.panel-type-featured-media figure.image,section.panel-type-featured-media figure.video{max-width:800px;margin:0 auto}section.panel-type-featured-media span.svg-wrapper.svg-fullwidth{max-width:100%}}

@@ -14,9 +14,6 @@ section.panel-type-featured-post {
         min-height: 600px;
         display: flex;
         align-items: center;
-        @include max-600 {
-            background-image: var(--mobile-background-image);
-        }
     }
     div.featured-post {
         width: 50%;

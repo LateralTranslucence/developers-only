@@ -1,3 +1,17 @@
-last 2 versions
-> 0.5%
-IE 10
+# Browser targets.
+#
+# The front end is a React 19 SPA served as an ES module, so any browser without
+# module support could never run it - the previous "IE 10" entry was a fiction
+# that only made PostCSS emit dead fallbacks.
+#
+# The `fully supports css-cascade-layers` clause is load-bearing, not cosmetic.
+# The framework's CSS is wrapped in `@layer framework` (see
+# build/postcss-layer-framework.cjs) so the unlayered extensions layer can
+# override it without specificity hacks. Lightning CSS - which Vite 8 uses to
+# minify - silently strips `@layer` and hoists the rules whenever a target in
+# this list lacks support. That inverts the cascade: framework styles start
+# beating extension styles again, with no build error to warn you.
+#
+# Dropping the clause re-admits op_mini, KaiOS and QQ 14.9, none of which can run
+# the app. `npm run verify:layers` asserts the layer survived the build.
+defaults and fully supports css-cascade-layers

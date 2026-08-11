@@ -1,45 +1,53 @@
 @use '../abstracts' as *;
 
 // Screen Reader
+//
+// Hides content visually while keeping it in the accessibility tree, for text
+// that only assistive technology needs: skip links, icon-button labels, and
+// headings that exist purely for document structure.
+//
+// This must never be `display: none` or `visibility: hidden`. Both remove the
+// element from the accessibility tree entirely and make it unfocusable, which is
+// the opposite of what the class is for - every consumer in the theme depends on
+// the content being announced:
+//
+//   Header.tsx     "Skip to main content" link (must also be focusable)
+//   Search.tsx     the search input's <label>, and its structural <h2>
+//   Modal.tsx      close-button label
+//   Menu.tsx       dropdown-toggle label
+//   SliderNav.tsx  previous / next / slide-number labels
+//   Gallery.tsx    image-trigger label
+//
+// The 1px box plus an inset clip is the standard visually-hidden recipe: the
+// element stays rendered, so it can be focused and read, but occupies no
+// perceivable space. `white-space: nowrap` keeps a long label from collapsing
+// into a 1px-wide column, which some screen readers announce one character at a
+// time.
+//
 .screenReader {
-    display: none !important;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
 
-// Text align
-.text-align-left {
-    text-align: left;
-}
-.text-align-right {
-    text-align: right;
-}
-.text-align-center {
-    text-align: center;
-}
-
-// Inline logo in a heading (rendered by Heading.tsx when a logo is set)
-span.title-logo {
-    display: inline-block;
-    margin-right: 0.35em;
-    vertical-align: baseline;
-    > img {
-        height: 1em;
-        width: auto;
-        display: block;
-    }
-}
-
-// Misc
-.footnote {
-    font-size: 0.75rem;
-    line-height: 1em;
-    opacity: .5;
-}
-.small {
-    font-size: 0.85rem;
-}
-.large {
-    font-size: 1.125rem;
-}
-.red-text {
-    color: red !important; // override more specific selectors
+// A .screenReader element that can take focus - in practice the skip link - has
+// to become perceivable when it does, or keyboard users land on an invisible
+// focus stop. Only focusable elements can ever match this, so it is safe to
+// apply to the utility as a whole.
+//
+// Structural only: this restores the element to normal flow and leaves the
+// theming layer to position and paint it.
+.screenReader:focus-visible {
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
 }

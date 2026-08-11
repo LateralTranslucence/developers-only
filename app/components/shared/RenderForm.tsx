@@ -60,6 +60,7 @@ const RenderForm: React.FC<{ formID: number; panelID: string }> = ( { formID, pa
         const formSubmitted: boolean = form.submitted;
         const autoupdate: boolean = form.autoupdate && formSubmitted;
         const error: Record<string, unknown> = form.error;
+        const honeypotField: string = form.honeypot_field || 'devo-form-website';
 
         const FormWrapper: React.FC<{ field: FormField, error: boolean }> = ( { field, error } ): JSX.Element => {
             if ( field.field_type !== 'hidden' ) {
@@ -92,6 +93,21 @@ const RenderForm: React.FC<{ formID: number; panelID: string }> = ( { formID, pa
         else {
             return(
                 <form id={ form.id } className={ 'form' + ( autoupdate ? ' autoupdate' : '' ) } method="post" onSubmit={ formSubmit }>
+                { form.notice ? <p className="form__notice" role="alert">{ form.notice }</p> : null }
+                { /* Honeypot. Named to look like a real field so bots fill it in;
+                     hidden from sight and from assistive tech, and skipped by the
+                     tab order, so nobody else ever sees it. The submit route
+                     discards any payload that arrives with this set. The name
+                     comes from the server so it stays in step with the
+                     devo_form_honeypot_field filter. */ }
+                <div className="form__hp" aria-hidden="true">
+                    { /* Labelled with an instruction rather than a field name:
+                         "Website"/"Company" and friends are exactly what browser
+                         autofill matches on, and an autofilled honeypot would
+                         silently bin a real submission. */ }
+                    <label htmlFor={ honeypotField }>Leave this field empty</label>
+                    <input type="text" id={ honeypotField } name={ honeypotField } tabIndex={ -1 } autoComplete="off" defaultValue="" />
+                </div>
                 { Object.entries( form.items ).map( ( [ formItemKey, formItem ]: [ string, FormField ], index ) => {
                     // If this item is a fieldset
                     if ( formItem.item_type === 'fieldset' ) {

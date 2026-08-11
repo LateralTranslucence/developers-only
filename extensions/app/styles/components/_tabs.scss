@@ -2,138 +2,136 @@
 
 // Vertical tabs: a 260px rail and the panel area share one border and one
 // surface. The framework's rail is horizontal, so the axis is rebuilt here.
-#root {
-    section.panel-type-tabs {
-        div.tabs {
-            display: grid;
-            grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
-            border: 1px solid var(--devo-border);
-            background: var(--devo-surface);
-        }
+section.panel-type-tabs {
+    div.tabs {
+        display: grid;
+        grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+        border: 1px solid var(--devo-border);
+        background: var(--devo-surface);
+    }
 
-        div.tabs__nav-wrapper {
-            margin-bottom: 0;
-            border-right: 1px solid var(--devo-border);
+    div.tabs__nav-wrapper {
+        margin-bottom: 0;
+        border-right: 1px solid var(--devo-border);
 
-            ul.tabs__nav {
+        ul.tabs__nav {
+            width: 100%;
+            flex-direction: column;
+            flex-wrap: nowrap;
+
+            li.tabs__nav-item {
                 width: 100%;
-                flex-direction: column;
-                flex-wrap: nowrap;
-
-                li.tabs__nav-item {
-                    width: 100%;
-                    margin: 0;
-                }
-
-                button.tabs__tab {
-                    @include mono(13px, 400, 0.02em, 1.3);
-                    width: 100%;
-                    padding: 18px 22px;
-                    border-left: 2px solid transparent;
-                    background: transparent;
-                    color: var(--devo-text-dim);
-                    text-align: left;
-                    text-transform: none;
-                    transition: background 0.2s ease, color 0.2s ease;
-
-                    &:hover {
-                        color: var(--devo-text);
-                    }
-
-                    &[aria-selected='true'] {
-                        background: var(--devo-accent-soft);
-                        border-left-color: var(--devo-accent);
-                        color: var(--devo-text);
-                    }
-                }
-            }
-        }
-
-        div.tabs__content {
-            min-height: 300px;
-            margin: 0;
-            padding: 52px 48px;
-
-            div.tabs__panel {
-                &:not([hidden]) {
-                    display: block;
-                    animation: devoRise 0.32s ease;
-                }
-
-                > h2,
-                > h3 {
-                    @include display(clamp(28px, 3.2vw, 40px), 1.1, normal);
-                    margin: 0 0 20px;
-                }
-
-                div.tabs__copy > p {
-                    @include body-copy(17px, 1.7);
-                    max-width: 58ch;
-                    color: var(--devo-text-dim);
-
-                    + p {
-                        margin-top: 1.1em;
-                    }
-                }
-            }
-        }
-
-        // Below the rail breakpoint the framework turns the tab list into its
-        // select-list dropdown and reveals .tabs__nav-toggle; follow it down to
-        // one column.
-        @include below($bp-tabs) {
-            div.tabs {
-                grid-template-columns: minmax(0, 1fr);
+                margin: 0;
             }
 
-            div.tabs__nav-wrapper {
-                border-right: 0;
-                border-bottom: 1px solid var(--devo-border);
+            button.tabs__tab {
+                @include mono(13px, 400, 0.02em, 1.3);
+                width: 100%;
+                padding: 18px 22px;
+                border-left: 2px solid transparent;
+                background: transparent;
+                color: var(--devo-text-dim);
+                text-align: left;
+                text-transform: none;
+                transition: background 0.2s ease, color 0.2s ease;
 
-                // The framework spaces the toggle away from the tab content;
-                // here they share one bordered box, so the gap reads as a hole.
-                span.select-list-toggle {
-                    margin-bottom: 0;
+                &:hover {
+                    color: var(--devo-text);
                 }
 
-                ul.tabs__nav {
-                    background: var(--devo-surface);
-                    border: 1px solid var(--devo-border);
+                &[aria-selected='true'] {
+                    background: var(--devo-accent-soft);
+                    border-left-color: var(--devo-accent);
+                    color: var(--devo-text);
                 }
-            }
-
-            div.tabs__content {
-                padding: 36px 28px;
             }
         }
     }
 
-    // Select-list toggle, shared with the search sort control.
-    span.select-list-toggle {
-        @include mono(13px, 400, 0.02em);
-        padding: 16px 40px 16px 22px;
-        color: var(--devo-text);
+    div.tabs__content {
+        min-height: 300px;
+        margin: 0;
+        padding: 52px 48px;
 
-        &::before {
-            content: '';
-            width: 7px;
-            height: 7px;
-            border-right: 1px solid var(--devo-text-dim);
-            border-bottom: 1px solid var(--devo-text-dim);
-            position: absolute;
-            top: calc(50% - 6px);
-            right: 22px;
-            transform: rotate(45deg);
+        div.tabs__panel {
+            &:not([hidden]) {
+                display: block;
+                animation: devoRise 0.32s ease;
+            }
+
+            > h2,
+            > h3 {
+                @include display(clamp(28px, 3.2vw, 40px), 1.1, normal);
+                margin: 0 0 20px;
+            }
+
+            div.tabs__copy > p {
+                @include body-copy(17px, 1.7);
+                max-width: 58ch;
+                color: var(--devo-text-dim);
+
+                + p {
+                    margin-top: 1.1em;
+                }
+            }
+        }
+    }
+
+    // Below the rail breakpoint the framework turns the tab list into its
+    // select-list dropdown and reveals .tabs__nav-toggle; follow it down to
+    // one column.
+    @include below($bp-tabs) {
+        div.tabs {
+            grid-template-columns: minmax(0, 1fr);
         }
 
-        // Replaces the framework's FontAwesome caret with a drawn one.
-        &::after {
-            content: none;
+        div.tabs__nav-wrapper {
+            border-right: 0;
+            border-bottom: 1px solid var(--devo-border);
+
+            // The framework spaces the toggle away from the tab content;
+            // here they share one bordered box, so the gap reads as a hole.
+            span.select-list-toggle {
+                margin-bottom: 0;
+            }
+
+            ul.tabs__nav {
+                background: var(--devo-surface);
+                border: 1px solid var(--devo-border);
+            }
         }
 
-        &.open::before {
-            top: calc(50% - 2px);
-            transform: rotate(225deg);
+        div.tabs__content {
+            padding: 36px 28px;
         }
+    }
+}
+
+// Select-list toggle, shared with the search sort control.
+span.select-list-toggle {
+    @include mono(13px, 400, 0.02em);
+    padding: 16px 40px 16px 22px;
+    color: var(--devo-text);
+
+    &::before {
+        content: '';
+        width: 7px;
+        height: 7px;
+        border-right: 1px solid var(--devo-text-dim);
+        border-bottom: 1px solid var(--devo-text-dim);
+        position: absolute;
+        top: calc(50% - 6px);
+        right: 22px;
+        transform: rotate(45deg);
+    }
+
+    // Replaces the framework's FontAwesome caret with a drawn one.
+    &::after {
+        content: none;
+    }
+
+    &.open::before {
+        top: calc(50% - 2px);
+        transform: rotate(225deg);
     }
 }

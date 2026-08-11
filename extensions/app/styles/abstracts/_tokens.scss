@@ -17,50 +17,62 @@ $bp-tight: 480px;      // container gutter tightens
 
 :root {
     // Surfaces
+    // surface/surface-2/surface-open/surface-hover/stripe-* brightened -
+    // previously ~1.05:1 against --devo-bg (i.e. indistinguishable); now a
+    // real, visible step so cards/rows actually read as separate from the page.
     --devo-bg: #07080b;
     --devo-bg-cta-top: #0a0d16;
     --devo-bg-cta-bottom: #0c1020;
     --devo-bg-stats-bottom: #0a0c12;
-    --devo-surface: #0b0e14;
-    --devo-surface-2: #0d1017;
-    --devo-surface-open: #0c1017;
-    --devo-surface-hover: #141926;
-    --devo-stripe-a: #12151d;
-    --devo-stripe-b: #0e1118;
+    --devo-surface: #22273b;
+    --devo-surface-2: #262c42;
+    --devo-surface-open: #24293f;
+    --devo-surface-hover: #2e3550;
+    --devo-stripe-a: #1b1f2f;
+    --devo-stripe-b: #151925;
 
     // Text
+    // faint/fainter/faintest/disabled brightened - they were failing WCAG AA
+    // (below 4.5:1, disabled as low as 2.57:1) against --devo-bg. text/
+    // text-strong/text-muted/text-dim were already fine, left alone.
     --devo-text: #e9eaf0;
     --devo-text-strong: #f4f5f9;
     --devo-text-muted: #a9adbc;
     --devo-text-dim: #8e93a4;
-    --devo-text-faint: #707588;
-    --devo-text-fainter: #6e7386;
-    --devo-text-faintest: #5d6274;
-    --devo-text-disabled: #4d5262;
+    --devo-text-faint: #80859b;
+    --devo-text-fainter: #797e95;
+    --devo-text-faintest: #6c7289;
+    --devo-text-disabled: #5b6074;
 
     // Accent - there is exactly one accent hue. Do not add a second.
-    --devo-accent: #9db4ff;
-    --devo-accent-hover: #c6d4ff;
-    --devo-accent-eyebrow: #8fa4e6;
-    --devo-accent-soft: rgba(157, 180, 255, 0.10);
-    --devo-accent-wash: rgba(157, 180, 255, 0.07);
-    --devo-accent-wash-hover: rgba(157, 180, 255, 0.16);
-    --devo-accent-glow: rgba(157, 180, 255, 0.22);
-    --devo-accent-border: rgba(157, 180, 255, 0.38);
-    --devo-accent-border-soft: rgba(157, 180, 255, 0.5);
-    --devo-accent-border-open: rgba(157, 180, 255, 0.45);
-    --devo-accent-shadow: 0 0 40px rgba(157, 180, 255, 0.28);
+    // Brightened (same H226 hue, pushed lighter/more saturated) for more
+    // contrast against --devo-bg/--devo-surface - the previous values read
+    // too close to the near-black surfaces.
+    --devo-accent: #b8c8ff;
+    --devo-accent-hover: #d4deff;
+    --devo-accent-eyebrow: #adc0ff;
+    --devo-accent-soft: rgba(184, 200, 255, 0.14);
+    --devo-accent-wash: rgba(184, 200, 255, 0.10);
+    --devo-accent-wash-hover: rgba(184, 200, 255, 0.20);
+    --devo-accent-glow: rgba(184, 200, 255, 0.28);
+    --devo-accent-border: rgba(184, 200, 255, 0.46);
+    --devo-accent-border-soft: rgba(184, 200, 255, 0.55);
+    --devo-accent-border-open: rgba(184, 200, 255, 0.52);
+    --devo-accent-shadow: 0 0 40px rgba(184, 200, 255, 0.34);
     --devo-violet-glow: rgba(120, 90, 220, 0.14);
     // Red-shifted accent for errors, held in the palette's lightness/chroma band
     --devo-error: oklch(0.72 0.12 25);
 
     // Lines
-    --devo-rule: rgba(255, 255, 255, 0.07);
-    --devo-border: rgba(255, 255, 255, 0.09);
-    --devo-border-strong: rgba(255, 255, 255, 0.13);
-    --devo-border-hover: rgba(255, 255, 255, 0.16);
-    --devo-border-bright: rgba(255, 255, 255, 0.4);
-    --devo-hairline: rgba(255, 255, 255, 0.2);
+    // Opacities bumped - at the old values every rule/border/hairline was
+    // under 2:1 contrast against --devo-bg (some under 1.2:1, essentially
+    // invisible). Now roughly 2:1 (rule) through 5:1 (border-bright).
+    --devo-rule: rgba(255, 255, 255, 0.22);
+    --devo-border: rgba(255, 255, 255, 0.28);
+    --devo-border-strong: rgba(255, 255, 255, 0.34);
+    --devo-border-hover: rgba(255, 255, 255, 0.4);
+    --devo-border-bright: rgba(255, 255, 255, 0.48);
+    --devo-hairline: rgba(255, 255, 255, 0.36);
 
     // Type
     --devo-font-display: 'Instrument Serif', Georgia, serif;

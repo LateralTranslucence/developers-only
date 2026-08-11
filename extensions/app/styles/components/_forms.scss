@@ -1,188 +1,186 @@
 @use '../abstracts' as *;
 
 // Shared field chrome, then the form panel's two-column layout.
-#root {
-    input[type='text'],
-    input[type='email'],
-    input[type='tel'],
-    input[type='number'],
-    input[type='search'],
-    input[type='password'],
-    input[type='date'],
-    textarea,
-    select {
-        width: 100%;
-        height: 46px;
-        padding: 0 14px;
-        background: var(--devo-bg);
-        border: 1px solid var(--devo-border-strong);
-        border-radius: var(--devo-radius);
-        color: var(--devo-text);
-        font-family: var(--devo-font-body);
-        font-weight: 400;
-        font-size: 15px;
-        line-height: 1;
+input[type='text'],
+input[type='email'],
+input[type='tel'],
+input[type='number'],
+input[type='search'],
+input[type='password'],
+input[type='date'],
+textarea,
+select {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px;
+    background: var(--devo-bg);
+    border: 1px solid var(--devo-border-strong);
+    border-radius: var(--devo-radius);
+    color: var(--devo-text);
+    font-family: var(--devo-font-body);
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 1;
+    outline: none;
+    transition: border-color 0.2s ease;
+
+    &::placeholder {
+        color: var(--devo-text-fainter);
+    }
+
+    // Focus is a border colour change - no glow, no outline ring.
+    &:focus,
+    &:focus-visible {
+        border-color: var(--devo-accent);
         outline: none;
-        transition: border-color 0.2s ease;
+    }
+}
 
-        &::placeholder {
-            color: var(--devo-text-fainter);
-        }
+textarea {
+    height: auto;
+    min-height: 140px; // ~5 rows
+    padding: 12px 14px;
+    line-height: 1.55;
+    resize: vertical;
+}
 
-        // Focus is a border colour change - no glow, no outline ring.
-        &:focus,
-        &:focus-visible {
-            border-color: var(--devo-accent);
-            outline: none;
-        }
+select {
+    @include mono(13px, 400, normal);
+    cursor: pointer;
+}
+
+// The framework uses a floating-label pattern: the label is absolutely
+// positioned inside the input's top padding. This design stacks the label
+// above the field, so the label goes back into normal flow and the input
+// loses the padding that was reserving room for it.
+div.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    margin-bottom: 0; // the form's own gap spaces the fields
+    width: 100%;
+
+    > label {
+        @include mono-label(10px, 500, 0.16em);
+        position: static;
+        left: auto;
+        top: auto;
+        color: var(--devo-text-dim);
     }
 
-    textarea {
-        height: auto;
-        min-height: 140px; // ~5 rows
-        padding: 12px 14px;
-        line-height: 1.55;
-        resize: vertical;
+    span.form-field__required {
+        margin-left: 0.35em;
+        color: var(--devo-accent);
     }
 
-    select {
-        @include mono(13px, 400, normal);
-        cursor: pointer;
-    }
+    // Reuses the confirmation slot's voice, in a red-shifted accent that
+    // stays inside the palette's lightness/chroma band.
+    ul.form-field__error-list {
+        margin: 0;
+        list-style: none;
 
-    // The framework uses a floating-label pattern: the label is absolutely
-    // positioned inside the input's top padding. This design stacks the label
-    // above the field, so the label goes back into normal flow and the input
-    // loses the padding that was reserving room for it.
-    div.form-field {
-        display: flex;
-        flex-direction: column;
-        gap: 9px;
-        margin-bottom: 0; // the form's own gap spaces the fields
-        width: 100%;
-
-        > label {
-            @include mono-label(10px, 500, 0.16em);
-            position: static;
-            left: auto;
-            top: auto;
-            color: var(--devo-text-dim);
-        }
-
-        span.form-field__required {
-            margin-left: 0.35em;
-            color: var(--devo-accent);
-        }
-
-        // Reuses the confirmation slot's voice, in a red-shifted accent that
-        // stays inside the palette's lightness/chroma band.
-        ul.form-field__error-list {
+        > li {
+            @include mono(11px, 400, 0.04em, 1.5);
             margin: 0;
-            list-style: none;
-
-            > li {
-                @include mono(11px, 400, 0.04em, 1.5);
-                margin: 0;
-                padding: 0;
-                color: var(--devo-error);
-
-                &::before {
-                    content: '// ';
-                }
-            }
-        }
-
-        &.form-field--checkbox,
-        &.form-field--binary {
-            flex-direction: row;
-            align-items: center;
-            gap: 10px;
-        }
-
-        &.form-field--button {
-            margin-top: 2px;
-
-            > button {
-                @include accent-button(48px, 26px, 12px, 0.1em);
-                width: 100%;
-            }
-        }
-    }
-
-    // Form panel -------------------------------------------------------------
-    section.panel-type-form {
-        > div.container {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-            grid-template-rows: auto 1fr;
-            grid-template-areas:
-                'header form'
-                'copy   form';
-            column-gap: 64px;
-            align-items: start;
-        }
-
-        header.panel-header {
-            grid-area: header;
-            margin-bottom: 24px;
-            text-align: left;
-        }
-
-        div.panel-copy-wrapper {
-            grid-area: copy;
-            max-width: 44ch;
-            margin-bottom: 0;
-        }
-
-        div.panel-form-wrapper {
-            grid-area: form;
-            padding: 0; // the form element carries the frame and its padding
-        }
-
-        form.form {
-            display: flex;
-            flex-direction: column;
-            gap: 22px;
-            padding: 36px;
-            border: 1px solid var(--devo-border);
-            background: var(--devo-surface);
-        }
-
-        // RenderForm swaps the whole form for the thank-you message; keep it in
-        // the form's own frame so the panel does not collapse on submit.
-        div.panel-form-wrapper > span {
-            @include mono(12px, 400, 0.04em, 1.6);
-            display: block;
-            padding: 36px;
-            border: 1px solid var(--devo-border);
-            background: var(--devo-surface);
-            color: var(--devo-accent);
+            padding: 0;
+            color: var(--devo-error);
 
             &::before {
                 content: '// ';
             }
         }
+    }
 
-        @include below($bp-stack) {
-            > div.container {
-                grid-template-columns: 1fr;
-                grid-template-areas:
-                    'header'
-                    'copy'
-                    'form';
-                row-gap: 0;
-            }
+    &.form-field--checkbox,
+    &.form-field--binary {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+    }
 
-            div.panel-copy-wrapper {
-                margin-bottom: 40px;
-            }
+    &.form-field--button {
+        margin-top: 2px;
+
+        > button {
+            @include accent-button(48px, 26px, 12px, 0.1em);
+            width: 100%;
+        }
+    }
+}
+
+// Form panel -------------------------------------------------------------
+section.panel-type-form {
+    > div.container {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+            'header form'
+            'copy   form';
+        column-gap: 64px;
+        align-items: start;
+    }
+
+    header.panel-header {
+        grid-area: header;
+        margin-bottom: 24px;
+        text-align: left;
+    }
+
+    div.panel-copy-wrapper {
+        grid-area: copy;
+        max-width: 44ch;
+        margin-bottom: 0;
+    }
+
+    div.panel-form-wrapper {
+        grid-area: form;
+        padding: 0; // the form element carries the frame and its padding
+    }
+
+    form.form {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        padding: 36px;
+        border: 1px solid var(--devo-border);
+        background: var(--devo-surface);
+    }
+
+    // RenderForm swaps the whole form for the thank-you message; keep it in
+    // the form's own frame so the panel does not collapse on submit.
+    div.panel-form-wrapper > span {
+        @include mono(12px, 400, 0.04em, 1.6);
+        display: block;
+        padding: 36px;
+        border: 1px solid var(--devo-border);
+        background: var(--devo-surface);
+        color: var(--devo-accent);
+
+        &::before {
+            content: '// ';
+        }
+    }
+
+    @include below($bp-stack) {
+        > div.container {
+            grid-template-columns: 1fr;
+            grid-template-areas:
+                'header'
+                'copy'
+                'form';
+            row-gap: 0;
         }
 
-        @include below($bp-tight) {
-            form.form,
-            div.panel-form-wrapper > span {
-                padding: 24px;
-            }
+        div.panel-copy-wrapper {
+            margin-bottom: 40px;
+        }
+    }
+
+    @include below($bp-tight) {
+        form.form,
+        div.panel-form-wrapper > span {
+            padding: 24px;
         }
     }
 }

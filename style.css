@@ -1,7 +1,42 @@
 /*
-Theme Name: { DevelopersOnly }
-Author: loren@lateraltranslucence.com
+Theme Name: DevelopersOnly
+Theme URI: https://developersonly.work
+Author: Loren Rice
 Author URI: https://developersonly.work
+Description: A hybrid-headless WordPress theme. PHP handles the CMS and a custom REST API; a React/TypeScript SPA built with Vite consumes that API and renders every front-end page. Ships a panel-based landing page builder, a no-ACF custom field system, and a drop-in extensions layer for adding post types, panels, templates and theming without editing core theme files.
+Version: 1.0.0
+Requires at least: 6.4
+Tested up to: 6.7
+Requires PHP: 8.0
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: developers_only
+Tags: custom-menu, featured-images, translation-ready, theme-options, full-width-template, block-styles
 
+This theme, like WordPress, is licensed under the GPL.
+Use it to make something cool, have fun, and share what you've learned.
+
+DevelopersOnly bundles the following third-party software:
+
+  jQuery UI v1.12.1 (public/js/libs/timepicker/jquery-ui.css)
+  Copyright jQuery Foundation and other contributors
+  Licensed under the MIT license
+  https://jqueryui.com
+
+  jQuery Timepicker Addon v1.6.3 (public/js/libs/timepicker/)
+  Copyright (c) 2016 Trent Richardson
+  Licensed under the MIT license
+  http://trentrichardson.com/examples/timepicker
+
+  List.js v1.5.0 (public/js/libs/list.js)
+  Copyright (c) Jonny Strömberg
+  Licensed under the MIT license
+  https://listjs.com
+
+Fonts bundled with the extensions layer (extensions/app/styles/fonts/) are
+licensed under the SIL Open Font License v1.1:
+
+  Instrument Serif  - https://fonts.google.com/specimen/Instrument+Serif
+  Hanken Grotesk    - https://fonts.google.com/specimen/Hanken+Grotesk
+  JetBrains Mono    - https://fonts.google.com/specimen/JetBrains+Mono
 */

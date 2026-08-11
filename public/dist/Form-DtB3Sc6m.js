@@ -1,2 +1,0 @@
-import"./rolldown-runtime-CNC7AqOf.js";import{S as e,f as t}from"./helpers-mlWE4EZK.js";import{t as n}from"./RenderForm-3uQRcWC2.js";e();var r=t(),i=({post:e,panelID:t=``,panelPrefix:i=``,panelSuffix:a=``})=>{let o=Number(e.fields[i+`_form`+a])||0;return(0,r.jsx)(`div`,{className:`panel-form-wrapper`,children:o?(0,r.jsx)(n,{formID:o,panelID:t}):null})};export{i as default};
-//# sourceMappingURL=Form-DtB3Sc6m.js.map

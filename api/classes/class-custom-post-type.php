@@ -512,22 +512,40 @@ abstract class DO_Custom_Post_Type {
 
         // Capitilize the words and make it plural
         $plural = devo_pluralize( $this->post_type_display_name );
-        // Set the default labels based on the post type name and plural
+        // Set the default labels based on the post type name and plural.
+        //
+        // The post type's own display name is site-specific data, not a fixed
+        // theme string, so it is never wrapped in __() - a variable can't be
+        // extracted into the POT and translating one does nothing at runtime.
+        // Labels that surround it with English words use a sprintf() template
+        // instead, so the translatable part is a real literal.
         $labels = [
-            'name' => __( $plural, 'astraea' ), // general name for the post type, usually plural. The same as, and overridden by $post_type_object->label
-            'singular_name' => __( $this->post_type_display_name, 'astraea' ), // name for one object of this post type. Defaults to value of 'name'.
-            'menu_name' => __( $plural, 'astraea' ), // the menu name text. This string is the name to give menu items. Defaults to value of 'name'.
+            // general name for the post type, usually plural. The same as, and overridden by $post_type_object->label
+            'name' => $plural,
+            // name for one object of this post type. Defaults to value of 'name'.
+            'singular_name' => $this->post_type_display_name,
+            // the menu name text. This string is the name to give menu items. Defaults to value of 'name'.
+            'menu_name' => $plural,
             //'name_admin_bar' => // name given for the "Add New" dropdown on admin bar. Defaults to 'singular_name' if it exists, 'name' otherwise.
-            'all_items' => __( $plural, 'astraea' ), // the all items text used in the menu. Default is the value of 'name'.
-            //'add_new' => 'Add New', // the add new text. The default is "Add New" for both hierarchical and non-hierarchical post types. When internationalizing this string, please use a gettext context matching your post type. Example: _x('Add New', 'product');
-            'add_new_item' => 'Add New ' . __( $this->post_type_display_name, 'astraea' ), // the add new item text. Default is Add New Post/Add New Page
-            'edit_item' => 'Edit ' . __( $this->post_type_display_name, 'astraea' ), // the edit item text. In the UI, this label is used as the main header on the post's editing panel. Default is "Edit Post" for non-hierarchical and "Edit Page" for hierarchical post types.
-            'new_item' => 'New ' . __( $this->post_type_display_name, 'astraea' ), // the new item text. Default is "New Post" for non-hierarchical and "New Page" for hierarchical post types.
-            'view_item' => 'View ' . __( $this->post_type_display_name, 'astraea' ), // the view item text. Default is View Post/View Page
-            'search_items' => 'Search ' . __( $plural, 'astraea' ), // the search items text. Default is Search Posts/Search Pages
-            'not_found' => 'No ' . __( strtolower( $plural ), 'astraea' ) . ' found', // the not found text. Default is No posts found/No pages found
-            'not_found_in_trash' => 'No ' . __( strtolower( $plural ), 'astraea' ) . ' found in Trash', // the not found in trash text. Default is No posts found in Trash/No pages found in Trash.
-            'parent_item_colon' => 'Parent' . __( strtolower( $this->post_type_display_name ), 'astraea' ), // the parent text. This string is used only in hierarchical post types. Default is "Parent Page".
+            // the all items text used in the menu. Default is the value of 'name'.
+            'all_items' => $plural,
+            //'add_new' => 'Add New', // the add new text. The default is "Add New" for both hierarchical and non-hierarchical post types.
+            /* translators: %s: singular post type name, e.g. "Case Study". */
+            'add_new_item' => sprintf( __( 'Add New %s', 'developers_only' ), $this->post_type_display_name ),
+            /* translators: %s: singular post type name, e.g. "Case Study". */
+            'edit_item' => sprintf( __( 'Edit %s', 'developers_only' ), $this->post_type_display_name ),
+            /* translators: %s: singular post type name, e.g. "Case Study". */
+            'new_item' => sprintf( __( 'New %s', 'developers_only' ), $this->post_type_display_name ),
+            /* translators: %s: singular post type name, e.g. "Case Study". */
+            'view_item' => sprintf( __( 'View %s', 'developers_only' ), $this->post_type_display_name ),
+            /* translators: %s: plural post type name, e.g. "Case Studies". */
+            'search_items' => sprintf( __( 'Search %s', 'developers_only' ), $plural ),
+            /* translators: %s: lowercase plural post type name, e.g. "case studies". */
+            'not_found' => sprintf( __( 'No %s found', 'developers_only' ), strtolower( $plural ) ),
+            /* translators: %s: lowercase plural post type name, e.g. "case studies". */
+            'not_found_in_trash' => sprintf( __( 'No %s found in Trash', 'developers_only' ), strtolower( $plural ) ),
+            /* translators: %s: lowercase singular post type name, e.g. "case study". */
+            'parent_item_colon' => sprintf( __( 'Parent %s', 'developers_only' ), strtolower( $this->post_type_display_name ) ),
         ];
         if ( isset( $this->post_type_args['labels'] ) ) {
             $labels = array_merge( $labels, $this->post_type_args['labels'] );
@@ -650,7 +668,8 @@ abstract class DO_Custom_Post_Type {
                 $delete_button = $dynamic_interface_type == 'array' && ! $is_default_meta_box;
                 ?>
                 <?php if ( $delete_button ) : ?>
-                    <span class="dynamic-delete-button button"><?php _e( 'Delete', 'astraea' ) ?> <?php echo $dynamic_meta_box_name ?></span>
+                    <?php /* translators: %s: name of the repeatable meta box, e.g. "Panel". */ ?>
+                    <span class="dynamic-delete-button button"><?php printf( __( 'Delete %s', 'developers_only' ), $dynamic_meta_box_name ) ?></span>
                 <?php endif; ?>
                 <?php if ( $box_id == current( array_keys( $this->meta_fields ) ) ) : ?>
                     <input type="hidden" name="meta_box_title" value="<?php echo $box_title ?>">
@@ -703,12 +722,14 @@ abstract class DO_Custom_Post_Type {
                         <div class="<?php echo $meta_field_key ?> <?php echo sanitize_title_with_dashes( $label ) ?>-label <?php echo is_string( $type ) ? ' ' . $type . '-type' : '' ?><?php echo $count_characters ? ' count-characters' : '' ?>"<?php echo $count_characters ? ' data-character-limit="' . $count_characters . '"' : '' ?>>
                             <div class="post-meta-label">
                                 <?php if ( $title_is_label ): ?><label for="<?php echo $meta_field_key ?>"><?php endif; ?>
-                                    <?php echo __( trim( preg_replace( '/<(.*?)>/', '', $label ) ), 'astraea' ) ?>:
+                                    <?php // Field labels come from each post type's meta_fields() config, not from
+                                    // a fixed string table, so there is nothing for gettext to extract here.
+                                    echo trim( preg_replace( '/<(.*?)>/', '', $label ) ) ?>:
                                 <?php if ( $title_is_label ): ?></label><?php endif; ?>
                             </div>
                             <div class="post-meta-content">
                                 <?php if ( isset( $this->notes[ $label ] ) ) : ?>
-                                    <span class="red small"><?php _e( $this->notes[ $label ], 'astraea' ) ?></span>
+                                    <span class="red small"><?php echo $this->notes[ $label ] ?></span>
                                 <?php endif;
 
                                 // Character Count Info
@@ -749,7 +770,8 @@ abstract class DO_Custom_Post_Type {
                     <div class="add-panel">
                         <span>
                             <input id="dynamic-add-number" type="number" min="1" step="1" value="1">
-                            <span id="dynamic-add-button" class="button"><?php _e( 'Add ' . $dynamic_meta_box_name, 'astraea' ) ?></span>
+                            <?php /* translators: %s: name of the repeatable meta box, e.g. "Panel". */ ?>
+                            <span id="dynamic-add-button" class="button"><?php printf( __( 'Add %s', 'developers_only' ), $dynamic_meta_box_name ) ?></span>
                             <span id="dynamic-add-field">
                                 <?php 
                                 $count_field_key = devo_meta_field_key( $dynamic_meta_box_name . ' Count', $this->meta_prefix );
@@ -1033,17 +1055,17 @@ abstract class DO_Custom_Post_Type {
         foreach ( $this->admin_fields as $admin_field_title ) {
             // Some default WordPress fields
             if ( 'title' == strtolower( $admin_field_title ) ) {
-                $new_columns['title'] = _x( 'Title', 'column name' );
+                $new_columns['title'] = _x( 'Title', 'column name', 'developers_only' );
             } elseif ( 'post_date' == strtolower( $admin_field_title ) ) {
-                $new_columns['date'] = _x( 'Date', 'column name' );
+                $new_columns['date'] = _x( 'Date', 'column name', 'developers_only' );
             } elseif ( 'author' == strtolower( $admin_field_title ) ) {
-                $new_columns['author'] = _x( 'Author', 'column name' );
+                $new_columns['author'] = _x( 'Author', 'column name', 'developers_only' );
             } elseif ( 'comments' == strtolower( $admin_field_title ) ) {
-                $new_columns['comments'] = '<span><span class="vers comment-grey-bubble" title="Comments"><span class="screenReader">' . _x( 'Comments', 'column name' ) . '</span></span></span>';
+                $new_columns['comments'] = '<span><span class="vers comment-grey-bubble" title="Comments"><span class="screenReader">' . _x( 'Comments', 'column name', 'developers_only' ) . '</span></span></span>';
             }
             // A tool bar (probably because we aren't showing the title)
             elseif ( 'tools' == strtolower( $admin_field_title ) ) {
-                $new_columns['tools'] = _x( 'Tools', 'column name' );
+                $new_columns['tools'] = _x( 'Tools', 'column name', 'developers_only' );
             }
             // A meta field
             else {

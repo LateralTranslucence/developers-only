@@ -1,10 +1,5 @@
 // Font mixin
-@mixin font($type, $important: false) {
-    $important-suffix: '';
-
-    @if $important {
-        $important-suffix: ' !important';
-    }
+@mixin font($type) {
 
     @if $type == icon {
         font-family: 'FontAwesomeSolid';
@@ -13,15 +8,15 @@
         font-family: 'FontAwesomeBrands';
     }
     @if $type == regular {
-        font-family: sans-serif#{$important-suffix};
+        font-family: sans-serif;
         font-weight: 400;
     }
     @if $type == bold {
-        font-family: sans-serif#{$important-suffix};
+        font-family: sans-serif;
         font-weight: 700;
     }
     @if $type == medium {
-        font-family: sans-serif#{$important-suffix};
+        font-family: sans-serif;
         font-weight: 500;
     }
 }

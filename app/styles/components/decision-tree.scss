@@ -36,8 +36,8 @@ section.panel-type-decision-tree {
                                 align-items: center;
                                 figure.image {
                                     margin: 0 0.75em 0 ;
-                                    width: 35px !important; // override inline style
-                                    height: 35px !important; // override inline style
+                                    width: 2rem;
+                                    height: 2rem;
                                 }
                             }
                         }
@@ -132,7 +132,7 @@ section.panel-type-decision-tree {
             width: 100%;
             li.decision-tree__card, li.decision-tree__card--open {
                 width: 100%;
-                margin-right: 0 !important;
+                margin-right: 0;
             }
             &.decision-tree--1-open {
                 margin-left: 0;

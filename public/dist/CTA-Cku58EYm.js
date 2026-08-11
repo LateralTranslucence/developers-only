@@ -1,2 +1,0 @@
-import"./rolldown-runtime-CNC7AqOf.js";import{S as e,d as t,f as n}from"./helpers-mlWE4EZK.js";e();var r=n(),i=({post:e,panelPrefix:n=``,panelSuffix:i=``})=>{let a=e.fields[n+`_cta`+i]??{},o=[];return o.push({url:a.url?a.url:``,text:a.text?a.text:``,modal:a.modal?a.modal:!1,modal_class:a.modal_class?a.modal_class:``,button_style:a.button_style?a.button_style:``,classes:[]}),(0,r.jsx)(r.Fragment,{children:o?(0,r.jsx)(t,{ctas:o}):null})};export{i as default};
-//# sourceMappingURL=CTA-Cku58EYm.js.map

@@ -21,6 +21,19 @@
     transform: translate(-50%, -50%);
 }
 
+// Undoes .screenReader (see base/_misc-text.scss), returning visually-hidden
+// content to normal flow. Use this rather than re-deriving the reset when a
+// design promotes screen-reader-only text into something visible - a gallery
+// caption, a revealed skip link - so the two stay in step.
+@mixin screenReaderReset() {
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+}
+
 @mixin underline($color) {
     text-decoration: none;
     position: relative;

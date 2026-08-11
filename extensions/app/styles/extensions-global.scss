@@ -5,16 +5,26 @@
 // backgrounds, no shadows - so everything visual lives here and core files stay
 // untouched.
 //
-// -- Why every component rule is nested under #root -------------------------
+// -- Why plain selectors are enough here ------------------------------------
 //
-// extensions-global.css is enqueued after devo-global.css, but the per-component
-// stylesheets (accordion.css, blocks.css, …) are code-split by Vite and injected
-// into <head> at runtime when their component chunk loads, so they land *after*
-// this file and win every specificity tie. Scoping this layer to #root (the
-// element the React app mounts into, so an ancestor of everything it renders)
-// adds one id to each selector, which beats any class-only framework rule
-// regardless of source order. Rules that must sit outside the app root - :root
-// tokens, @font-face, html/body, keyframes - live in abstracts/ and base/.
+// This layer used to prefix every rule with #root to buy an id's worth of
+// specificity. It needed to: the per-component stylesheets (accordion.css,
+// blocks.css, …) are code-split by Vite and injected into <head> at runtime when
+// their chunk loads, so they land *after* this file and used to win every
+// specificity tie on source order alone.
+//
+// The framework is now compiled into `@layer framework` (see
+// build/postcss-layer-framework.cjs) and this layer is deliberately left
+// unlayered. Unlayered CSS outranks every cascade layer, so these rules win no
+// matter how specific the framework's are or when its stylesheets arrive - write
+// ordinary selectors and they will apply.
+//
+// Two things to know:
+//   - Do not wrap this layer in an @layer of its own; being unlayered is the
+//     mechanism.
+//   - !important inverts layer order, so a framework rule marked !important
+//     still beats an unlayered !important here. The framework avoids it for
+//     anything a theme is expected to override.
 
 @charset 'utf-8';
 
@@ -43,7 +53,3 @@
 @use 'components/tabs';
 @use 'components/text';
 @use 'components/footer';
-
-// Demo chrome: the "01 · panel-type-accordion" eyebrows that let a developer map
-// the page back to a template file. Remove this line to drop them.
-@use 'components/demo-annotations';
