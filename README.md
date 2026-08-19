@@ -39,6 +39,6 @@ developers-only/
 
 ## How it fits together
 
-`functions.php` reads the Vite manifest at `public/dist/.vite/manifest.json` and enqueues the compiled bundle. `header.php` renders a `<div id="root">` and injects PHP globals (`window.devoEnv`, `window.homeURL`, `window.relativeHomeURL`, `window.devoLogo`). React mounts into `#root` and takes over routing.
+`functions.php` reads the Vite manifest at `public/dist/.vite/manifest.json` and enqueues the compiled bundle. `header.php` opens the document and injects PHP globals (`window.devoEnv`, `window.homeURL`, `window.relativeHomeURL`, `window.devoCookieConsentText`); `index.php` renders the `<div id="root">`. React mounts into `#root` and takes over routing.
 
 See `CLAUDE.md` for a deeper architecture walkthrough (panel system, custom post types, REST routes, field helpers).

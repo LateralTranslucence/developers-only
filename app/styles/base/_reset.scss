@@ -1,13 +1,9 @@
+// Reset only: box model and the user agent's default margins/padding.
+//
+// Anything past that - type scale, vertical rhythm, colour - is a theming
+// decision and belongs in the extensions layer.
 *, *::before, *::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    letter-spacing: normal;
-}
-address, dl, fieldset, figure, ol, p, pre, ul, menu {
-    margin: 0;
-    padding: 0;
-}
-* + address, * + dl, * + fieldset, * + figure, * + ol, * + p, * + pre, * + ul, * + menu {
-    margin-top: 0;
 }

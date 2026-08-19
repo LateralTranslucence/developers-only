@@ -1,16 +1,9 @@
 @use '../abstracts' as *;
 
 section.panel-type-featured-media {
-    header.panel-header {
-        text-align: center;
-    }
-    figure.image, figure.video {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    span.svg-wrapper {
-        &.svg-fullwidth {
-            max-width: 100%;
-        }
+    // Modifier the SVG renderer emits to opt an asset out of the default
+    // constrained width.
+    span.svg-wrapper.svg-fullwidth {
+        max-width: 100%;
     }
 }

@@ -1,5 +1,5 @@
 import React, { JSX } from 'react';
-import { evenOdd, getBackgroundField, getBooleanField, getStringField, panelClasses as getPanelClasses, parse, sanitizeTitleWithDashes } from '@/utils/helpers';
+import { evenOdd, getBackgroundField, getBackgroundStyle, getBooleanField, getStringField, panelClasses as getPanelClasses, parse, sanitizeTitleWithDashes } from '@/utils/helpers';
 import PanelLoader from '@/loaders/PanelLoader';
 import PanelWrapper from '@/components/layout/PanelWrapper';
 import Modal from '@/components/shared/Modal';
@@ -82,12 +82,13 @@ const Panel: React.FC<PanelProps> = ( {
             );
         } else {
             return (
-                <PanelWrapper 
-                    panelID={ panelID } 
-                    panelType={ panelType } 
-                    classes={ panelClasses } 
-                    heading={ headingSettings } 
-                    copy={ panelCopy } 
+                <PanelWrapper
+                    panelID={ panelID }
+                    panelType={ panelType }
+                    classes={ panelClasses }
+                    heading={ headingSettings }
+                    copy={ panelCopy }
+                    background={ { style: getBackgroundStyle( panelBackgroundSettings ) } }
                     featuredSettings={ featuredPanelBackgroundImage } >
                         <PanelLoader { ...panelParams } />
                 </PanelWrapper>

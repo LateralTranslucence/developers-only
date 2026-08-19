@@ -30,7 +30,6 @@ const Attachment: React.FC<TemplateProps> = ( {
             title: post.post_title,
             publishDate: post.post_date.formatted,
             customHTML: post.post_content,
-            shareBar: true,
         };
 
         return (

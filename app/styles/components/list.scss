@@ -1,18 +1,9 @@
 // NOTE: some styles for list are included in components/blocks to avoid repitition
 @use '../abstracts' as *;
 
+// List view lays items out one per row rather than on the blocks grid.
 ul.blocks.blocks--list {
-    justify-content: center;
     > li {
         width: 100%;
-        div.blocks__content {
-            padding: 2em 2em 2em 3.5em;
-        }
-        h3 {
-            @include font(roman);
-            font-size: 1.5em;
-            line-height: 1.257em;
-            margin-bottom: 0;
-        }
     }
 }

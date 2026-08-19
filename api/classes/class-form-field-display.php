@@ -183,27 +183,8 @@ class DO_Form_Field_Display {
         include( locate_template( 'api/fields/colors.php' ) );
         $background_options = [
             'fields' => [
-                'Color' => [
-                    'type' => 'select',
-                    'options' => $colors,
-                ],
-                'Effect' => [
-                    'type' => 'select',
-                    'options' => [
-                        'solid-color' => [
-                            'label' => 'Solid Color',
-                            'value' => 'solid-color',
-                        ],
-                        'color-gradient' => [
-                            'label' => 'Color Gradient',
-                            'value' => 'color-gradient',
-                        ],
-                        'vertical-halftone-top' => [
-                            'label' => 'Vertical Halftone - Top',
-                            'value' => 'vertical-halftone-top',
-                        ]
-                    ],
-                ],
+                'Color' => 'color',
+                'Media' => 'media',
             ],
         ];
         $background_field = new DO_Form_Field_Display( 'multi', $this->field_key, $background_options, array_merge( $this->settings, [ 'show_field_key' => FALSE ] ) );
@@ -348,15 +329,34 @@ class DO_Form_Field_Display {
         return $this->textarea();
     }
     
+    /* Colour picker.
+     *
+     * No data-default-color on purpose. wpColorPicker merges the element's data
+     * attributes over its options ($.extend( self.options, el.data() )), and it
+     * decides the button from that value: a truthy defaultColor renders
+     * "Default", which resets the field to that colour, while the default of
+     * FALSE renders "Clear", which empties the field.
+     *
+     * An empty value is what lets a colour be genuinely unset - the background
+     * helpers only apply a colour when one is present, so clearing it leaves the
+     * element transparent. Naming a default here would make "no colour"
+     * unreachable through the UI.
+     *
+     * Note the picker cannot express transparency itself: WordPress ships Iris,
+     * which has no alpha channel. Semi-transparent backgrounds have to come from
+     * the theming layer.
+     *
+     * A default can still be set per field via the field's settings. */
     private function color() {
-        $output = '<input 
-                        type="text" id="' . $this->field_id . '" 
-                        name="' . $this->field_name . '" 
-                        value="' . esc_attr( $this->value ) . '"' . 
-                        ( $this->label ? 'placeholder="' . $this->label . '"' : '' ) . ' 
-                        class="devo-color' . ( $this->disabled ? ' devo-disabled' : '' ) . '"' . 
-                        ( $this->disabled ? ' disabled="disabled"' : '' ) . ' 
-                        data-default-color="#effeff">';
+        $default_color = isset( $this->field_options['default_color'] ) ? $this->field_options['default_color'] : '';
+        $output = '<input
+                        type="text" id="' . $this->field_id . '"
+                        name="' . $this->field_name . '"
+                        value="' . esc_attr( $this->value ) . '"' .
+                        ( $this->label ? 'placeholder="' . esc_attr( $this->label ) . '"' : '' ) . '
+                        class="devo-color' . ( $this->disabled ? ' devo-disabled' : '' ) . '"' .
+                        ( $this->disabled ? ' disabled="disabled"' : '' ) .
+                        ( strlen( $default_color ) ? ' data-default-color="' . esc_attr( $default_color ) . '"' : '' ) . '>';
         $output .= '<div class="picker" id="' . $this->field_id . '-picker"></div>';
 
         return $output;

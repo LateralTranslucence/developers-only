@@ -1,0 +1,88 @@
+@use '../abstracts' as *;
+
+// Tables.
+//
+// The documentation's reference tables (documentation.wxr.xml) come wrapped in
+// .tablewrap, with a .tight variant for dense two-column lookups.
+//
+// Rules do the work rather than fills: a zebra stripe on every other row fights
+// the inline <code> wash, so rows are separated by hairlines and the header is
+// the only banded element.
+
+div.tablewrap {
+    margin: 28px 0;
+    // The wrapper - not the page - scrolls when a table outgrows its column.
+    overflow-x: auto;
+    border: 1px solid var(--devo-border);
+    border-radius: var(--devo-radius);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    // Stops a long code string in one cell from crushing the others.
+    table-layout: auto;
+}
+
+thead {
+    background: var(--devo-surface);
+
+    th {
+        @include mono-label(10px, 500, 0.14em);
+        padding: 12px 16px;
+        text-align: left;
+        white-space: nowrap;
+        color: var(--devo-text-dim);
+        border-bottom: 1px solid var(--devo-border-strong);
+    }
+}
+
+tbody {
+    tr + tr td {
+        border-top: 1px solid var(--devo-rule);
+    }
+
+    td {
+        @include body-copy(14px, 1.5, 300);
+        padding: 12px 16px;
+        vertical-align: top;
+        color: var(--devo-text-muted);
+
+        // First column is the thing being described, so it leads.
+        &:first-child {
+            color: var(--devo-text);
+            white-space: nowrap;
+        }
+
+        b, strong {
+            color: var(--devo-text-strong);
+            font-weight: 500;
+        }
+    }
+}
+
+// Dense variant: narrower rows for short lookup tables.
+div.tablewrap.tight {
+    tbody td {
+        padding: 8px 16px;
+    }
+}
+
+// Definition lists are used the same way tables are - term, then explanation.
+dl.defs {
+    margin: 24px 0;
+
+    dt {
+        @include mono-label(11px, 500, 0.1em);
+        margin-top: 20px;
+        color: var(--devo-accent);
+    }
+
+    dd {
+        @include body-copy(15px, 1.6, 300);
+        margin: 6px 0 0;
+        padding-left: 18px;
+        border-left: 1px solid var(--devo-rule);
+        color: var(--devo-text-muted);
+    }
+}

@@ -7,21 +7,17 @@ dialog.modal {
     max-width: 98%;
     max-height: 98%;
 
+    // <dialog> defaults to display: none until opened.
     &[open] {
         display: flex;
     }
 
-    &.video,
-    &.image {
+    &.video, &.image {
         max-width: min(90vw, 1200px);
     }
-    &.image {
-        padding: 0;
-    }
 
-    // Only exists for dialogs opened via showModal(). Theme-aware via the
-    // custom property where supported, with a static fallback for browsers
-    // that don't inherit custom properties into ::backdrop.
+    // Only rendered for dialogs opened via showModal(). Kept neutral: the
+    // theming layer restyles it.
     &::backdrop {
         background: rgba( 0, 0, 0, 0.6 );
     }
@@ -29,18 +25,20 @@ dialog.modal {
 
 div.modal__inner {
     width: 100%;
+    // Keeps long content scrolling inside the dialog rather than off-screen.
     max-height: 85vh;
-    padding: 3em;
     overflow-y: auto;
     position: relative;
 
+    // Media fills the dialog edge to edge.
     dialog.modal.video &,
     dialog.modal.image & {
-        padding: 0;
         overflow: visible;
     }
 }
 
+// The close affordance is drawn rather than set in a glyph, so it inherits
+// whatever colour the theming layer gives the dialog.
 button.modal__close {
     position: absolute;
     top: 1em;
@@ -50,8 +48,7 @@ button.modal__close {
     cursor: pointer;
     z-index: 1;
 
-    &::before,
-    &::after {
+    &::before, &::after {
         content: '';
         position: absolute;
         top: 50%;
@@ -68,11 +65,8 @@ button.modal__close {
     }
 }
 
-header.modal__header {
-    margin-bottom: 1em;
-}
-
 div.modal__content {
+    // 16:9 ratio box with the iframe filling it.
     figure.video {
         position: relative;
         width: 100%;

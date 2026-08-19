@@ -10,6 +10,7 @@ export { default as evenOdd } from '@/utils/helpers/evenOdd';
 export { default as formatAddress } from '@/utils/helpers/formatAddress';
 export { default as getArrayField } from '@/utils/helpers/getArrayField';
 export { default as getBackgroundField } from '@/utils/helpers/getBackgroundField';
+export { default as getBackgroundStyle } from '@/utils/helpers/getBackgroundStyle';
 export { default as getBooleanField } from '@/utils/helpers/getBooleanField';
 export { default as getMediaField } from '@/utils/helpers/getMediaField';
 export { default as getNumberField } from '@/utils/helpers/getNumberField';

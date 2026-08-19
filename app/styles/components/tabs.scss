@@ -2,57 +2,41 @@
 
 div.tabs__nav-wrapper {
     position: relative;
-    margin-bottom: 3em;
 
     ul.tabs__nav {
         width: fit-content;
         display: flex;
         flex-wrap: wrap;
         justify-content: flex-start;
-        margin: 0;
 
         li.tabs__nav-item {
-            margin: -1px;
-            padding: 0;
             list-style: none;
         }
 
+        // Strips UA button chrome; the selected tab is not re-selectable.
         button.tabs__tab {
-            @include font(medium);
             position: relative;
-            font-size: 0.875em;
-            text-transform: uppercase;
-            padding: 0 1.75em;
-            line-height: 2.5em;
             background: transparent;
             border: none;
 
             &:hover {
                 cursor: pointer;
             }
-
-            &[aria-selected="true"] {
-                &:hover {
-                    cursor: default;
-                }
+            &[aria-selected="true"]:hover {
+                cursor: default;
             }
         }
 
+        // Below the breakpoint the rail collapses into a dropdown.
         @include max-900 {
             @include select_list();
         }
     }
-
-    .select-list-toggle {
-        margin-bottom: 2em;
-    }
 }
 
 div.tabs__content {
-    text-align: left;
-    margin: 1.5em 0 0 0;
-
     div.tabs__panel {
+        // Panels are toggled with the hidden attribute.
         &:not([hidden]) {
             display: grid;
         }
@@ -72,39 +56,29 @@ div.tabs__content {
             grid-area: media;
             width: 100%;
             max-width: 100%;
-            margin-bottom: 0;
         }
         div.tabs__copy {
             grid-area: copy;
         }
         ul.tabs__list {
             grid-area: list;
-            margin-left: 0;
 
             > li {
-                margin-left: 0;
-                padding-left: 2em;
                 list-style: none;
                 position: relative;
 
+                // Tick marker.
                 &::before {
                     content: '\f00c';
                     @include font(icon);
                     display: block;
-                    width: 1.5em;
-                    height: 1.5em;
                     position: absolute;
                     left: 0;
-                    font-size: 0.75em;
-                    font-weight: bold;
-                    line-height: 1.6em;
-                    text-align: center;
                 }
             }
         }
         > p.panel-ctas {
             grid-area: cta;
-            margin-top: 1em;
         }
     }
 
@@ -117,14 +91,6 @@ div.tabs__content {
                 "copy"
                 "list"
                 "cta";
-
-            figure.image {
-                margin-bottom: 2em;
-
-                figure.image {
-                    padding-top: 56.25%;
-                }
-            }
         }
     }
 }

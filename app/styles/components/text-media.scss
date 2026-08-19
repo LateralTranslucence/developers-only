@@ -1,7 +1,9 @@
 @use '../abstracts' as *;
 
+// Text beside media. The media column swaps sides via .alignment-left or the
+// even step of .alignment-alternate, and both variants collapse to a single
+// column on narrow screens.
 section.panel-type-text-media {
-    text-align: left;
     div.container {
         display: grid;
         grid-template-columns: 47.5% 47.5%;
@@ -13,21 +15,16 @@ section.panel-type-text-media {
             "cta    media";
         column-gap: 5%;
         justify-content: stretch;
+
         header.panel-header {
             grid-area: header;
-            margin-bottom: 1em;
-            text-align: left;
         }
         div.panel-copy-wrapper {
             grid-area: copy;
-            width: auto;
-            max-width: none;
-            margin-bottom: 0;
-            margin-left: 0;
-            text-align: left;
         }
         p.panel-ctas {
             grid-area: cta;
+
             @include max-1024 {
                 display: flex;
                 flex-direction: column;
@@ -36,6 +33,7 @@ section.panel-type-text-media {
         figure.image, figure.video {
             grid-area: media;
         }
+
         @include max-900 {
             grid-template-areas:
                 "header header"
@@ -50,11 +48,9 @@ section.panel-type-text-media {
                 "header"
                 "copy"
                 "cta";
-            figure.image, figure.video {
-                margin: 0 0 5% 0;
-            }
         }
     }
+
     &.alignment-alternate.even, &.alignment-left {
         div.container {
             grid-template-areas:
@@ -62,11 +58,7 @@ section.panel-type-text-media {
                 "media copy"
                 "media cta"
                 "media cta";
-            p.panel-ctas {
-                @include max-1024 {
-                    flex-direction: column;
-                }
-            }
+
             @include max-900 {
                 grid-template-areas:
                     "header header"
@@ -81,9 +73,6 @@ section.panel-type-text-media {
                     "header"
                     "copy"
                     "cta";
-                figure.image, figure.video {
-                    margin: 0 0 5% 0;
-                }
             }
         }
     }

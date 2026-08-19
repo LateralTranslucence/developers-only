@@ -4,34 +4,32 @@
 ul.select-list, menu.select-list {
     @include select_list();
 }
+
 span.select-list-toggle {
     display: block;
     cursor: pointer;
     width: 100%;
-    height: auto;
-    padding: 0.6em 1.5em 0.5em 0.75em;
     overflow: hidden;
     position: relative;
 
+    // Caret, flipped when the list is open.
     &::after {
         content: '\f0d7';
         @include font(icon);
-        font-size: 1em;
-        text-align: center;
-        line-height: 22px;
-        position: absolute;
         display: block;
-        width: 15px;
-        top: calc(50% - 12px);
-        right: 10px;
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
     }
-    &.open {
-        &::after {
-            content: '\f0d8';
-        }
+    &.open::after {
+        content: '\f0d8';
     }
+
+    // Rendered only at the width where the list collapses behind a toggle.
     &.mobile-toggle {
         display: none;
+
         @include max-900 {
             display: block;
         }

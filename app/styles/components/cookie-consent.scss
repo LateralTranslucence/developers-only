@@ -1,12 +1,11 @@
 @use '../abstracts' as *;
 
+// Fixed banner pinned to the bottom of the viewport until consent is given.
 aside.cookie-consent {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 2em;
     width: 100%;
-    padding: 1em 2em;
     position: fixed;
     bottom: 0;
     left: 0;
@@ -14,28 +13,24 @@ aside.cookie-consent {
 
     @include max-600 {
         flex-direction: column;
-        gap: 0.5em;
-        text-align: center;
     }
 }
 
 div.cookie-consent__copy {
     flex: 1;
-    font-size: 0.875em;
 }
 
 p.cookie-consent__actions {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 1em;
-    margin: 0;
+    // Keeps accept/decline side by side rather than wrapping mid-pair.
     white-space: nowrap;
 
     button {
         border: none;
-        font-size: 1em;
         cursor: pointer;
+
         &:focus-visible {
             outline: 2px solid currentColor;
             outline-offset: 2px;

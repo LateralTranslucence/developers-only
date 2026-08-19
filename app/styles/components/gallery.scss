@@ -1,23 +1,19 @@
 @use '../abstracts' as *;
 
 section.panel-type-gallery {
-    header.panel-header {
-        text-align: center;
+    ul.panel-gallery.blocks--logos > li {
+        align-items: center;
     }
-    ul.panel-gallery.blocks--logos {
-        margin: 4em 0 0 0;
-        > li {
-            padding: 0;
-            align-items: center;
-        }
-    }
+
+    // Strips the UA button chrome so the trigger renders as a plain tile, and
+    // keeps a visible focus ring since the tile carries no other affordance.
     button.panel-gallery__trigger {
         display: block;
         width: 100%;
-        padding: 0;
         border: none;
         background: transparent;
         cursor: pointer;
+
         &:focus-visible {
             outline: 2px solid currentColor;
             outline-offset: 2px;

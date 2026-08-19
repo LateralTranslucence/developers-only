@@ -38,13 +38,30 @@ class DO_Form_Field_API_Display {
         return $data;
     }
 
-    // private function background( $force_value = FALSE ) {
-    //     $value = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
-    //     return [
-    //         'Color' => $this->select( isset( $value->image ) ? $value->image : '' ),
-    //         'video' => $this->media( isset( $value->video ) ? $value->video : '' ),
-    //     ];
-    // }
+    /* Background: a colour and an optional media file.
+     *
+     * Stored by the admin field as a `multi` with Color and Media sub-fields, so
+     * the raw meta is { color: '#rrggbb', media: '<url>' }. Without this method
+     * the value fell through to the constructor's generic branch and the media
+     * arrived as a bare URL string, which the front end cannot size or type. */
+    private function background( $force_value = FALSE ) {
+        $value = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+        $color = isset( $value->color ) && is_string( $value->color ) ? trim( $value->color ) : '';
+        $media_value = isset( $value->media ) && is_string( $value->media ) ? trim( $value->media ) : '';
+        // media() returns [] for an empty value; hand the front end null instead
+        // so `media?: Media` is either absent or a real object.
+        $media = strlen( $media_value ) ? $this->media( $media_value ) : [];
+
+        return [
+            'color' => $color,
+            'media' => $media ? $media : NULL,
+        ];
+    }
+
+    // Same shape; kept so the background_hero field type resolves here too.
+    private function background_hero( $force_value = FALSE ) {
+        return $this->background( $force_value );
+    }
 
     private function binary( $force_value = FALSE ) {
         return $force_value !== FALSE ? (bool) $force_value : (bool) devo_get_post_meta( $this->post_id, $this->field_key );

@@ -1,22 +1,15 @@
 @use '../abstracts' as *;
 
 ul.accordion {
-    margin: 0;
-    padding: 0;
     list-style: none;
-}
-
-h3.accordion__header {
-    margin: 0;
 }
 
 button.accordion__trigger {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1em;
     width: 100%;
-    padding: 1em 0;
+    // Strips UA button chrome so the trigger reads as a heading row.
     border: 0;
     background: none;
     font: inherit;
@@ -28,16 +21,9 @@ button.accordion__trigger {
         outline-offset: 2px;
     }
 
+    // Flips the chevron to mirror aria-expanded.
     &[aria-expanded="true"] span.accordion__icon::before {
         transform: rotate(180deg);
-    }
-}
-
-span.accordion__trigger-text {
-    font-size: 1.25em;
-
-    @include max-768 {
-        font-size: 1em;
     }
 }
 
@@ -48,13 +34,10 @@ span.accordion__icon {
         content: '\f078'; // chevron-down
         @include font(icon);
         display: inline-block;
-        transition: transform 0.2s ease;
     }
 }
 
 div.accordion__panel {
-    padding: 0 0 1.5em;
-
     &[hidden] {
         display: none;
     }

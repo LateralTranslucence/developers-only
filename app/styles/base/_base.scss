@@ -1,20 +1,15 @@
 @use '../abstracts' as *;
 
-html {
-    font-size: 0.83333333vw; // 16px @ 1920
-    @include max-900 {
-        font-size: 1.25vw;
-    }
-    @include max-600 {
-        font-size: 2vw;
-    }
-}
+// Element defaults.
+//
+// Structural and normalising rules only - things the markup needs in order to
+// behave. Type scale, weight, tracking and colour are theming decisions and are
+// supplied by the extensions layer.
 
 body {
-    @include font(regular);
-    color: inherit;
-    font-size: 1.25rem;
-    line-height: 1.4;
+    // Contains overflow from full-bleed children so the page never scrolls
+    // sideways. The app root relies on this rather than becoming its own
+    // scroll container, which would break position: sticky descendants.
     overflow-x: hidden;
 }
 
@@ -24,30 +19,7 @@ div#root {
     z-index: 0;
 }
 
-p {
-    letter-spacing: -0.02em;
-}
-* + p {
-    margin: 1em 0 0 0;
-}
-
-i, em {
-    color: inherit;
-}
-b, strong {
-    @include font(bold);
-}
-
-a {
-    &:hover {
-        cursor: pointer;
-    }
-}
-a, button, input {
-    &:focus {
-        outline: 1px dashed inherit;
-    }
-}
+// Keeps super/subscripts from stretching the line box they sit in.
 sub, sup {
     font-size: 0.75em;
     line-height: 1;
@@ -60,52 +32,15 @@ sup {
 sub {
     bottom: -0.25em;
 }
-h1, h2, h3, h4, h5, h6 {
-    @include font(bold);
-    line-height: 1.1;
-    letter-spacing: -0.03em;
-    * + & {
-        margin-top: 1em;
-    }
-    sup {
-        font-size: 0.6em;
-    }
-}
-h1 {
-    margin: 0;
-    font-size: 6.25rem;
-}
-h2 {
-    font-size: 5.125rem;
-}
-h3 {
-    font-size: 4rem;
-}
-h4 {
-    font-size: 3rem;
-}
 
-ol, ul {
-    margin: 0;
-    li {
-        margin: 1em 0 0 1.5em;
-        padding-left: 0.75em;
-    }
-}
+// Nav menus render as a row of items. Menu.tsx and the footer markup both
+// assume this arrangement, so it is structural rather than decorative.
 menu, nav > ul {
-    margin: 0;
-    padding: 0;
     display: flex;
     flex-direction: row;
-    list-style: none;
     align-items: center;
+    list-style: none;
     > li {
-        margin: 0;
-        padding: 0;
         list-style: none;
     }
-}
-
-blockquote {
-    
 }

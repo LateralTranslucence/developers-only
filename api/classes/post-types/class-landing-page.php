@@ -228,9 +228,7 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                         'Icon' => 'icon',
                         'Title' => 'text',
                         'Copy' => 'html',
-                        'CTA Text' => 'varchar',
-                        'CTA URL' => 'url',
-                        'CTA Modal' => 'binary_select',
+                        'CTA' => 'cta',
                     ],
                 ],
                 'Blocks Per Row' => 'per_row',
@@ -247,10 +245,10 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                         ],
                     ],
                 ],
-                'CTA' => 'cta',
+                'CTA' => 'ctas',
             ] ),
             'cta' => array_merge( $this->set_panel_default_fields(), [
-                'CTA' => 'cta',
+                'CTA' => 'ctas',
             ] ),
             'custom' => array_merge( $this->set_panel_default_fields(), [
                 'ID' => 'varchar',
@@ -328,7 +326,7 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                 'Title' => 'text',
                 'Background' => 'background',
                 'Copy' => 'wp_editor',
-                'CTA' => 'cta',
+                'CTA' => 'ctas',
             ],
             'posts' => array_merge( $this->set_panel_default_fields(), [
                 'Post Type' => [
@@ -344,7 +342,7 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                 'Posts Per Row' => 'per_row',
                 'Slider' => 'binary',
                 'Modal' => 'binary',
-                'CTA' => 'cta',
+                'CTA' => 'ctas',
             ] ),
 
             'quotes' => array_merge( $this->set_panel_default_fields(), [
@@ -419,7 +417,7 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
             'stats' => array_merge( $this->set_panel_default_fields(), [
                 'Stats' => 'stats',
             ] ),
-            'tabs' => array_merge( $this->set_panel_default_fields( [ 'Title', 'Background', 'Copy' ]), [
+            'tabs' => array_merge( $this->set_panel_default_fields(), [
                 'Tabs' => [
                     'type' => 'multi_array',
                     'fields' => [
@@ -433,7 +431,7 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
             ] ),
             'text' => array_merge( $this->set_panel_default_fields(), [
                 'Overlay' => 'binary',
-                'CTA' => 'cta',
+                'CTA' => 'ctas',
             ] ),
             'text-media' => array_merge( $this->set_panel_default_fields(), [
                 'Media' => 'media',
@@ -456,7 +454,7 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                 ],
                 'Image Size' => 'image_size',
                 'Image Link' => 'image_link',
-                'CTA' => 'cta',
+                'CTA' => 'ctas',
             ] ),
         ];
         return $fields;

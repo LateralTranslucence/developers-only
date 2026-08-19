@@ -13,6 +13,7 @@ header#header {
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
+
         a#logo {
             display: inline-block;
         }
@@ -21,13 +22,14 @@ header#header {
             display: flex;
             flex-direction: row;
             align-items: center;
-            margin: 0;
-            padding: 0;
+
             li {
                 list-style: none;
                 position: relative;
 
                 &.hasChildren {
+                    // Shown only in the off-canvas panel, where hover is not
+                    // available and the submenu is opened by tapping.
                     > button.dropdownToggle {
                         display: none;
                         background: transparent;
@@ -40,8 +42,7 @@ header#header {
                         position: absolute;
                         top: 100%;
                         left: 0;
-                        margin: 0;
-                        padding: 0.5em 0;
+
                         li {
                             list-style: none;
                         }
@@ -52,6 +53,8 @@ header#header {
                 }
             }
         }
+
+        // Sized to stay a comfortable touch target; the glyph is centred inside.
         button#navToggle, button#navClose {
             display: none;
             width: 3rem;
@@ -60,23 +63,23 @@ header#header {
             border: none;
             position: relative;
             cursor: pointer;
+
             &::before {
                 @include iconPseudoElement();
                 content: '\f0c9';
-                font-size: 2rem;
-            }
-            > span {
-                display: none;
             }
         }
         button#navClose {
             position: absolute;
-            top: 2rem;
-            right: 2rem;
+            top: 0;
+            right: 0;
+
             &::before {
                 content: '\f00d';
             }
         }
+
+        // Off-canvas menu.
         @include max-600 {
             button#navToggle {
                 display: block;
@@ -86,25 +89,20 @@ header#header {
                 width: 100%;
                 max-width: 18rem;
                 height: 100vh;
-                padding: 4rem 2rem;
                 flex-direction: column;
                 align-items: flex-start;
                 justify-content: flex-start;
-                gap: 1rem;
-                font-size: 1.5rem;
-                background: setColor($white);
                 position: fixed;
                 top: 0;
                 right: 0;
                 z-index: 9999;
+
                 > ul {
                     width: 100%;
                     flex-direction: column;
+
                     > li {
                         width: 100%;
-                        > a {
-                            color: setColor($black);
-                        }
                     }
                 }
             }
@@ -118,11 +116,14 @@ header#header {
             }
         }
     }
+
     @include print {
         display: none;
     }
 }
-// Header correction for WordPress admin bar
+
+// Header correction for the WordPress admin bar. This is integration with a
+// fixed element WordPress injects, not styling, so it stays.
 body.admin-bar {
     margin-top: -$admin_bar_height;
     header#header {

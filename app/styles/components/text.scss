@@ -1,5 +1,7 @@
 @use '../abstracts' as *;
 
+// Two-column text panel: heading beside copy, CTA under the copy. Collapses to
+// a single column on narrow screens.
 section.panel-type-text {
     div.container {
         display: grid;
@@ -9,28 +11,24 @@ section.panel-type-text {
             "header copy"
             "header cta";
         column-gap: 5%;
+
         header {
             grid-area: header;
-            text-align: left;
         }
         div.panel-copy-wrapper {
             grid-area: copy;
-            margin-bottom: 0;
-            max-width: 100%;
-            text-align: left;
         }
         p.panel-cta {
             grid-area: cta;
+
             @include max-1024 {
                 flex-direction: column;
             }
         }
+
         @include max-768 {
             display: flex;
             flex-direction: column;
-            p.panel-cta {
-                margin-top: 2.25em;
-            }
         }
     }
 }

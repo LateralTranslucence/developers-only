@@ -13,20 +13,20 @@ There are no test commands. TypeScript (`tsc -b`) is the only static check; run 
 
 ## Architecture
 
-This is a **hybrid-headless WordPress theme** for Astraea Foundation. PHP handles the CMS and a custom REST API; a React/TypeScript SPA (built with Vite) consumes that API and renders all front-end pages.
+This is a **hybrid-headless WordPress theme**. PHP handles the CMS and a custom REST API; a React/TypeScript SPA (built with Vite) consumes that API and renders all front-end pages.
 
 ### How it fits together
 
-`functions.php` reads the Vite manifest at `public/dist/.vite/manifest.json` and enqueues the compiled bundle into every WordPress page (with `$ver = null` — a `?ver=` query on the module script would double-evaluate the entry and mount a second React root). `header.php` renders a `<div id="root">`; `devo_js_globals()` injects PHP globals (`window.devoEnv`, `window.homeURL`, `window.relativeHomeURL`, `window.devoGTM`, `window.devoCookieConsentText`). React mounts into `#root` and takes over all routing.
+`functions.php` reads the Vite manifest at `public/dist/.vite/manifest.json` and enqueues the compiled bundle into every WordPress page (with `$ver = null` — a `?ver=` query on the module script would double-evaluate the entry and mount a second React root). `header.php` opens the document (including `<body>`, `body_class()` and `wp_body_open()`) and `index.php` renders the `<div id="root">`; `devo_js_globals()` injects PHP globals (`window.devoEnv`, `window.homeURL`, `window.relativeHomeURL`, `window.devoCookieConsentText`). React mounts into `#root` and takes over all routing.
 
-Google Tag Manager loads in prod only, gated on the `devo_cookie_consent` cookie (set by `CookieConsent.tsx`, which also injects GTM immediately on accept).
+The theme ships no analytics. `CookieConsent.tsx` records the visitor's choice in the `devo_cookie_consent` cookie and dispatches a `devo:cookie-consent` DOM event, so an extension can gate its own tags either server-side (read the cookie on `wp_head`) or client-side (listen for the event). Copy for the banner comes from the `devo_cookie_consent_text` filter.
 
 Vite entry points:
 - `app/index.tsx` — React app
 - `app/styles/devo-global.scss` — Front-end global styles
 - `extensions/app/styles/extensions-global.scss` — Extension global styles (loaded after devo-global)
-- `app/styles/devo-admin.scss` — WP admin styles
-- `app/styles/devo-login.scss` — WP login styles
+- `app/styles/admin.scss` — WP admin styles (deliberately unlayered)
+- `app/styles/login.scss` — WP login styles (deliberately unlayered)
 
 The `@` path alias resolves to `app/`.
 
@@ -133,15 +133,39 @@ panelClasses(BackgroundProps)            // → string[] of CSS class names
 
 ### Styling
 
-SCSS with `@use` module system. Abstracts (`app/styles/abstracts/`): `_color.scss` (all HSL values), `_breakpoint.scss`, `_font.scss`, `_size.scss`, `_block.scss` (grid mixins), `_mixin.scss`. Component styles are imported directly inside their React component files.
+SCSS with `@use` module system. Abstracts (`app/styles/abstracts/`): `_breakpoint.scss`, `_color.scss`, `_font.scss`, `_function.scss`, `_size.scss`, `_mixin.scss`. Component styles are imported directly inside their React component files.
+
+The colour abstracts are now only consumed by `admin.scss` and `login.scss` — the front-end framework references no colour variables at all. Those two stylesheets are also deliberately excluded from the cascade layer (see below), because they load alongside unlayered WordPress core admin CSS.
 
 Class naming is BEM (`.block__element--modifier`), and every selector carries its
 element (`ul.blocks`, `li.blocks__item`) unless a class is deliberately open-ended
 (e.g. `.blocks__link`, which may render as `<a>`, `<span>`, or a router `<Link>`).
 
 Framework styles are structural/layout only - no brand colors, backgrounds, or
-shadows. Theming (including the removed dark/light system) will arrive as a
-separate configuration layer.
+shadows. The test for whether a rule belongs in the framework is whether the
+built-in functionality stops working without it: layout and grid structure,
+open/closed and hidden state, UA chrome resets on `<button>`/`<dialog>`, icon
+glyphs, aspect-ratio boxes, focus visibility, and the `.screenReader` utility all
+stay. Type scale, colour, spacing values, borders, shadows and motion do not -
+they belong to the theming layer.
+
+#### Cascade layers
+
+The framework's compiled CSS is wrapped in `@layer framework` by
+`build/postcss-layer-framework.cjs`; the extensions layer is deliberately left
+unlayered, and unlayered CSS outranks every layer. That is what lets a theme
+override the framework with plain selectors, regardless of specificity or of when
+Vite injects a code-split component stylesheet at runtime.
+
+Two constraints follow:
+
+- `.browserslistrc` must only list targets that support cascade layers. Lightning
+  CSS silently strips `@layer` and hoists its contents otherwise, which inverts
+  the cascade with no build error. `npm run build` runs `verify:layers` to catch
+  this.
+- `!important` reverses layer order, so a framework rule marked `!important`
+  beats an unlayered one in the theme. The framework avoids `!important` for
+  anything a theme is expected to override.
 
 ### Environment
 

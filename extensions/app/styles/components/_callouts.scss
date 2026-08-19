@@ -1,0 +1,88 @@
+@use '../abstracts' as *;
+
+// Callouts and section labels.
+//
+// The remaining documentation chrome (documentation.wxr.xml): .note blocks with
+// a .label heading, an .eyebrow above each section, and .chip tags marking which
+// layer a section belongs to.
+
+// Note.
+//
+// An aside within the flow, marked by a rule down the side rather than a filled
+// box - a filled panel would compete with the code blocks these sit between.
+div.note {
+    margin: 28px 0;
+    padding: 2px 0 2px 20px;
+    border-left: 2px solid var(--devo-rule);
+
+    > span.label {
+        @include mono-label(11px, 500, 0.1em);
+        display: block;
+        margin-bottom: 8px;
+        color: var(--devo-text-dim);
+
+        // Several labels quote an identifier, e.g. "Why every rule is nested
+        // under #root". Let it inherit the label's scale instead of the accent
+        // wash inline code carries in body copy.
+        code {
+            padding: 0;
+            background: none;
+            color: inherit;
+            font-size: 1em;
+            letter-spacing: normal;
+        }
+    }
+
+    > p {
+        @include body-copy(15px, 1.6, 300);
+        color: var(--devo-text-muted);
+
+        + p {
+            margin-top: 10px;
+        }
+    }
+}
+
+// Caution.
+//
+// Uses --devo-error, the palette's red-shifted accent. It is the one hue the
+// token file sanctions besides the accent, held in the same lightness band, so
+// a warning reads as urgent without introducing a second colour to the design.
+div.note.caution {
+    border-left-color: var(--devo-error);
+
+    > span.label {
+        color: var(--devo-error);
+    }
+}
+
+// Section eyebrow. Sits above the copy that opens a section.
+span.eyebrow {
+    @include eyebrow;
+    display: block;
+    margin: 40px 0 12px;
+    color: var(--devo-accent-eyebrow);
+
+    // The first thing in a tab panel should not be pushed down.
+    &:first-child {
+        margin-top: 0;
+    }
+}
+
+// Layer tag inside an eyebrow: PHP or TSX.
+span.chip {
+    @include mono-label(9px, 500, 0.12em);
+    display: inline-block;
+    margin-left: 8px;
+    padding: 3px 7px;
+    border: 1px solid var(--devo-accent-border);
+    border-radius: var(--devo-radius);
+    color: var(--devo-accent);
+    vertical-align: 1px;
+
+    // Distinguished by weight, not by hue - the palette allows one accent.
+    &.ts {
+        border-color: var(--devo-hairline);
+        color: var(--devo-text-dim);
+    }
+}

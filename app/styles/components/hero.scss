@@ -5,9 +5,14 @@ header#hero {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 50px 0;
-    padding-bottom: 0;
     position: relative;
-    z-index: 99;
+    // Clips decorative overflow the theming layer may add.
     overflow: hidden;
+    // The Background field's colour is set inline; its image arrives as
+    // --background-image. Same plumbing as section.panel, since the hero takes
+    // the same field.
+    background-image: var(--background-image);
+    background-size: cover;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
 }

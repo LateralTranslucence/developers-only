@@ -10,7 +10,7 @@ const Text: React.FC<PanelProps> = ( {
     panelPrefix = '', 
     panelSuffix = ''
 } ): JSX.Element => {
-    const ctas = getArrayField<CTASettings>( post.fields, panelPrefix + '_ctas' + panelSuffix );
+    const ctas = getArrayField<CTASettings>( post.fields, panelPrefix + '_cta' + panelSuffix );
     
     return <CTAs ctas={ ctas } />;
 };

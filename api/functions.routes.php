@@ -2,7 +2,6 @@
 
 /* 
  * API ROUTES
- * TODO: turn into class object 
  * */
 
 function add_nav_menu_custom_fields_rest_api() {
@@ -483,8 +482,16 @@ add_action( 'rest_api_init', function() {
 } );
 function devo_page_route( $data ) {
     $query_params = $data->get_params();
-    $page = new WP_Query( [ 'pagename' => $query_params['slug'] ] );
-    return current( $page->posts );
+    $slug = isset( $query_params['slug'] ) ? sanitize_title( $query_params['slug'] ) : '';
+    if ( ! strlen( $slug ) ) {
+        return new WP_Error( 'devo_missing_slug', __( 'A slug is required.', 'developers_only' ), [ 'status' => 400 ] );
+    }
+    $page = new WP_Query( [ 'pagename' => $slug ] );
+    $post = current( $page->posts );
+    if ( ! $post ) {
+        return new WP_Error( 'devo_not_found', __( 'No page found for that slug.', 'developers_only' ), [ 'status' => 404 ] );
+    }
+    return $post;
 }
 
 /* Media Library Items */
@@ -499,8 +506,17 @@ add_action( 'rest_api_init', function() {
 } );
 function devo_media_library_route( $data ) {
     $query_params = $data->get_params();
-    $media_query = new WP_Query( [ 'post_type' => 'attachment', 'pagename' => $query_params['slug'] ] );
+    $slug = isset( $query_params['slug'] ) ? sanitize_title( $query_params['slug'] ) : '';
+    if ( ! strlen( $slug ) ) {
+        return new WP_Error( 'devo_missing_slug', __( 'A slug is required.', 'developers_only' ), [ 'status' => 400 ] );
+    }
+    $media_query = new WP_Query( [ 'post_type' => 'attachment', 'post_status' => 'inherit', 'pagename' => $slug ] );
     $media = current( $media_query->posts );
+    // current() returns FALSE on an empty result; reading ->ID off that warns and
+    // hands strtotime() a null, so bail before touching the object.
+    if ( ! $media ) {
+        return new WP_Error( 'devo_not_found', __( 'No media found for that slug.', 'developers_only' ), [ 'status' => 404 ] );
+    }
     $post_date = new DO_Form_Field_API_Display( 'date', 'post_date', $media->ID, FALSE, date( 'U', strtotime( $media->post_date ) ) );
     $media->post_date = $post_date->output;
     return $media;

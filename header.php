@@ -38,7 +38,8 @@ if ( $post && isset( $devo_custom_post_types[ $post->post_type ] ) ) :
     $publish_date = date( 'Y-m-d', strtotime( get_post_field( 'post_date', $post->ID ) ) );
     $content = get_post_field( 'post_content', $post->ID );
     ?>
-    <title><?php echo $seo_title . ( strlen( $post_type_label ) ? ' - ' . $post_type_label : '' ) ?></title>
+    <?php // <title> is rendered by WordPress via title-tag support; the SEO
+          // title is supplied by devo_document_title() in functions.php. ?>
     <link rel="canonical" href="<?php echo $seo_url ?>" data-react-helmet="true" />
     <meta property="og:locale" content="<?php echo $seo_locale ?>" data-react-helmet="true" />
     <meta property="og:type" content="website" data-react-helmet="true" />
@@ -53,24 +54,15 @@ if ( $post && isset( $devo_custom_post_types[ $post->post_type ] ) ) :
     <script type="application/ld+json" data-react-helmet="true">
         <?php echo json_encode( $schema ) ?>
     </script>
-<?php 
-// If there's still no post, just show a title
-else : ?>
-    <title>{DevelopersOnly}</title>
-<?php endif; ?>
+<?php
+// No post: WordPress falls back to the site title on its own.
+endif; ?>
 <?php wp_head(); ?>
 
-<?php if ( DO_ENVIRONMENT == 'prod' ) : ?>
-    <meta name="google-site-verification" content="sIIblhof2iVPtZYF2dA7_GUbot9ZXpZP6KIocWi8q2E" />
-    <?php // Google Tag Manager - only with cookie consent (see CookieConsent.tsx, which
-          // sets the cookie and injects GTM immediately on accept without a reload) ?>
-    <?php if ( isset( $_COOKIE['devo_cookie_consent'] ) && $_COOKIE['devo_cookie_consent'] === 'accepted' ) : ?>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','<?php echo esc_js( DO_GTM_ID ) ?>');</script>
-    <!-- End Google Tag Manager -->
-    <?php endif; ?>
-<?php endif; ?>
+</head>
+<body <?php body_class() ?>>
+<?php
+// Required since WP 5.2: the hook plugins use to inject markup at the top of
+// <body>. Also where core adds the admin bar's markup dependencies.
+wp_body_open();
+?>

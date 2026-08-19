@@ -1,7 +1,6 @@
 <?php
 // Define constants
 define( 'DO_VER', DO_ENVIRONMENT == 'local' ? time() : 'DEPLOY_TIMESTAMP' );
-define( 'DO_GTM_ID', 'GTM-PJ878CTW' );
 
 // Include Helper Functions
 include_once( __DIR__ . '/api/functions.helpers.php' );
@@ -40,13 +39,33 @@ function devo_scripts() {
             // different URL - mounting a second React root and crashing the app.
             // The content hash in the filename already handles cache busting.
             wp_enqueue_script( 'react-index', get_template_directory_uri() . '/public/dist/' . $index_file->file, [], null, TRUE );
+            // Stylesheets are enqueued framework-first, theming layer last, and
+            // each one declares the previous as a dependency so WordPress can't
+            // reorder them.
+            //
+            // Correctness does not actually rest on this order any more: the
+            // framework's CSS is compiled into `@layer framework` and the
+            // extensions layer is deliberately unlayered, so it outranks the
+            // framework whatever the source order (see
+            // build/postcss-layer-framework.cjs). The ordering is kept as a
+            // fallback - if the layer is ever lost, a build with the stylesheets
+            // in this order still resolves the way it should, rather than
+            // silently inverting.
+
             // Load global styles
             wp_enqueue_style( 'devo-global', get_template_directory_uri() . '/public/dist/devo-global.css', [], DO_VER );
-            // Load extension global styles (extensions/app/styles/extensions-global.scss)
-            wp_enqueue_style( 'extensions-global', get_template_directory_uri() . '/public/dist/extensions-global.css', [ 'devo-global' ], DO_VER );
+
+            // Component CSS Vite extracted from the React entry. Still framework
+            // CSS, so it belongs alongside devo-global rather than after the
+            // theming layer.
+            $devo_style_deps = [ 'devo-global' ];
             if ( isset( $index_file->css ) ) {
-                wp_enqueue_style( 'react-index', get_template_directory_uri() . '/public/dist/' . current( $index_file->css ), [], DO_VER );
+                wp_enqueue_style( 'react-index', get_template_directory_uri() . '/public/dist/' . current( $index_file->css ), [ 'devo-global' ], DO_VER );
+                $devo_style_deps[] = 'react-index';
             }
+
+            // Load extension global styles (extensions/app/styles/extensions-global.scss)
+            wp_enqueue_style( 'extensions-global', get_template_directory_uri() . '/public/dist/extensions-global.css', $devo_style_deps, DO_VER );
         }
     }
 }
@@ -182,6 +201,27 @@ function devo_create_objects() {
     // Enable post thumbnails
 	add_theme_support( 'post-thumbnails' );
 
+    // Let WordPress render <title>. The SEO title is supplied through the
+    // pre_get_document_title filter below rather than printed in header.php, so
+    // plugins and core filters can see it.
+    add_theme_support( 'title-tag' );
+
+    // Emit HTML5 markup rather than the XHTML fallbacks core defaults to.
+    add_theme_support( 'html5', [
+        'search-form',
+        'comment-form',
+        'comment-list',
+        'gallery',
+        'caption',
+        'style',
+        'script',
+    ] );
+
+    // Constrain embedded media to its container.
+    add_theme_support( 'responsive-embeds' );
+
+    add_theme_support( 'automatic-feed-links' );
+
 	// Register nav menus
 	register_nav_menus( [
         'top-nav' => __( 'Top Navigation', 'developers_only' ),
@@ -250,19 +290,18 @@ function devo_remove_admin_menu_items() {
 }
 add_action( 'admin_menu', 'devo_remove_admin_menu_items' );
 
-// Header Scripts
-function devo_header_scripts() {
-    $site_settings_misc = get_option( 'site_settings_misc' );
-    echo isset( $site_settings_misc['header_script'] ) ? $site_settings_misc['header_script'] : '';
-}
-add_action( 'wp_head', 'devo_header_scripts' );
-
-// Footer Scripts
-function devo_footer_scripts() {
-    $site_settings_misc = get_option( 'site_settings_misc' );
-	echo isset( $site_settings_misc['footer_script'] ) ? $site_settings_misc['footer_script'] : '';
-}
-add_action( 'wp_footer', 'devo_footer_scripts' );
+/* Third-party scripts - analytics, tag managers, chat widgets - are not part of
+ * the theme. Add them from extensions/api/*.php on the standard WordPress hooks:
+ *
+ *   add_action( 'wp_head', function () { ... } );
+ *   add_action( 'wp_footer', function () { ... } );
+ *
+ * To gate one on cookie consent, check the cookie the consent banner sets:
+ *
+ *   if ( isset( $_COOKIE['devo_cookie_consent'] ) && $_COOKIE['devo_cookie_consent'] === 'accepted' ) { ... }
+ *
+ * Client-side, listen for the devo:cookie-consent event so a script can start
+ * without waiting for the next page load (see CookieConsent.tsx). */
 
 // Javascript home_url
 function devo_js_globals() {
@@ -270,14 +309,15 @@ function devo_js_globals() {
     $relative_home_url = home_url( '', 'relative' );
     $site_language = substr( get_bloginfo( 'language' ), 0, 2 );
     $template_directory = get_template_directory_uri();
-    $site_settings_misc = get_option( 'site_settings_misc' );
-    $cookie_consent_text = isset( $site_settings_misc['cookie_consent_text'] ) && is_string( $site_settings_misc['cookie_consent_text'] ) ? $site_settings_misc['cookie_consent_text'] : '';
+    // Copy for the consent banner. Filterable rather than read from an option so
+    // an extension can supply it from wherever it keeps site settings.
+    $cookie_consent_text = apply_filters( 'devo_cookie_consent_text', '' );
+    $cookie_consent_text = is_string( $cookie_consent_text ) ? $cookie_consent_text : '';
 ?>
 <script>
-    window.devoEnv = "<?php echo DO_ENVIRONMENT ?>";
-    window.homeURL = "<?php echo $home_url ?>";
-    window.relativeHomeURL = "<?php echo $relative_home_url ?>";
-    window.devoGTM = "<?php echo esc_js( DO_GTM_ID ) ?>";
+    window.devoEnv = "<?php echo esc_js( DO_ENVIRONMENT ) ?>";
+    window.homeURL = "<?php echo esc_url( $home_url ) ?>";
+    window.relativeHomeURL = "<?php echo esc_js( $relative_home_url ) ?>";
     window.devoCookieConsentText = <?php echo wp_json_encode( $cookie_consent_text ) ?>;
     window.menus = [];
 </script>
@@ -537,7 +577,43 @@ add_action( 'init', 'devo_case_insensitive_urls' );
 function devo_load_textdomain() {
     load_theme_textdomain( 'developers_only', get_template_directory() . '/languages' );
 }
-//add_action( 'after_setup_theme', 'devo_load_textdomain', 0 );
+add_action( 'after_setup_theme', 'devo_load_textdomain', 0 );
+
+/* Supplies the document title now that the theme declares title-tag support.
+ *
+ * The SEO title comes from the post type's configured seo_title field, with the
+ * post type's display name appended - the same output header.php used to print
+ * directly. Going through the filter means core and plugins can see and adjust
+ * it, which is the point of title-tag support. */
+function devo_document_title( $title ) {
+    global $devo_custom_post_types, $post, $wp;
+
+    if ( ! $post && isset( $wp->request ) ) {
+        $post_array = get_posts( [
+            'name' => strlen( $wp->request ) ? $wp->request : 'home',
+            'post_type' => 'devo_landing_page',
+        ] );
+        $post = current( $post_array );
+    }
+    if ( ! $post || ! isset( $devo_custom_post_types[ $post->post_type ] ) ) {
+        return $title;
+    }
+
+    $post_type_details = $devo_custom_post_types[ $post->post_type ];
+    $seo_title = isset( $post_type_details->seo_title )
+        ? devo_get_seo_field_value( $post_type_details->seo_title, $post )
+        : '';
+    if ( ! is_string( $seo_title ) || ! strlen( $seo_title ) ) {
+        return $title;
+    }
+
+    $post_type_label = isset( $post_type_details->post_type_display_name )
+        ? $post_type_details->post_type_display_name
+        : '';
+
+    return $seo_title . ( strlen( $post_type_label ) ? ' - ' . $post_type_label : '' );
+}
+add_filter( 'pre_get_document_title', 'devo_document_title' );
 
 function devo_add_custom_post_types_to_homepage_dropdown( $pages, $r ) {
     if ( isset( $r['post_type'] ) && 'page' === $r['post_type'] ) {
@@ -563,3 +639,8 @@ function devo_set_block_image( $block_image, $post_id = FALSE ) {
     return $block_image ? $block_image : $fallback_image;
 }
 add_filter( 'devo_block_image', 'devo_set_block_image', 10, 2 );
+
+
+if ( $ext_functions = locate_template( '/extensions/api/functions.php' ) ) {
+    require_once( $ext_functions );
+}

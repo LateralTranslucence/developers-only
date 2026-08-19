@@ -1,38 +1,10 @@
 @use '../abstracts' as *;
 
 section.panel-type-stats {
-    header.panel-header, div.panel-copy-wrapper {
-        text-align: left;
-    }
-    div.panel-copy-wrapper {
-        margin-left: 0;
-        max-width: 550px;
-    }
-    &.stats-plain {
-        header.panel-header, div.panel-copy-wrapper {
-            text-align: center;
-        }
-    }
-    &.panel, &.has-avatar {
-        background-position: calc(50% + 350px) 0;
-    }
-    ul.stats {
-        > li.stats__item {
-            background-color: transparent;
-            div.blocks__content {
-                padding: 1.5em;
-            }
-            .stats__value, span.stats__before-text, span.stats__after-text {
-                display: inline;
-                line-height: 1em;
-            }
-            h3 {
-                @include font(medium);
-                font-size: 0.875em;
-            }
-            @include max-320 {
-                font-size: 0.875em;
-            }
+    // The counted value and its prefix/suffix have to read as one line of text.
+    ul.stats > li.stats__item {
+        .stats__value, span.stats__before-text, span.stats__after-text {
+            display: inline;
         }
     }
 }

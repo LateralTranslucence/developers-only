@@ -30,7 +30,6 @@ const SimplePage: React.FC<TemplateProps> = ( {
 
     const heroSettings: HeroProps = {
         title: pageTitle,
-        shareBar: false,
     };
 
     return (

@@ -1,5 +1,15 @@
 @use '../abstracts' as *;
 
+.text-align-left { 
+    text-align: left; 
+}
+.text-align-right { 
+    text-align: right; 
+}
+.text-align-center { 
+    text-align: center; 
+}
+
 // Screen Reader
 //
 // Hides content visually while keeping it in the accessibility tree, for text

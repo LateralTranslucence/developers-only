@@ -20,7 +20,14 @@ const panelClasses = ( settings: BackgroundProps ): Array<string> => {
         elementClasses.push( 'has-video-controls' );
     }
     if ( backgroundColor ) {
-        elementClasses.push( 'color-' + backgroundColor );
+        // The Background field now stores a hex value, which is applied as an
+        // inline style rather than through a class - `color-#0a0a0a` is not a
+        // valid selector. Named values (from before the field changed) still get
+        // their modifier so existing styling keeps working.
+        if ( ! backgroundColor.startsWith( '#' ) ) {
+            elementClasses.push( 'color-' + backgroundColor );
+        }
+        elementClasses.push( 'has-background-color' );
     }
     if ( backgroundEffect ) {
         elementClasses.push( 'effect', backgroundEffect );

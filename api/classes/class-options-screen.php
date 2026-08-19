@@ -157,7 +157,10 @@ class DO_Options_Screen {
         if ( in_array( 'color', $fields ) ) {
             add_action( 'admin_enqueue_scripts', function() {
                 wp_enqueue_style( 'wp-color-picker' );
-                wp_enqueue_script( 'devo-color-picker', get_template_directory_uri() . '/admin/js/devo-color-picker.js', [ 'jquery', 'wp-color-picker' ], '20170307', TRUE );
+                // Same initialiser the post-edit screens use. The old path
+                // (/admin/js/devo-color-picker.js) does not exist in the theme,
+                // so colour fields on options screens never bound to a picker.
+                wp_enqueue_script( 'devo-color-picker', get_template_directory_uri() . '/public/js/color-picker.js', [ 'jquery', 'wp-color-picker' ], DO_VER, TRUE );
             } );
         }
         // Capability

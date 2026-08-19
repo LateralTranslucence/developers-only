@@ -1,34 +1,22 @@
 @use '../abstracts/' as *;
 
-.container {
+// Layout primitives.
+//
+// The containers establish the column and centre it; the gutter width is a
+// design decision, so the extensions layer supplies the horizontal padding.
+.container, .wideContainer {
     width: 100%;
-    margin: 0 auto 0;
-    padding: 0 10rem;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
-    @include max-900 {
-        padding: 0 5rem;
-    }
-    @include max-600 {
-        padding: 0 2.5rem;
-    }
-}
-.wideContainer {
-    width: 100%;
-    margin: 0 auto 0;
-    padding: 0 $padding;
-    display: flex;
-    flex-direction: column;
-    @include max-900 {
-        padding: 0 1.5rem;
-    }
 }
 
 article#contentWrapper {
     position: relative;
-    z-index: 9;
 }
 
+// Page skeleton. TemplateLoader renders these four regions, and the named areas
+// are what let a template omit one without the rest reflowing.
 div#root {
     display: grid;
     grid-template-rows: auto 1fr auto auto;

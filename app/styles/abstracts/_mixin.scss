@@ -56,6 +56,8 @@
 
 
 
+// Dropdown list panel: hidden until the toggle adds .open, anchored under the
+// toggle, and scrollable once it outgrows the viewport.
 @mixin select_list() {
     display: none;
     &.open {
@@ -67,43 +69,19 @@
     max-height: 50vh;
     overflow-x: hidden;
     overflow-y: auto;
-    margin: 0 auto;
-    padding: 0.75rem;
     position: absolute;
-    top: calc(100% + 0.1875rem);
+    top: 100%;
     z-index: 99999;
-    height: auto;
     > li {
-        @include font.font(regular);
-        font-size: 1rem;
         width: 100%;
-        margin: 0;
-        padding: 0;
         list-style: none;
         display: flex;
         flex-direction: column;
-        justify-content: flex-start;
-        text-align: left;
         > a, > span, > button {
-            &, &:hover {
-                @include font.font(regular);
-                font-size: 1rem;
-                display: block;
-                text-align: left;
-                padding: 0.75em;
-                margin: 0;
-                line-height: 1.15;
-                text-transform: none;
-                opacity: 1;
-                &::after {
-                    display: none;
-                }
-            }
+            display: block;
+            // The selected option is not re-selectable.
             &[aria-selected="true"] {
                 cursor: default;
-                &::after {
-                    display: none;
-                }
             }
         }
     }

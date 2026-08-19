@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: DevelopersOnly 1.0.0\n"
 "Report-Msgid-Bugs-To: loren@lateraltranslucence.com\n"
-"POT-Creation-Date: 2026-08-11 16:31-0400\n"
+"POT-Creation-Date: 2026-08-14 13:57-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -184,44 +184,94 @@ msgstr ""
 msgid "Select a Year"
 msgstr ""
 
-#: api/functions.helpers.php:1678
+#: api/classes/class-unused-media.php:168
+msgid "You are not allowed to delete media."
+msgstr ""
+
+#. translators: %d: number of attachments selected for deletion.
+#: api/classes/class-unused-media.php:213
+#, php-format
+msgid "Permanently delete %d attachment?"
+msgid_plural "Permanently delete %d attachments?"
+msgstr[0] ""
+msgstr[1] ""
+
+#: api/classes/class-unused-media.php:216
+msgid ""
+"This removes the attachment and every generated image size from disk. It "
+"cannot be undone."
+msgstr ""
+
+#: api/classes/class-unused-media.php:228
+msgid "Yes, delete permanently"
+msgstr ""
+
+#: api/classes/class-unused-media.php:230
+msgid "Cancel"
+msgstr ""
+
+#. translators: %d: number of attachments deleted.
+#: api/classes/class-unused-media.php:239
+#, php-format
+msgid "%d attachment deleted."
+msgid_plural "%d attachments deleted."
+msgstr[0] ""
+msgstr[1] ""
+
+#: api/classes/class-unused-media.php:270
+msgid "Delete Selected"
+msgstr ""
+
+#: api/functions.helpers.php:1668
 msgid "X minute read"
 msgstr ""
 
-#: api/functions.helpers.php:1678
+#: api/functions.helpers.php:1668
 msgid "Less than 1 minute read"
 msgstr ""
 
-#: api/functions.routes.php:350
+#: api/functions.routes.php:349
 msgid ""
 "Too many submissions from this connection. Please wait a few minutes and try "
 "again."
 msgstr ""
 
 #. translators: %s: form name.
-#: api/functions.routes.php:425 api/functions.routes.php:445
+#: api/functions.routes.php:424 api/functions.routes.php:444
 #, php-format
 msgid "Submission from %s form"
 msgstr ""
 
 #. translators: %s: form name.
-#: api/functions.routes.php:459
+#: api/functions.routes.php:458
 #, php-format
 msgid "Submission of %s form"
 msgstr ""
 
-#: functions.php:187
+#: api/functions.routes.php:487 api/functions.routes.php:511
+msgid "A slug is required."
+msgstr ""
+
+#: api/functions.routes.php:492
+msgid "No page found for that slug."
+msgstr ""
+
+#: api/functions.routes.php:518
+msgid "No media found for that slug."
+msgstr ""
+
+#: functions.php:227
 msgid "Top Navigation"
 msgstr ""
 
-#: functions.php:188
+#: functions.php:228
 msgid "Main Navigation"
 msgstr ""
 
-#: functions.php:189
+#: functions.php:229
 msgid "Social Navigation"
 msgstr ""
 
-#: functions.php:190
+#: functions.php:230
 msgid "Legal Footer Navigation"
 msgstr ""

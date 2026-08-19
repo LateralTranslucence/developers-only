@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useCurrentPage } from '@/utils/stores/CurrentPage';
 import { TemplateProps } from '@/utils/types/TemplateProps';
-import { getArrayField, getNumberField, getStringField, sanitizeTitleWithDashes } from '@/utils/helpers';
+import { getArrayField, getBackgroundField, getNumberField, getStringField, sanitizeTitleWithDashes } from '@/utils/helpers';
 import Hero from '@/components/shared/Hero';
 import Panel from '@/components/shared/Panel';
 import SEOTags from '@/components/shared/SEOTags';
@@ -41,6 +41,7 @@ const LandingPage: React.FC<TemplateProps> = ( {
             copy: getStringField( fields, metaPrefix + '_copy' ),
             breadcrumbs: getArrayField<Breadcrumbs>( fields, metaPrefix + '_breadcrumbs' ),
             ctas: getArrayField<CTASettings>( fields, metaPrefix + '_ctas' ),
+            background: getBackgroundField( fields, metaPrefix + '_background' ),
             classes: [],
             id: 'hero',
         };

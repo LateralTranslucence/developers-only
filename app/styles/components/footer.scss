@@ -1,17 +1,13 @@
 @use '../abstracts' as *;
 
 footer#footer {
-    padding: 50px 0;
     position: relative;
-    z-index: 99;
 
     div.container {
         display: grid;
         grid-template-columns: auto 1fr auto;
         grid-template-areas: "social legal year";
         align-items: center;
-        column-gap: 2em;
-        row-gap: 1em;
 
         @include max-600 {
             grid-template-columns: 1fr;
@@ -20,7 +16,6 @@ footer#footer {
                 "legal"
                 "year";
             justify-items: center;
-            text-align: center;
         }
     }
 
@@ -28,9 +23,6 @@ footer#footer {
         grid-area: social;
         display: flex;
         flex-direction: row;
-        gap: 1em;
-        margin: 0;
-        padding: 0;
         li {
             list-style: none;
         }
@@ -41,9 +33,6 @@ footer#footer {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
-        gap: 0.5em 1em;
-        margin: 0;
-        padding: 0;
         li {
             list-style: none;
         }
@@ -56,7 +45,6 @@ footer#footer {
 
     p.footer__year {
         grid-area: year;
-        margin: 0;
         white-space: nowrap;
     }
 

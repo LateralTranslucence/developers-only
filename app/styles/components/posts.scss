@@ -1,26 +1,15 @@
 @use '../abstracts' as *;
 
 section.panel-type-archive, section.panel-type-posts {
-    header.panel-header {
-        text-align: left;
-        &.has-cta {
-            display: flex;
-            flex-direction: row;
-            align-items: baseline;
-            p.panel-cta {
-                margin: 0 0 0 2em;
-            }
-            @include max-640 {
-                flex-direction: column;
-                align-items: flex-start;
-                p.panel-cta {
-                    margin: 0;
-                }
-            }
+    // With a CTA the heading and link share a row, stacking on narrow screens.
+    header.panel-header.has-cta {
+        display: flex;
+        flex-direction: row;
+        align-items: baseline;
+
+        @include max-640 {
+            flex-direction: column;
+            align-items: flex-start;
         }
-    }
-    div.panel-slider-wrapper {
-        margin-left: -1em;
-        margin-right: -1em;
     }
 }

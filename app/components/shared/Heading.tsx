@@ -4,7 +4,6 @@ import CTA from '@/components/shared/CTA';
 import CTAs from '@/components/shared/CTAs';
 import { CustomAttributes } from '@/utils/types/CustomAttributes';
 import { HeadingProps } from '@/utils/types/HeadingProps';
-import { MediaItem } from '@/utils/types/Media';
 
 const Heading: React.FC<HeadingProps> = ( {
     align = '',

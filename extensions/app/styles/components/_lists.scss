@@ -1,0 +1,70 @@
+@use '../abstracts' as *;
+
+// Flow list.
+//
+// A real sequence - the request lifecycle, step by step - where each item pairs
+// a stage with what happens at it:
+//
+//   <li><b>header.php</b><span>Emits title, canonical, Open Graph...</span></li>
+//
+// The number carries meaning here (the steps genuinely happen in order), so the
+// marker is kept and given emphasis rather than hidden.
+//
+// Plain prose lists need nothing: base/_elements.scss already restores markers
+// and indentation for lists inside div.tabs__copy, which is where tab content
+// renders.
+ol.flow {
+    margin: 24px 0;
+    padding-left: 0;
+    counter-reset: devo-flow;
+    list-style: none;
+
+    > li {
+        counter-increment: devo-flow;
+        position: relative;
+        margin: 0;
+        padding: 0 0 18px 40px;
+        list-style: none;
+
+        // The connecting line between steps, stopping at the last one.
+        &:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 22px;
+            bottom: 0;
+            left: 11px;
+            width: 1px;
+            background: var(--devo-rule);
+        }
+
+        &::before {
+            @include mono(11px, 500, normal, 1);
+            content: counter( devo-flow, decimal-leading-zero );
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 23px;
+            height: 23px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--devo-accent-border);
+            border-radius: 50%;
+            background: var(--devo-bg);
+            color: var(--devo-accent);
+        }
+
+        > b {
+            @include mono-label(12px, 500, 0.06em);
+            display: block;
+            margin-bottom: 5px;
+            color: var(--devo-text-strong);
+        }
+
+        > span {
+            @include body-copy(15px, 1.6, 300);
+            display: block;
+            color: var(--devo-text-muted);
+        }
+    }
+}

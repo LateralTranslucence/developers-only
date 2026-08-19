@@ -1,0 +1,82 @@
+@use '../abstracts' as *;
+
+// Code.
+//
+// Styles the markup the theme documentation imports (documentation.wxr.xml):
+// inline <code>, .mono spans, and .code blocks that carry a .lang caption and a
+// <pre> with .c / .s / .k syntax spans.
+//
+// The palette has exactly one accent hue, so syntax colour is built from
+// lightness rather than from a second hue: comments recede, strings sit at body
+// weight, keywords take the accent. That keeps a code block reading as one
+// object instead of a rainbow.
+
+// Inline code inside running copy. Sized in em so it tracks whatever it sits
+// in, and given a soft wash rather than a border so a sentence full of code
+// does not turn into a dotted line.
+code {
+    font-family: var(--devo-font-mono);
+    font-size: 0.875em;
+    padding: 0.15em 0.4em;
+    border-radius: var(--devo-radius);
+    background: var(--devo-accent-wash);
+    color: var(--devo-accent);
+    word-break: break-word;
+}
+
+// Table cells and inline spans that are monospaced but are not code.
+.mono {
+    font-family: var(--devo-font-mono);
+    font-size: 0.9em;
+    letter-spacing: normal;
+}
+
+// Block: caption strip above, scrollable <pre> below.
+div.code {
+    margin: 28px 0;
+    border: 1px solid var(--devo-border);
+    border-radius: var(--devo-radius);
+    background: var(--devo-bg-cta-top);
+    overflow: hidden;
+
+    // Language / filename caption.
+    > span.lang {
+        @include mono-label(10px, 500, 0.14em);
+        display: block;
+        padding: 10px 18px;
+        border-bottom: 1px solid var(--devo-rule);
+        background: var(--devo-surface);
+        color: var(--devo-text-dim);
+    }
+
+    > pre {
+        @include mono(13px, 400, normal, 1.65);
+        margin: 0;
+        padding: 18px;
+        color: var(--devo-text);
+        // Long lines scroll inside the block; the page never scrolls sideways.
+        overflow-x: auto;
+        white-space: pre;
+        tab-size: 4;
+
+        // Inline code styling would double up inside a block.
+        code {
+            padding: 0;
+            background: none;
+            color: inherit;
+            font-size: inherit;
+        }
+    }
+}
+
+// Syntax tokens emitted by the documentation.
+span.c {           // comment
+    color: var(--devo-text-faintest);
+    font-style: italic;
+}
+span.s {           // string
+    color: var(--devo-text-muted);
+}
+span.k {           // keyword
+    color: var(--devo-accent);
+}

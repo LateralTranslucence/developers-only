@@ -1,18 +1,15 @@
 @use '../abstracts' as *;
 
+// Pinned to the viewport, revealed by useScrollReveal adding --visible.
 button.back-to-top {
     display: flex;
     align-items: center;
-    font-size: 1em;
-    width: 40px;
-    height: 40px;
-    padding: 0.5em 0.5em 0.5em 0.75em;
     position: fixed;
     bottom: 4em;
     right: 0;
     z-index: 99;
     opacity: 0;
-    transition: width 1s;
+    cursor: pointer;
 
     &--visible {
         opacity: 1;
@@ -21,27 +18,7 @@ button.back-to-top {
     &::before {
         content: '\f062';
         @include font(icon);
-        font-size: 1.5em;
-        margin-right: 0.5em;
-    }
-
-    &:hover {
-        cursor: pointer;
-        width: 7em;
-        right: 0;
-        transition: width 1s;
-        text-decoration: none;
-    }
-
-    @include max-600 {
-        width: 30px;
-        height: 30px;
-        padding: 0.5em;
-
-        &::before {
-            font-size: 1em;
-            margin-right: 1em;
-        }
+        display: inline-block;
     }
 
     @include print {

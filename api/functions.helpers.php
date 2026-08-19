@@ -662,16 +662,6 @@ function devo_end_of_day( $time ) {
 	}
 }
 
-// TODO: environment url map filter
-function devo_environments() {
-    return [
-        'prod' => 'https://amelia.ai',
-        'stg' => 'https://stg.amelia.ai',
-        'dev' => 'https://dev.amelia.ai',
-        'local' => 'http://localhost:8080',
-    ];
-}
-
 // Returns 'even' or 'odd' for the given number
 function devo_even_odd( $i ) {
     if ( $i % 2 ) {

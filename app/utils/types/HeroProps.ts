@@ -18,9 +18,10 @@ export interface HeroProps {
     logo?: Media;
     media?: Media;
     mediaLoop?: boolean;
+    // Colour + optional media from the post's Background field.
+    background?: BackgroundProps;
     pretitle?: string;
     publishDate?: string;
-    shareBar?: boolean;
     subtitle?: string;
     textColor?: string;
     title?: string;

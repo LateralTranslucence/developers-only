@@ -43,7 +43,6 @@ const DefaultSingle: React.FC<TemplateProps> = ( {
         title: title,
         customHTML: <PostDetails author={ author } description={ description } />,
         publishDate: post.post_date.formatted,
-        shareBar: true,
         url: url,
     };
 
