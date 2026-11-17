@@ -167,6 +167,9 @@ abstract class DO_Custom_Post_Type {
         // Admin Scripts
         add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 
+        // List column binary toggle (public/js/binary-toggle.js)
+        add_action( 'wp_ajax_devo_binary_toggle', [ $this, 'ajax_binary_toggle' ] );
+
         // Execute the child class construct() method, if it exists
         if ( method_exists( $this, 'construct' ) ) {
             $this->construct();
@@ -212,7 +215,8 @@ abstract class DO_Custom_Post_Type {
             // Archive redirect
             case 'archive_redirect':
                 $this->archive_redirect = $setting_value;
-            
+                break;
+
             // Archive Slug
             case 'slug':
                 $this->post_type_slug = is_string( $setting_value ) ? trim( strtolower( preg_replace( '/[\s_]/', '-', $setting_value ) ), '/' ) : $setting_value;
@@ -1139,7 +1143,21 @@ abstract class DO_Custom_Post_Type {
                                 $class = 'binary-false';
                                 break;
                         }
-                        echo '<span class="devo-binary"><img class="' . esc_attr( $class ) . '" src="' . esc_url( get_template_directory_uri() . '/public/images/admin/' . $image ) . '" alt="' . esc_attr( $class === 'binary-true' ? __( 'Yes', 'developers_only' ) : __( 'No', 'developers_only' ) ) . '"></span>';
+                        $is_true = $class === 'binary-true';
+                        $label = $is_true ? __( 'Yes', 'developers_only' ) : __( 'No', 'developers_only' );
+                        if ( current_user_can( 'edit_post', $post_id ) ) {
+                            // Toggled in place by public/js/binary-toggle.js
+                            // through the devo_binary_toggle admin-ajax action.
+                            echo '<span class="devo-binary"><button type="button" class="devo-binary-toggle button-link ' . esc_attr( $class ) . '"'
+                                . ' data-post-id="' . (int) $post_id . '"'
+                                . ' data-meta-key="' . esc_attr( $meta_field_key ) . '"'
+                                . ' data-nonce="' . esc_attr( wp_create_nonce( 'devo_binary_toggle_' . $post_id ) ) . '"'
+                                . ' aria-pressed="' . ( $is_true ? 'true' : 'false' ) . '"'
+                                . ' aria-label="' . esc_attr( $admin_field_title ) . '">'
+                                . '<img src="' . esc_url( get_template_directory_uri() . '/public/images/admin/' . $image ) . '" alt="' . esc_attr( $label ) . '"></button></span>';
+                        } else {
+                            echo '<span class="devo-binary"><img class="' . esc_attr( $class ) . '" src="' . esc_url( get_template_directory_uri() . '/public/images/admin/' . $image ) . '" alt="' . esc_attr( $label ) . '"></span>';
+                        }
                     }
                     // Everything else
                     else if ( ( is_array( $meta_value ) && count( $meta_value ) ) || ( is_string( $meta_value ) && strlen( $meta_value ) ) ) {
@@ -1240,13 +1258,40 @@ abstract class DO_Custom_Post_Type {
         }
     }
 
+    /* Flips a binary field shown as an admin list column. Answers only for
+     * posts of this post type, and only for fields this post type declares as
+     * binary admin columns - never an arbitrary meta key. */
+    public function ajax_binary_toggle() {
+        $post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
+        if ( ! $post_id || get_post_type( $post_id ) !== $this->post_type ) {
+            // Another post type's instance will handle it
+            return;
+        }
+        check_ajax_referer( 'devo_binary_toggle_' . $post_id, 'nonce' );
+        if ( ! current_user_can( 'edit_post', $post_id ) ) {
+            wp_send_json_error( [ 'message' => __( 'You are not allowed to edit this post.', 'developers_only' ) ], 403 );
+        }
+        $meta_key = isset( $_POST['meta_key'] ) && is_string( $_POST['meta_key'] ) ? sanitize_key( wp_unslash( $_POST['meta_key'] ) ) : '';
+        $allowed_keys = [];
+        foreach ( (array) $this->admin_fields as $admin_field_title ) {
+            if ( isset( $this->all_meta_fields[ $admin_field_title ] ) && $this->all_meta_fields[ $admin_field_title ] === 'binary' ) {
+                $allowed_keys[] = devo_meta_field_key( $admin_field_title, $this->meta_prefix );
+            }
+        }
+        if ( ! in_array( $meta_key, $allowed_keys, TRUE ) ) {
+            wp_send_json_error( [ 'message' => __( 'That field cannot be toggled.', 'developers_only' ) ], 400 );
+        }
+        $value = isset( $_POST['value'] ) && rest_sanitize_boolean( wp_unslash( $_POST['value'] ) ) ? 1 : 0;
+        update_post_meta( $post_id, $meta_key, $value );
+        wp_send_json_success( [ 'value' => $value ] );
+    }
+
     /*
      * Save post
      *
      * */
     public function save_post() {
-        //echo "save_post \n";
-        global $post, $wpdb;
+        global $post;
         // verify this came from the our screen and with proper authorization,
         // because save_post can be triggered at other times
         if ( $post ) {
@@ -1301,19 +1346,14 @@ abstract class DO_Custom_Post_Type {
                     $this->dynamic_interface_setup( $_POST, 'onsave' );
                 }
 
-                // Backup previous backups
-                $backup_backups = $wpdb->query( "UPDATE $wpdb->postmeta SET meta_key = REPLACE(meta_key, 'BAK$this->meta_prefix', '_BAK$this->meta_prefix') WHERE post_id = $post_id and meta_key like 'BAK$this->meta_prefix%';" );
-                foreach ( array_keys( $this->bonus_fields ) as $bonus_key ) {
-                    $backup_backups = $wpdb->query( "UPDATE $wpdb->postmeta SET meta_key = REPLACE(meta_key, 'BAK$bonus_key', '_BAK$bonus_key') WHERE post_id = $post_id and meta_key like 'BAK$bonus_key%';" );
-                }
-
-                // Back up previous values
-                $backup_values = $wpdb->query( "UPDATE $wpdb->postmeta SET meta_key = REPLACE(meta_key, '$this->meta_prefix', 'BAK$this->meta_prefix') WHERE post_id = $post_id and meta_key like '$this->meta_prefix%';" );
-                foreach ( array_keys( $this->bonus_fields ) as $bonus_key ) {
-                    $backup_values = $wpdb->query( "UPDATE $wpdb->postmeta SET meta_key = REPLACE(meta_key, '$bonus_key', 'BAK$bonus_key') WHERE post_id = $post_id and meta_key = '$bonus_key';" );
-                }
-                //devo_var_dump($_POST);exit;
-                //devo_var_dump($this->meta_fields);exit;
+                // Back up the current values of this post type's own fields
+                // (one save deep, as BAK{key}) before they are overwritten.
+                // Only keys this post type defines are touched: matching on
+                // the prefix alone (page%, form%, icon%) also caught other
+                // plugins' meta.
+                $owned_keys = $this->owned_meta_keys_for_post( $post_id );
+                $this->backup_meta( $post_id, $owned_keys );
+                $saved_keys = [];
 
                 // Loop through fields and save new values
                 foreach ( $this->meta_fields as $meta_box_id => $meta_field_box ) {
@@ -1345,14 +1385,11 @@ abstract class DO_Custom_Post_Type {
                             $value = $validate->value;
                         }
                         
-                        // Save the field
-                        //devo_var_dump(
-                        $wpdb->replace( $wpdb->postmeta, [
-                            'post_id' => $post_id,
-                            'meta_key' => $meta_field_key,
-                            'meta_value' => $value,
-                        ] );
-                        //);
+                        // Save the field. wp_slash() because update_post_meta()
+                        // unslashes, and values are stored as validated
+                        // (JSON included) and unslashed again on read.
+                        update_post_meta( $post_id, $meta_field_key, wp_slash( $value ) );
+                        $saved_keys[] = $meta_field_key;
                     }
                 }
 
@@ -1375,11 +1412,8 @@ abstract class DO_Custom_Post_Type {
                         } else {
                             $value = '';
                         }
-                        $wpdb->replace( $wpdb->postmeta, [
-                            'post_id' => $post_id,
-                            'meta_key' => $bonus_field_name,
-                            'meta_value' => $value,
-                        ] );
+                        update_post_meta( $post_id, $bonus_field_name, wp_slash( $value ) );
+                        $saved_keys[] = $bonus_field_name;
                     }
                 }
 
@@ -1441,8 +1475,11 @@ abstract class DO_Custom_Post_Type {
                     }
                 }
 
-                // Delete previous backups
-                $wpdb->query( "DELETE FROM $wpdb->postmeta WHERE post_id = $post_id and meta_key like '_BAK%';" );
+                // Fields this post type no longer has (a removed panel, a
+                // changed panel type) only live on in the backup
+                foreach ( array_diff( $owned_keys, $saved_keys ) as $stale_key ) {
+                    delete_post_meta( $post_id, $stale_key );
+                }
 
                 //exit; // For devo_var_dump in DO_Form_Field_Validate
 
@@ -1509,6 +1546,73 @@ abstract class DO_Custom_Post_Type {
                 }
             }
         }
+    }
+
+    /* TRUE when $meta_key is one of this post type's own fields: a field in
+     * any meta box (with or without a dynamic panel number), a field from the
+     * dynamic interface configuration, or a bonus field. */
+    private function owns_meta_key( $meta_key ) {
+        static $base_keys = [];
+        if ( ! isset( $base_keys[ $this->post_type ] ) ) {
+            $keys = [];
+            $collect = function( $fields ) use ( &$keys, &$collect ) {
+                foreach ( (array) $fields as $label => $settings ) {
+                    if ( is_string( $label ) && strlen( $label ) ) {
+                        $keys[ devo_meta_field_key( $label, $this->meta_prefix ) ] = TRUE;
+                    }
+                }
+            };
+            foreach ( $this->source_meta_fields as $box_fields ) {
+                $collect( $box_fields );
+            }
+            foreach ( $this->dynamic_interface_configs as $config ) {
+                foreach ( $config['field_configuration'] as $by_value ) {
+                    foreach ( (array) $by_value as $fields ) {
+                        $collect( $fields );
+                    }
+                }
+                if ( isset( $config['settings']['dynamic_meta_box'] ) ) {
+                    $keys[ devo_meta_field_key( $config['settings']['dynamic_meta_box'] . ' Count', $this->meta_prefix ) ] = TRUE;
+                }
+            }
+            $base_keys[ $this->post_type ] = $keys;
+        }
+        $bonus_keys = [];
+        foreach ( (array) $this->bonus_fields as $bonus_key => $bonus_value ) {
+            $bonus_keys[ is_int( $bonus_key ) ? $bonus_value : $bonus_key ] = TRUE;
+        }
+        $keys = $base_keys[ $this->post_type ];
+        return isset( $keys[ $meta_key ] ) || isset( $bonus_keys[ $meta_key ] ) || isset( $keys[ preg_replace( '/_\d+$/', '', $meta_key ) ] );
+    }
+
+    // This post type's own meta keys currently stored on $post_id
+    private function owned_meta_keys_for_post( $post_id ) {
+        $all_meta = get_post_meta( $post_id );
+        return array_values( array_filter( array_keys( is_array( $all_meta ) ? $all_meta : [] ), function( $meta_key ) {
+            return is_string( $meta_key ) && $meta_key !== '' && $meta_key[0] !== '_' && strpos( $meta_key, 'BAK' ) !== 0 && $this->owns_meta_key( $meta_key );
+        } ) );
+    }
+
+    /* Keeps one generation of backups: BAK{key} holds each owned field's value
+     * from before the latest save. Nothing reads these; they are there for
+     * recovery by hand. Set-based queries for speed, then the post's meta cache
+     * is cleared so the object cache doesn't serve stale values. */
+    private function backup_meta( $post_id, $owned_keys ) {
+        global $wpdb;
+        $post_id = (int) $post_id;
+        // Leftovers from the old prefix-wide scheme
+        $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key LIKE %s", $post_id, $wpdb->esc_like( '_BAK' ) . '%' ) );
+        if ( ! count( $owned_keys ) ) {
+            wp_cache_delete( $post_id, 'post_meta' );
+            return;
+        }
+        $backup_keys = array_map( function( $meta_key ) {
+            return 'BAK' . $meta_key;
+        }, $owned_keys );
+        $placeholders = implode( ', ', array_fill( 0, count( $owned_keys ), '%s' ) );
+        $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key IN ( $placeholders )", array_merge( [ $post_id ], $backup_keys ) ) );
+        $wpdb->query( $wpdb->prepare( "INSERT INTO {$wpdb->postmeta} ( post_id, meta_key, meta_value ) SELECT post_id, CONCAT( 'BAK', meta_key ), meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key IN ( $placeholders )", array_merge( [ $post_id ], $owned_keys ) ) );
+        wp_cache_delete( $post_id, 'post_meta' );
     }
 
     /*
