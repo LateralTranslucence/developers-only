@@ -32,6 +32,11 @@ const Image: React.FC<ImageProps> = ( {
         // as decorative (alt="") rather than having its file name read out.
         const altText: string = ( typeof image?.alt === 'string' && image.alt ) || alt || '';
 
+        // An empty media field ({}) or an icon has no file to show here
+        if ( ! imageURL ) {
+            return null;
+        }
+
         if ( imageIsSVG ) {
             wrapperClasses.push( 'svg-wrapper' );
             imageClasses.push( 'svg' );
