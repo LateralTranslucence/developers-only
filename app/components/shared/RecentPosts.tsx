@@ -4,7 +4,7 @@ import { APIResult } from '@/utils/types/APIResult';
 import { Post } from '@/utils/types/Post';
 import { SearchQueryArgs } from '@/utils/types/SearchQueryArgs';
 import { getArchivePosts } from '@/utils/api';
-import { parse } from '@/utils/helpers';
+import { getPostTitle, parse } from '@/utils/helpers';
 import CTA from '@/components/shared/CTA';
 import PartialTemplateLoader from '@/loaders/PartialTemplateLoader';
 import '@/styles/components/posts.scss';
@@ -58,8 +58,8 @@ const RecentPosts: React.FC<RecentPostsProps> = ( {
                 if ( type === 'text' ) {
                     return (
                         <li key={ index } className=" --has-link">
-                            <CTA url={ post.permalink } text={ post.post_title } classes={ [ 'blocks__link' ] }>
-                                { parse( post.post_title ) }
+                            <CTA url={ post.permalink } text={ getPostTitle( post ) } classes={ [ 'blocks__link' ] }>
+                                { parse( getPostTitle( post ) ) }
                             </CTA>
                         </li>
                     );

@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { ComponentLoaderMap } from '@/utils/types/ComponentLoaderMap';
 import { PartialTemplateProps } from '@/utils/types/PartialTemplateProps';
+import { getPostType } from '@/utils/helpers';
 
 // Block
 const DefaultBlock = lazy( () => import( '@/components/templates/block/DefaultBlock' ) );
@@ -27,7 +28,7 @@ const PartialTemplateLoader: React.FC<PartialTemplateProps> = ( {
 } ) => {
     // Select the correct template type. Default is block
     const finalType = templates[ type ] ? templates[ type ] : templates.block;
-    const TemplateName = finalType[ post.post_type ] ? finalType[ post.post_type ] : finalType.default;
+    const TemplateName = finalType[ getPostType( post ) ] ?? finalType.default;
 
     return (
         <Suspense fallback="">

@@ -2,7 +2,7 @@ import React, { JSX } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getSearch } from '@/utils/api';
-import { convertNumberToWords } from '@/utils/helpers';
+import { convertNumberToWords, getPostID } from '@/utils/helpers';
 import { getSearchPanelConfig } from '@/utils/panels';
 import { CustomAttributes } from '@/utils/types/CustomAttributes';
 import { PanelProps } from '@/utils/types/PanelProps';
@@ -33,16 +33,18 @@ const Search: React.FC<PanelProps> = ( {
     const [ results, setResults ] = useState<SearchResponse>( emptySearchResponse );
     const [ hasFetched, setHasFetched ] = useState( false );
 
+    const postID: number = getPostID( post );
+
     const fetchResults = useCallback( async () => {
         try {
-            const data = await getSearch( { postID: post.ID, metaPrefix: panelPrefix, metaSuffix: panelSuffix, query } );
+            const data = await getSearch( { postID, metaPrefix: panelPrefix, metaSuffix: panelSuffix, query } );
             setResults( normalizeSearchResponse( data.json ) );
         } catch ( e ) {
             console.error( 'Search fetch error:', e );
         } finally {
             setHasFetched( true );
         }
-    }, [ query, post.ID, panelPrefix, panelSuffix ] );
+    }, [ query, postID, panelPrefix, panelSuffix ] );
 
     useEffect( () => {
         fetchResults();

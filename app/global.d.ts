@@ -7,6 +7,10 @@ declare global {
         devoEnv: string;
         relativeHomeURL: string;
         menus: Array<string>;
+        // Optional site details; see globalVariables.ts for the fallbacks
+        devoLocale?: string;
+        devoPrivacyPolicyURL?: string;
+        devoSiteName?: string;
     }
 
     // React 19 moved the JSX namespace off the global scope; several

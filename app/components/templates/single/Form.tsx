@@ -1,6 +1,6 @@
 import React, { JSX } from 'react';
 import { useEffect } from 'react';
-import { getStringField } from '@/utils/helpers';
+import { getPostID, getPostType, getStringField } from '@/utils/helpers';
 import { HeroProps } from '@/utils/types/HeroProps';
 import { TemplateProps } from '@/utils/types/TemplateProps';
 import Hero from '@/components/shared/Hero';
@@ -15,7 +15,7 @@ const Form: React.FC<TemplateProps> = ( {
 } ): JSX.Element | null => {
     useEffect( () => {
         if ( post ) {
-            layoutClasses( [ 'single-content-item', 'single-' + post.post_type ] );
+            layoutClasses( [ 'single-content-item', 'single-' + getPostType( post ) ] );
         }
     }, [layoutClasses, post] );
 
@@ -34,9 +34,9 @@ const Form: React.FC<TemplateProps> = ( {
                     panelID="main-content"
                     panelType="form"
                     classes={ [ 'panel', 'panel-type-form' ] }>
-                        { post.ID ?
+                        { getPostID( post ) ?
                             <div className="panel-form-wrapper">
-                                <RenderForm formID={ post.ID } panelID="main-content" />
+                                <RenderForm formID={ getPostID( post ) } panelID="main-content" />
                             </div>
                         : null }
                 </PanelWrapper>
