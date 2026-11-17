@@ -13,7 +13,11 @@ export default defineConfig({
         outDir: './public/dist', 
         assetsDir: '', 
         emptyOutDir: true,
-        sourcemap: true,
+        // No source maps in production builds: public/dist is committed and
+        // shipped, and .map files would be published with it. `npm run dev`
+        // passes --sourcemap so watch builds stay debuggable (those maps are
+        // gitignored and left out of the release zip).
+        sourcemap: false,
         rollupOptions: {
             input: {
                 index: path.resolve(__dirname, './app/index.tsx'),
