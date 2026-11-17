@@ -17,6 +17,7 @@
         "dev": "vite build --watch --sourcemap",
         "build": "tsc -b && vite build && npm run verify:layers",
         "lint": "eslint .",
+        "package": "npm run build && node build/package.cjs",
         "verify:layers": "node build/verify-layers.cjs"
     },
     "dependencies": {

@@ -21,3 +21,6 @@ vite.config.d.ts
 
 # Source maps from `npm run dev` watch builds; production builds emit none
 public/dist/**/*.map
+
+# Theme zips written by `npm run package`
+/release/
