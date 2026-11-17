@@ -111,24 +111,47 @@ function devo_api_custom_data( $post, $post_type_details = FALSE ) {
         // Excerpt
         $post->post_excerpt = devo_autop( $post->post_excerpt );
         // SEO meta fields. Raw text; escaped by whatever prints them.
-        $post_type_label = isset( $post_type_details->post_type_display_name ) ? $post_type_details->post_type_display_name : '';
-        $seo_title = isset( $post_type_details->seo_title ) && $post_type_details->seo_title ? devo_get_seo_field_value( $post_type_details->seo_title, $post ) : devo_plain_text( $post->post_title );
-        $seo_title = is_string( $seo_title ) ? $seo_title : '';
-        $post->seo_title = strlen( $post_type_label ) && strlen( $seo_title ) ? $seo_title . ' - ' . $post_type_label : $seo_title;
-        $og_image = get_template_directory_uri() . '/public/images/og-image.png';
-        $image = isset( $post_type_details->seo_image ) && $post_type_details->seo_image ? devo_get_seo_field_value( $post_type_details->seo_image, $post ) : $og_image;
-        $post->seo_image = is_array( $image ) && count( $image ) && isset( $image['cinema_600'] ) ? $image['cinema_600']['url'] : ( is_string( $image ) && strlen( $image ) ? $image : $og_image );
-        // Absolute, for canonical and og:url
-        $post->seo_url = devo_absolute_url( $post->permalink );
-        $seo_description = isset( $post_type_details->seo_description ) && $post_type_details->seo_description ? devo_get_seo_field_value( $post_type_details->seo_description, $post ) : '';
-        $post->seo_description = is_string( $seo_description ) ? $seo_description : '';
-        $post->seo_locale = get_locale();
-        $post->seo_site_name = devo_plain_text( get_bloginfo( 'name' ) );
-        $post->noindex = devo_noindex();
-        $post->schema = devo_get_schema( isset( $post_type_details->schema ) ? $post_type_details->schema : [], $post, $post_type_details );
+        foreach ( devo_seo_data( $post, $post_type_details ) as $seo_key => $seo_value ) {
+            $post->{ $seo_key } = $seo_value;
+        }
         $post->is_featured = (bool) devo_get_post_meta( $post->ID, 'featured_post', TRUE );
     }
     return $post;
+}
+
+/* SEO values for a post: title, description, image, absolute URL, locale,
+ * site name, robots and JSON-LD schema. Shared by the REST data and the
+ * server-rendered <head> (header.php), so the two always agree.
+ *
+ * Every value is plain text or a URL, unescaped. `title` is the bare SEO
+ * title; `seo_title` has the post type label appended, as the document title
+ * does. Expects $post->permalink when devo_api_custom_data() has set it. */
+function devo_seo_data( $post, $post_type_details = FALSE ) {
+    if ( $post_type_details === FALSE ) {
+        $post_type_details = devo_get_post_type_details( $post->post_type );
+    }
+    $permalink = isset( $post->permalink ) && is_string( $post->permalink ) ? $post->permalink : '/' . trim( devo_get_relative_permalink( $post->ID ), '/' ) . '/';
+    if ( $permalink === '//' ) {
+        $permalink = home_url( '/', 'relative' );
+    }
+    $post_type_label = isset( $post_type_details->post_type_display_name ) ? $post_type_details->post_type_display_name : '';
+    $title = isset( $post_type_details->seo_title ) && $post_type_details->seo_title ? devo_get_seo_field_value( $post_type_details->seo_title, $post ) : devo_plain_text( $post->post_title );
+    $title = is_string( $title ) ? $title : '';
+    $og_image = get_template_directory_uri() . '/public/images/og-image.png';
+    $image = isset( $post_type_details->seo_image ) && $post_type_details->seo_image ? devo_get_seo_field_value( $post_type_details->seo_image, $post ) : $og_image;
+    $description = isset( $post_type_details->seo_description ) && $post_type_details->seo_description ? devo_get_seo_field_value( $post_type_details->seo_description, $post ) : '';
+    return [
+        'seo_title_plain' => $title,
+        'seo_title' => strlen( $post_type_label ) && strlen( $title ) ? $title . ' - ' . $post_type_label : $title,
+        'seo_image' => is_array( $image ) && count( $image ) && isset( $image['cinema_600'] ) ? $image['cinema_600']['url'] : ( is_string( $image ) && strlen( $image ) ? $image : $og_image ),
+        // Absolute, for canonical and og:url
+        'seo_url' => devo_absolute_url( $permalink ),
+        'seo_description' => is_string( $description ) && ! devo_post_content_protected( $post ) ? $description : '',
+        'seo_locale' => get_locale(),
+        'seo_site_name' => devo_plain_text( get_bloginfo( 'name' ) ),
+        'noindex' => devo_noindex(),
+        'schema' => devo_get_schema( isset( $post_type_details->schema ) ? $post_type_details->schema : [], $post, $post_type_details ),
+    ];
 }
 
 // TRUE when $post has a password the visitor hasn't supplied, either through
