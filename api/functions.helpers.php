@@ -140,17 +140,24 @@ function devo_seo_data( $post, $post_type_details = FALSE ) {
     $og_image = get_template_directory_uri() . '/public/images/og-image.png';
     $image = isset( $post_type_details->seo_image ) && $post_type_details->seo_image ? devo_get_seo_field_value( $post_type_details->seo_image, $post ) : $og_image;
     $description = isset( $post_type_details->seo_description ) && $post_type_details->seo_description ? devo_get_seo_field_value( $post_type_details->seo_description, $post ) : '';
+    // A password-protected post's fields stay private until it's unlocked:
+    // no description, and schema without field values.
+    $protected = devo_post_content_protected( $post );
+    $schema_fields = isset( $post_type_details->schema ) && is_array( $post_type_details->schema ) ? $post_type_details->schema : [];
+    if ( $protected ) {
+        $schema_fields = array_intersect_key( $schema_fields, [ '@type' => TRUE ] );
+    }
     return [
         'seo_title_plain' => $title,
         'seo_title' => strlen( $post_type_label ) && strlen( $title ) ? $title . ' - ' . $post_type_label : $title,
         'seo_image' => is_array( $image ) && count( $image ) && isset( $image['cinema_600'] ) ? $image['cinema_600']['url'] : ( is_string( $image ) && strlen( $image ) ? $image : $og_image ),
         // Absolute, for canonical and og:url
         'seo_url' => devo_absolute_url( $permalink ),
-        'seo_description' => is_string( $description ) && ! devo_post_content_protected( $post ) ? $description : '',
+        'seo_description' => is_string( $description ) && ! $protected ? $description : '',
         'seo_locale' => get_locale(),
         'seo_site_name' => devo_plain_text( get_bloginfo( 'name' ) ),
         'noindex' => devo_noindex(),
-        'schema' => devo_get_schema( isset( $post_type_details->schema ) ? $post_type_details->schema : [], $post, $post_type_details ),
+        'schema' => devo_get_schema( $schema_fields, $post, $post_type_details ),
     ];
 }
 
@@ -1385,15 +1392,15 @@ function devo_plain_text( $value ) {
 
 // Retrieves and formats seo field value from options
 function devo_get_seo_field_value( $field_options, $data = new stdClass ) {
-    $has_options = ( is_string( $field_options ) && strpos( $field_options, '||' ) ) || ( is_array( $field_options ) && count( $field_options ) );
-    $fields = [];
-    if ( $has_options ) {
-        if ( is_string( $field_options ) ) {
-            $fields = explode( '||', $field_options );
-        } elseif ( is_array( $field_options ) ) {
-            $fields = $field_options;
-        }
-    } 
+    // One field ('SEO Description'), a fallback chain ('SEO Title||post_title')
+    // or an array of fields to join
+    if ( is_string( $field_options ) && strlen( $field_options ) ) {
+        $fields = explode( '||', $field_options );
+    } elseif ( is_array( $field_options ) ) {
+        $fields = $field_options;
+    } else {
+        $fields = [];
+    }
     foreach ( $fields as $field ) {
         // $field is a string (aka a single field)
         if ( is_string( $field ) ) {
