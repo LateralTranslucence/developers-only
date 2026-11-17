@@ -1199,10 +1199,28 @@ function devo_schema_formatter( $key, $value, $post ) {
             }
             break;
         default: 
-            $schema = addslashes( wp_strip_all_tags( $value, TRUE ) );
+            $schema = is_scalar( $value ) ? devo_plain_text( $value ) : '';
             break;
     }
     return $schema;
+}
+
+/* Turns stored field HTML into plain text: tags removed and entities decoded.
+ *
+ * Field values are saved through wp_kses_post(), which normalises a bare "&"
+ * to "&amp;". That's right for HTML, but text that ends up somewhere plain -
+ * a <title>, a meta description, JSON-LD, a post title - would show the
+ * entity. Decode it here, at the point of use, rather than when saving: a
+ * decode on save would also turn an escaped "&lt;script&gt;" back into a
+ * live tag. Tags are stripped again after decoding for the same reason. The
+ * result is plain text and must still be escaped for whatever context it is
+ * printed in. */
+function devo_plain_text( $value ) {
+    if ( ! is_scalar( $value ) ) {
+        return '';
+    }
+    $text = html_entity_decode( wp_strip_all_tags( (string) $value ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+    return trim( wp_strip_all_tags( $text ) );
 }
 
 // Retrieves and formats seo field value from options
@@ -1227,7 +1245,7 @@ function devo_get_seo_field_value( $field_options, $data = new stdClass ) {
                 } 
                 // String
                 elseif ( is_string( $data->{ $field } ) && strlen( $data->{ $field } ) ) {
-                    return wp_strip_all_tags( $data->{ $field } );
+                    return devo_plain_text( $data->{ $field } );
                 }
             } 
             // Meta field
@@ -1239,7 +1257,7 @@ function devo_get_seo_field_value( $field_options, $data = new stdClass ) {
                 }
                 // String
                 elseif ( is_string( $meta_value ) && strlen( $meta_value ) ) {
-                    return wp_strip_all_tags( $meta_value );
+                    return devo_plain_text( $meta_value );
                 }
             }
         } 
@@ -1254,8 +1272,8 @@ function devo_get_seo_field_value( $field_options, $data = new stdClass ) {
                         return $data->{ $field_part };
                     } 
                     // String
-                    elseif ( is_string( $data->{ $field } ) && strlen( $data->{ $field_part } ) ) {
-                        $return[] = wp_strip_all_tags( $data->{ $field_part } );
+                    elseif ( is_string( $data->{ $field_part } ) && strlen( $data->{ $field_part } ) ) {
+                        $return[] = devo_plain_text( $data->{ $field_part } );
                     }
                 } 
                 // Meta field?
@@ -1269,7 +1287,7 @@ function devo_get_seo_field_value( $field_options, $data = new stdClass ) {
                     }
                     // String
                     elseif ( is_string( $meta_value ) && strlen( $meta_value ) ) {
-                        $return[] = wp_strip_all_tags( $meta_value );
+                        $return[] = devo_plain_text( $meta_value );
                     }
                 }
             }

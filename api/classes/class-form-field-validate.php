@@ -467,7 +467,16 @@ class DO_Form_Field_Validate {
         }
     }
 
+    /* Filters HTML down to what post content allows.
+     *
+     * This used to run html_entity_decode() over the result, which undid kses:
+     * an escaped "&lt;script&gt;" came back out as a live <script>. The decode
+     * was there because kses normalises a bare "&" to "&amp;", which then
+     * showed up literally wherever a value is used as plain text. That is now
+     * handled where values are turned into text (devo_plain_text()); stored
+     * HTML keeps its entities, which every HTML consumer renders correctly.
+     * Values saved before this change are already decoded and still render. */
     private function clean_html( $string ) {
-        return html_entity_decode( wp_kses_post( $string ) );
+        return wp_kses_post( is_scalar( $string ) ? (string) $string : '' );
     }
 }

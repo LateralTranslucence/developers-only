@@ -1747,7 +1747,8 @@ abstract class DO_Custom_Post_Type {
                 if ( isset( $POST[ $field_name ] ) && strlen( $POST[ $field_name ] ) ) {
                     $validate = new DO_Form_Field_Validate( $field_type, $POST[ $field_name ] );
                     $sanitized = $validate->value;
-                    $value = strpos( $field_type, 'date' ) !== FALSE ? date( 'Y-m-d', $sanitized ) : $sanitized;
+                    // A title is plain text (see devo_plain_text())
+                    $value = strpos( $field_type, 'date' ) !== FALSE ? date( 'Y-m-d', $sanitized ) : devo_plain_text( $sanitized );
                     $title_array[] = $value;
                 }
             } else {
