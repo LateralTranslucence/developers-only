@@ -62,9 +62,9 @@ class DO_Menu_Custom_Fields {
 
             echo '<p class="description-wide">';
             if ( $description ) {
-                echo '<span class="red small">' . $description . '</span><br>';
+                echo '<span class="red small">' . wp_kses_post( $description ) . '</span><br>';
             }
-            echo '<label for="' . esc_attr( $key . '-' . $item_id ) . '">' . $label . '</label>';
+            echo '<label for="' . esc_attr( $key . '-' . $item_id ) . '">' . esc_html( $label ) . '</label>';
             echo $display->output;
             echo '</p>';
         }

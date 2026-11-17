@@ -219,7 +219,7 @@ class DO_Unused_Media {
                         <li><?php echo esc_html( get_the_title( $post_id ) ); ?> &mdash; <code><?php echo esc_html( wp_get_attachment_url( $post_id ) ); ?></code></li>
                     <?php endforeach; ?>
                 </ul>
-                <form action="<?php echo esc_url( admin_url( '/tools.php?page=devo_view_unused_media' ) ) ?>" method="post">
+                <form action="<?php echo esc_url( admin_url( 'tools.php?page=devo_view_unused_media' ) ) ?>" method="post">
                     <?php wp_nonce_field( 'devo_unused_media', 'devo_unused_media_nonce' ); ?>
                     <?php foreach ( $pending_delete as $post_id ) : ?>
                         <input type="hidden" name="delete_media[]" value="<?php echo esc_attr( $post_id ) ?>" />
@@ -227,7 +227,7 @@ class DO_Unused_Media {
                     <button type="submit" name="devo_unused_media_action" value="delete" class="button button-primary">
                         <?php esc_html_e( 'Yes, delete permanently', 'developers_only' ); ?>
                     </button>
-                    <a href="<?php echo esc_url( admin_url( '/tools.php?page=devo_view_unused_media' ) ) ?>" class="button"><?php esc_html_e( 'Cancel', 'developers_only' ); ?></a>
+                    <a href="<?php echo esc_url( admin_url( 'tools.php?page=devo_view_unused_media' ) ) ?>" class="button"><?php esc_html_e( 'Cancel', 'developers_only' ); ?></a>
                 </form>
             </div>
         <?php return;
@@ -265,11 +265,11 @@ class DO_Unused_Media {
                 <p>There is no unused media.</p>
             <?php else : ?>
                 <div id="devo-unused-media">
-                    <form action="<?php echo esc_url( admin_url( '/tools.php?page=devo_view_unused_media' ) ) ?>" method="post">
+                    <form action="<?php echo esc_url( admin_url( 'tools.php?page=devo_view_unused_media' ) ) ?>" method="post">
                         <?php wp_nonce_field( 'devo_unused_media', 'devo_unused_media_nonce' ); ?>
                         <button type="submit" name="devo_unused_media_action" value="confirm" class="button"><?php esc_html_e( 'Delete Selected', 'developers_only' ); ?></button>
                         <label for="unused-media-search">Search:</label> <input type="search" class="search" id="unused-media-search">
-                        <span id="unused-media-count"><?php echo count( $unused ) ?></span>
+                        <span id="unused-media-count"><?php echo (int) count( $unused ) ?></span>
                         <table border="0" width="100%" id="unused-media-table">
                             <thead>
                                 <tr>
@@ -282,11 +282,11 @@ class DO_Unused_Media {
                                 <?php $i = 0; ?>
                                 <?php foreach ( $unused as $media ) : ?>
                                     <tr <?php echo $i % 2 ? 'style="background-color:#fefefe;"' : '' ?>>
-                                        <td><?php echo $i + 1 ?></td>
-                                        <td><input type="checkbox" class="delete-media" name="delete_media[]" value="<?php echo $media->post_id ?>" /></td>
+                                        <td><?php echo (int) ( $i + 1 ) ?></td>
+                                        <td><input type="checkbox" class="delete-media" name="delete_media[]" value="<?php echo (int) $media->post_id ?>" /></td>
                                         <td class="media_url" style="text-align:left;">
-                                            <a href="<?php echo admin_url( '/post.php?post=' . $media->post_id . '&action=edit' ) ?>" target="_blank">
-                                                <?php echo $media->media_url ?>
+                                            <a href="<?php echo esc_url( get_edit_post_link( (int) $media->post_id ) ) ?>" target="_blank">
+                                                <?php echo esc_html( $media->media_url ) ?>
                                             </a>
                                         </td>
                                     </tr>

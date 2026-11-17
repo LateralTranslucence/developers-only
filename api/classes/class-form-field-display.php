@@ -79,7 +79,7 @@ class DO_Form_Field_Display {
         $this->field_name = $this->field_key . $this->brackets;
         
         $output = '';
-        $this->footnote = '<br><span class="footnote">' . $this->field_key . '</span>';
+        $this->footnote = '<br><span class="footnote">' . esc_html( $this->field_key ) . '</span>';
 
         // Arrays
         if ( $this->is_array ) {
@@ -105,9 +105,9 @@ class DO_Form_Field_Display {
     private function array() {
         $this->value = is_array( $this->value ) ? ( count( $this->value ) ? $this->value : [ '' ] ) : [ $this->value ];
         $array_output = '';
-        $array_output .= $this->limit ? '<span class="red small">Limit ' . $this->limit . '</span><br>' : '';
+        $array_output .= $this->limit ? '<span class="red small">Limit ' . (int) $this->limit . '</span><br>' : '';
         $array_output .= '<div class="array-wrapper">' . "\n";
-        $array_output .= $this->limit ? '<style>.' . $this->field_key . ' > div.post-meta-content > div.array-wrapper > div.array-fields-wrapper > .array-field-wrapper:nth-child(n+' . ( $this->limit + 1 ) . ') {opacity: .4;}</style>' :''; // +1 because 'new-array-field'
+        $array_output .= $this->limit ? '<style>.' . sanitize_html_class( $this->field_key ) . ' > div.post-meta-content > div.array-wrapper > div.array-fields-wrapper > .array-field-wrapper:nth-child(n+' . ( (int) $this->limit + 1 ) . ') {opacity: .4;}</style>' :''; // +1 because 'new-array-field'
         $array_output .= '<span class="new-array-field button"><span>' . __( '+ Add', 'developers_only' ) . '</span></span>' . "\n";
         $array_output .= '<div class="array-fields-wrapper">' . "\n";
         $i = isset( $this->settings['i'] ) ? $this->settings['i'] : 0;
@@ -126,7 +126,7 @@ class DO_Form_Field_Display {
             if ( $this->in_a_multi || ( $this->is_multi && $this->type !== 'multi' ) ) {
                 $subfield_settings['in_a_multi'] = TRUE;
             }
-            $array_output .= '<span class="array-field-wrapper' . ( $this->is_multi ? ' multi' : '' ) . ( $this->in_a_multi ? ' in-a-multi' : '' ) . '" data-i="' . $i . '">' . "\n";
+            $array_output .= '<span class="array-field-wrapper' . ( $this->is_multi ? ' multi' : '' ) . ( $this->in_a_multi ? ' in-a-multi' : '' ) . '" data-i="' . esc_attr( $i ) . '">' . "\n";
             $array_output .= '<span class="drag-handle"><span>Reorder</span></span>' . "\n";
             $array_field = new DO_Form_Field_Display( $this->type, $this->field_key, $this->field_options, $subfield_settings );
             $array_output .= $array_field->output . "\n";
@@ -194,7 +194,7 @@ class DO_Form_Field_Display {
     
     private function binary() {
         // checked( $checked, $current, $echo )
-        $output = '<input type="checkbox" name="' . $this->field_name  . '" id="' . $this->field_id . '" value="1" ' . checked( $this->value, 1, FALSE ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '> <label for="' . $this->field_id . '" class="checkbox-label">' . ( $this->label ? $this->label : __( 'True', 'developers_only' ) ) . '</label>';
+        $output = '<input type="checkbox" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" value="1" ' . checked( $this->value, 1, FALSE ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '> <label for="' . esc_attr( $this->field_id ) . '" class="checkbox-label">' . esc_html( $this->label ? $this->label : __( 'True', 'developers_only' ) ) . '</label>';
 
         return $output;
     }
@@ -202,17 +202,17 @@ class DO_Form_Field_Display {
     private function binary_select() {
         $css_attribute = $this->nested_array ? 'class' : 'id';
         // checked( $checked, $current, $echo )
-        $output = '<select name="' . $this->field_name . '" ' . $css_attribute . '="' . $this->field_id . '"' . ( $this->disabled ? ' disabled="disabled" class="devo-disabled"' : '' ) . '>';
-        $output .= '<option value="">' . ( $this->label ? $this->label : __( 'Select', 'developers_only' ) ) . '</option>';
-        $output .=  '<option value="1" ' . selected( 1, $this->value, FALSE ) . '>' . ( $this->in_a_multi ? $this->label . ' - ' : '' ) . __( 'True', 'developers_only' ) . '</option>';
-        $output .=  '<option value="0" ' . selected( 0, $this->value, FALSE ) . '>' . ( $this->in_a_multi ? $this->label . ' - ' : '' ) . __( 'False', 'developers_only' ) . '</option>';
+        $output = '<select name="' . esc_attr( $this->field_name ) . '" ' . $css_attribute . '="' . esc_attr( $this->field_id ) . '"' . ( $this->disabled ? ' disabled="disabled" class="devo-disabled"' : '' ) . '>';
+        $output .= '<option value="">' . esc_html( $this->label ? $this->label : __( 'Select', 'developers_only' ) ) . '</option>';
+        $output .=  '<option value="1" ' . selected( 1, $this->value, FALSE ) . '>' . esc_html( ( $this->in_a_multi ? $this->label . ' - ' : '' ) . __( 'True', 'developers_only' ) ) . '</option>';
+        $output .=  '<option value="0" ' . selected( 0, $this->value, FALSE ) . '>' . esc_html( ( $this->in_a_multi ? $this->label . ' - ' : '' ) . __( 'False', 'developers_only' ) ) . '</option>';
         $output .= '</select>';
 
         return $output;
     }
     
     private function button() {
-        $output = '<button name="' . $this->field_name  . '" id="' . $this->field_id . '" value="' . ( isset( $this->field_options['value'] ) ? $this->field_options['value'] : '' ) . '" ' . ( $this->disabled ? ' disabled="disabled"' : '' ) . ' class="button blue"><span>' . ( $this->label ? $this->label : __( 'Submit', 'developers_only' ) ) . '</span></button>';
+        $output = '<button name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" value="' . esc_attr( isset( $this->field_options['value'] ) ? $this->field_options['value'] : '' ) . '" ' . ( $this->disabled ? ' disabled="disabled"' : '' ) . ' class="button blue"><span>' . esc_html( $this->label ? $this->label : __( 'Submit', 'developers_only' ) ) . '</span></button>';
 
         return $output;
     }
@@ -259,8 +259,8 @@ class DO_Form_Field_Display {
             if ( $type == 'checkbox' && count( $this->field_options ) > 20 ) {
                 $output .= '<span 
                                 class="devo-select-all button" 
-                                data-for="' . $this->field_name . '" 
-                                data-deselect-text="' . __( 'Deselect All', 'developers_only' ) . '">' . __( 'Select All', 'developers_only' ) . '</span>';
+                                data-for="' . esc_attr( $this->field_name ) . '" 
+                                data-deselect-text="' . esc_attr__( 'Deselect All', 'developers_only' ) . '">' . esc_html__( 'Select All', 'developers_only' ) . '</span>';
             }
             // Put in columns if there are a lot of them...
             if ( count( $this->field_options ) > 10 ) {
@@ -278,16 +278,16 @@ class DO_Form_Field_Display {
                     $output .= '<div class="multi-field">';
                     $output .= '<input 
                                     class="widefat' . ( $toggle && $i == 0 && ! count( $this->value ) ? ' toggle-left' : ( $toggle && $i == 1 && ! count( $this->value ) ? ' toggle-right' : '' ) ) . '" 
-                                    type="' . $type . '" 
-                                    name="' . $this->field_name . '" 
-                                    id="' . $this->field_id . '_' . strtolower( str_replace( ' ', '-', $option_value ) ) . '" 
+                                    type="' . esc_attr( $type ) . '" 
+                                    name="' . esc_attr( $this->field_name ) . '" 
+                                    id="' . esc_attr( $this->field_id . '_' . strtolower( str_replace( ' ', '-', $option_value ) ) ) . '" 
                                     value="' . esc_attr( $option_value ) . '" ' . 
                                     checked( ( $toggle && $i == 0 && ! count( $this->value ) ? TRUE : in_array( $option_value, ( is_array( $this->value ) ? $this->value : [ $this->value ] ) ) ), TRUE, FALSE ) . 
                                     ( $this->disabled ? ' disabled="disabled"' : '' ) . '> 
                                     <label 
-                                        for="' . $this->field_id . '_' . strtolower( str_replace( ' ', '-', $option_value ) ) . '" 
-                                        class="' . $type . '-label">' . $option_label . '</label>';
-                    $output .=  $option_description ? '<span class="field-description">' . $option_description . '</span>' : '' ;
+                                        for="' . esc_attr( $this->field_id . '_' . strtolower( str_replace( ' ', '-', $option_value ) ) ) . '" 
+                                        class="' . esc_attr( $type ) . '-label">' . esc_html( $option_label ) . '</label>';
+                    $output .=  $option_description ? '<span class="field-description">' . wp_kses_post( $option_description ) . '</span>' : '' ;
                     $output .= '</div>';
                     $i++;
                 }
@@ -308,13 +308,13 @@ class DO_Form_Field_Display {
                     }
                 }
                 $output .= '<label 
-                                for="' . $this->field_id . '_other_text" 
-                                class="' . $type . '-label">' . $other_text . '</label>
+                                for="' . esc_attr( $this->field_id ) . '_other_text" 
+                                class="' . esc_attr( $type ) . '-label">' . esc_html( $other_text ) . '</label>
                                 <input 
                                     class="widefat devo-other-text" 
                                     type="text" 
-                                    name="' . $this->field_name . '" 
-                                    id="' . $this->field_id . '_other_text' . '" 
+                                    name="' . esc_attr( $this->field_name ) . '" 
+                                    id="' . esc_attr( $this->field_id ) . '_other_text" 
                                     value="' . esc_attr( $other_value ) . '" '. 
                                     ( $this->disabled ? ' disabled="disabled"' : '' ) . '>';
                 $output .= '</div>';
@@ -350,14 +350,14 @@ class DO_Form_Field_Display {
     private function color() {
         $default_color = isset( $this->field_options['default_color'] ) ? $this->field_options['default_color'] : '';
         $output = '<input
-                        type="text" id="' . $this->field_id . '"
-                        name="' . $this->field_name . '"
+                        type="text" id="' . esc_attr( $this->field_id ) . '"
+                        name="' . esc_attr( $this->field_name ) . '"
                         value="' . esc_attr( $this->value ) . '"' .
-                        ( $this->label ? 'placeholder="' . esc_attr( $this->label ) . '"' : '' ) . '
+                        ( $this->label ? ' placeholder="' . esc_attr( $this->label ) . '"' : '' ) . '
                         class="devo-color' . ( $this->disabled ? ' devo-disabled' : '' ) . '"' .
                         ( $this->disabled ? ' disabled="disabled"' : '' ) .
                         ( strlen( $default_color ) ? ' data-default-color="' . esc_attr( $default_color ) . '"' : '' ) . '>';
-        $output .= '<div class="picker" id="' . $this->field_id . '-picker"></div>';
+        $output .= '<div class="picker" id="' . esc_attr( $this->field_id ) . '-picker"></div>';
 
         return $output;
     }
@@ -402,10 +402,10 @@ class DO_Form_Field_Display {
     private function date() {
         $output = '<input 
                         class="widefat devo-date-picker" 
-                        placeholder="' . ( $this->label ? $this->label . ' - ' : '' ) . 'Month Day, Year" 
+                        placeholder="' . esc_attr( ( $this->label ? $this->label . ' - ' : '' ) . 'Month Day, Year' ) . '" 
                         type="text" 
-                        name="' . $this->field_name . '" 
-                        id="' . $this->field_id . '" 
+                        name="' . esc_attr( $this->field_name ) . '" 
+                        id="' . esc_attr( $this->field_id ) . '" 
                         value="' . esc_attr( strlen( $this->value ) ? devo_utc_to_timezone( $this->value, FALSE, 'Y-m-d' ) : '' ) . '" 
                         size="60"' . 
                         ( $this->disabled ? ' disabled="disabled"' : '' ) . '>';
@@ -416,10 +416,10 @@ class DO_Form_Field_Display {
     private function date_time() {
         $output = '<input 
                     class="widefat devo-date-time-picker" 
-                    placeholder="' . ( $this->label ? $this->label . ' - ' : '' ) . 'YYYY-MM-DD" 
+                    placeholder="' . esc_attr( ( $this->label ? $this->label . ' - ' : '' ) . 'YYYY-MM-DD' ) . '" 
                     type="text" 
-                    name="' . $this->field_name . '" 
-                    id="' . $this->field_id . '" 
+                    name="' . esc_attr( $this->field_name ) . '" 
+                    id="' . esc_attr( $this->field_id ) . '" 
                     value="' . esc_attr( strlen( $this->value ) ? devo_utc_to_timezone( $this->value, FALSE, 'Y-m-d g:i A' ) : '' ) . '" 
                     size="60"' . 
                     ( $this->disabled ? ' disabled="disabled"' : '' ) . '>';
@@ -433,7 +433,7 @@ class DO_Form_Field_Display {
         $timezone = isset( $this->value['timezone'] ) ? $this->value['timezone'] : FALSE;
         $output = '<span class="multi-field-wrapper">';
             $output .= '<span>';
-                $output .= '<input class="widefat devo-date-time-picker" placeholder="' . ( $this->label ? $this->label . ' - ' : '' ) . 'YYYY-MM-DD" type="text" name="' . $this->field_name . '[date_time]" id="' . $this->field_id . '" value="' . esc_attr( $timestamp ? devo_utc_to_timezone( $timestamp, $timezone, 'Y-m-d g:i A' ) : '' ) . '" size="60"' . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>';
+                $output .= '<input class="widefat devo-date-time-picker" placeholder="' . esc_attr( ( $this->label ? $this->label . ' - ' : '' ) . 'YYYY-MM-DD' ) . '" type="text" name="' . esc_attr( $this->field_name . '[date_time]' ) . '" id="' . esc_attr( $this->field_id ) . '" value="' . esc_attr( $timestamp ? devo_utc_to_timezone( $timestamp, $timezone, 'Y-m-d g:i A' ) : '' ) . '" size="60"' . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>';
             $output .= '</span>';
             $output .= '<span>';
                 $select_field = new DO_Form_Field_Display( 'select', $this->field_name, $timezones, [ 'is_multi' => TRUE, 'label' => __( 'Timezone', 'developers_only' ), 'in_a_multi' => TRUE, 'value_source' => $timezone ] );
@@ -449,7 +449,7 @@ class DO_Form_Field_Display {
     }
     
     private function disabled() {
-        $output = '<input type="hidden" name="' . $this->field_name . '" id="' . $this->field_id . '" value="'. esc_attr( $this->value ) .'">';
+        $output = '<input type="hidden" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" value="'. esc_attr( $this->value ) .'">';
         $output .= '<input type="text" disabled="disabled" value="' . esc_attr( $this->value ) . '"> (Set automatically)';
         
         return $output;
@@ -484,7 +484,7 @@ class DO_Form_Field_Display {
     }
     
     private function hidden() {
-        $output = '<input type="hidden" name="' . $this->field_name . '" id="' . $this->field_id . '" value="'. esc_attr( $this->value ) .'">';
+        $output = '<input type="hidden" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" value="'. esc_attr( $this->value ) .'">';
         
         return $output;
     }
@@ -494,19 +494,19 @@ class DO_Form_Field_Display {
     }
     
     private function images() {
-        $output = '<div class="gallery-wrapper ' . $this->type . '">';
-        $output .= '<span class="media-upload-button-wrapper"><a href="#" class="media-upload-button-gallery button" name="' . $this->field_name . '"><span>' . __( 'Add Media', 'developers_only' ) . '</span></a><br><br></span>';
+        $output = '<div class="gallery-wrapper ' . esc_attr( $this->type ) . '">';
+        $output .= '<span class="media-upload-button-wrapper"><a href="#" class="media-upload-button-gallery button" name="' . esc_attr( $this->field_name ) . '"><span>' . esc_html__( 'Add Media', 'developers_only' ) . '</span></a><br><br></span>';
         $output .= '<span class="previews">';
-        if ( strlen( $this->value ) ) {
-            $images = $this->value;
+        if ( is_array( $this->value ) && count( $this->value ) ) {
+            $images = array_values( $this->value );
             for ( $i = 0; $i < count( $images ); $i++ ) {
-                if ( strlen( $images[ $i ] ) ) {
+                if ( is_scalar( $images[ $i ] ) && strlen( (string) $images[ $i ] ) ) {
                     $image = wp_get_attachment_image_src( $images[ $i ], 'thumbnail' );
                     if ( $image ) {
                         $output .= '<span class="media-upload-preview-wrapper">';
-                        $output .= '<img src="' . $image[0] . '" height="' . $image[2] . '" class="media-upload-preview">';
+                        $output .= '<img src="' . esc_url( $image[0] ) . '" height="' . (int) $image[2] . '" class="media-upload-preview" alt="">';
                     }
-                    $output .= '<input type="hidden" class="media-upload-field" name="' . $this->field_key . $this->brackets . '[' . $i . ']" id="'. $this->field_id .'[' . $i . ']" value="'. esc_attr( $images[ $i ] ) .'">';
+                    $output .= '<input type="hidden" class="media-upload-field" name="' . esc_attr( $this->field_key . $this->brackets . '[' . $i . ']' ) . '" id="' . esc_attr( $this->field_id . '[' . $i . ']' ) . '" value="'. esc_attr( $images[ $i ] ) .'">';
                     if ( $image ) {
                         $output .= '</span>';
                     }
@@ -535,8 +535,8 @@ class DO_Form_Field_Display {
         if ( isset( $this->field_options['options'] ) ) {
             $output = $this->disabled ? '<div class="devo-disabled">' : '';
             foreach ( $this->field_options['options'] as $i => $option_value ) {
-                $output .= '<label for="' . $this->field_id . '_' . $i . '" class="image-select-wrapper' . ( in_array( $option_value, $this->value ) ? ' selected' : '' ) . '" class="radio-label"><img src="' . $option_value . '"></label>';
-                $output .= '<input class="hidden image-select" type="radio" name="' . $this->field_name . '" id="' . $this->field_id . '_' . $i . '" value="' . esc_attr( $option_value ) . '" '. checked( in_array( $option_value, $this->value ), TRUE, FALSE ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>';
+                $output .= '<label for="' . esc_attr( $this->field_id . '_' . $i ) . '" class="image-select-wrapper' . ( in_array( $option_value, (array) $this->value ) ? ' selected' : '' ) . '"><img src="' . esc_url( $option_value ) . '" alt=""></label>';
+                $output .= '<input class="hidden image-select" type="radio" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id . '_' . $i ) . '" value="' . esc_attr( $option_value ) . '" '. checked( in_array( $option_value, (array) $this->value ), TRUE, FALSE ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>';
             }
             $output .= $this->disabled ? '</div>' : '';
         }
@@ -598,7 +598,7 @@ class DO_Form_Field_Display {
         $answers = $this->field_options['answers'];
         $output = '';
         if ( $heading ) {
-            $output .= '<b class="devo-matrix-heading">' . $heading . '</b>';
+            $output .= '<b class="devo-matrix-heading">' . esc_html( $heading ) . '</b>';
         }
         $output .= '<table class="devo-matrix" width="100%" border="0" cell-padding="0" cell-spacing="0">';
         $output .= '<thead>';
@@ -606,7 +606,7 @@ class DO_Form_Field_Display {
         $output .= '<th></th>';
         foreach ( $answers as $answer ) {
             $answer_label = isset( $answer['label'] ) ? $answer['label'] : $answer;
-            $output .= '<th class="devo-matrix-answer" scope="col">' . $answer_label . '</th>';
+            $output .= '<th class="devo-matrix-answer" scope="col">' . esc_html( $answer_label ) . '</th>';
         }
         $output .= '</tr>';
         $output .= '</thead>';
@@ -616,13 +616,13 @@ class DO_Form_Field_Display {
             $output .= '<tr>';
             $question_label = isset( $question['label'] ) ? $question['label'] : $question;
             $question_value = isset( $question['value'] ) ? $question['value'] : sanitize_title_with_dashes( $question );
-            $output .= '<th class="devo-matrix-question" scope="row">' . $question_label . '</th>';
-            $output .= '<input type="hidden" name="' . $this->field_key . '[' . $question_value . ']' . $this->brackets .'" value="">';
+            $output .= '<th class="devo-matrix-question" scope="row">' . esc_html( $question_label ) . '</th>';
+            $output .= '<input type="hidden" name="' . esc_attr( $this->field_key . '[' . $question_value . ']' . $this->brackets ) . '" value="">';
             foreach ( $answers as $answer ) {
-                $output .= '<td data-value="' . $answer . '">';
                 $answer_label = isset( $answer['label'] ) ? $answer['label'] : $answer;
                 $answer_value = isset( $answer['value'] ) ? $answer['value'] : sanitize_title_with_dashes( $answer );
-                $output .= '<input class="widefat" type="radio" name="' . $this->field_key . '[' . $question_value . ']' . $this->brackets .'" id="' . $this->field_id . '_' . $question_value . '_' . $answer_value . '" value="' . esc_attr( $answer_label ) . '" '. checked( ( isset( $this->value[ $i ] ) && $this->value[ $i ] == $answer_label ), TRUE, FALSE ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>';
+                $output .= '<td data-value="' . esc_attr( $answer_value ) . '">';
+                $output .= '<input class="widefat" type="radio" name="' . esc_attr( $this->field_key . '[' . $question_value . ']' . $this->brackets ) . '" id="' . esc_attr( $this->field_id . '_' . $question_value . '_' . $answer_value ) . '" value="' . esc_attr( $answer_label ) . '" '. checked( ( isset( $this->value[ $i ] ) && $this->value[ $i ] == $answer_label ), TRUE, FALSE ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>';
                 $output .= '</td>';
             }
             $output .= '</tr>';
@@ -635,11 +635,11 @@ class DO_Form_Field_Display {
     }
 
     private function media( $is_icon = FALSE ) {
-        $output = '<input class="media-upload-field ' . $this->type . '" type="text" name="' . $this->field_name . '" id="'. $this->field_id .'"  value="'. esc_attr( $this->value ) .'" size="100"' . ( $this->label ? ' placeholder="' . $this->label . '"' : '' ) . '><a href="#" class="media-upload-button-image button' . ( $is_icon ? ' icon' : '' ) . '"><span>' . __( 'Add Media', 'developers_only' ) . '</span></a>';
-        if ( strlen( $this->value ) && $this->type == 'media' ) {
+        $output = '<input class="media-upload-field ' . esc_attr( $this->type ) . '" type="text" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '"  value="'. esc_attr( $this->value ) .'" size="100"' . ( $this->label ? ' placeholder="' . esc_attr( $this->label ) . '"' : '' ) . '><a href="#" class="media-upload-button-image button' . ( $is_icon ? ' icon' : '' ) . '"><span>' . esc_html__( 'Add Media', 'developers_only' ) . '</span></a>';
+        if ( is_string( $this->value ) && strlen( $this->value ) && $this->type == 'media' ) {
             $output .= '<br>';
             $output .= '<span class="media-upload-preview-wrapper">';
-            $output .= '<img src="' . $this->value . '" class="media-upload-preview">';
+            $output .= '<img src="' . esc_url( $this->value ) . '" class="media-upload-preview" alt="">';
             $output .= '</span>';
         }
 
@@ -662,7 +662,7 @@ class DO_Form_Field_Display {
             $this->settings['in_a_multi'] = TRUE;
             $this->settings['brackets'] = $this->brackets;
             $subfield_field = new DO_Form_Field_Display( $subfield_type, $this->field_key, $subfield_options, $this->settings );
-            $output .= '<span class="' . strtolower( str_replace( ' ', '-', $subfield_title ) ) . '-label '. $subfield_type . '-type ">' . $subfield_field->output . '</span>';
+            $output .= '<span class="' . esc_attr( strtolower( str_replace( ' ', '-', $subfield_title ) ) . '-label ' . ( is_string( $subfield_type ) ? $subfield_type : '' ) . '-type' ) . '">' . $subfield_field->output . '</span>';
         }
         $output .= '</span>';
         
@@ -670,7 +670,7 @@ class DO_Form_Field_Display {
     }
     
     private function number() {
-        $output = '<input class="widefat' . ( $this->disabled ? ' devo-disabled' : '' ) . '" type="text" name="' . $this->field_name . '" id="' . $this->field_id . '" value="' . esc_attr( $this->value ) . '" size="60"' . ( $this->disabled ? ' disabled="disabled"' : '' ) . ' placeholder="' . $this->label . '">';
+        $output = '<input class="widefat' . ( $this->disabled ? ' devo-disabled' : '' ) . '" type="text" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" value="' . esc_attr( $this->value ) . '" size="60"' . ( $this->disabled ? ' disabled="disabled"' : '' ) . ' placeholder="' . esc_attr( $this->label ) . '">';
         
         return $output;
     }
@@ -719,29 +719,32 @@ class DO_Form_Field_Display {
         $this->value = $this->value && $this->value > $max ? $max : $this->value;
         $output = '<div class="range-slider-container">';
             // Minus Button
-            $output .= '<button aria-label="' . __( 'Minus', 'developers_only' ) . '" class="range-slider-minus' . ( $this->value <= $min ? ' devo-disabled' : '' ) . '"' . ( $this->value <= $min ? ' disabled="disabled"' : '' ) . '><span>' . __( 'Minus', 'developers_only' ) . '</span></button>';
+            $output .= '<button aria-label="' . esc_attr__( 'Minus', 'developers_only' ) . '" class="range-slider-minus' . ( $this->value <= $min ? ' devo-disabled' : '' ) . '"' . ( $this->value <= $min ? ' disabled="disabled"' : '' ) . '><span>' . __( 'Minus', 'developers_only' ) . '</span></button>';
             // Slider (UI only)
-            $output .= '<input class="widefat range-slider' . ( $this->disabled ? ' devo-disabled' : '' ) . '" type="range" name="' . $this->field_name . '" id="' . $this->field_id . '" value="' . esc_attr( $this->value ) . '" min="' . $min . '" max="' . $max . '" step="' . $step . '"' . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>';
+            $output .= '<input class="widefat range-slider' . ( $this->disabled ? ' devo-disabled' : '' ) . '" type="range" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" value="' . esc_attr( $this->value ) . '" min="' . esc_attr( $min ) . '" max="' . esc_attr( $max ) . '" step="' . esc_attr( $step ) . '"' . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>';
             // Plus Button
-            $output .= '<button aria-label="' . __( 'Plus', 'developers_only' ) . '" class="range-slider-plus' . ( $this->value >= $max ? ' devo-disabled' : '' ) . '"' . ( $this->value >= $max ? ' disabled="disabled"' : '' ) . '><span>' . __( 'Plus', 'developers_only' ) . '</span></button>';
+            $output .= '<button aria-label="' . esc_attr__( 'Plus', 'developers_only' ) . '" class="range-slider-plus' . ( $this->value >= $max ? ' devo-disabled' : '' ) . '"' . ( $this->value >= $max ? ' disabled="disabled"' : '' ) . '><span>' . __( 'Plus', 'developers_only' ) . '</span></button>';
             // Value Display Field
-            $output .= '<input class="widefat range-slider-display-value" type="text" name="' . $this->field_name . '-display-value" id="' . $this->field_id . '-display-value" value="' . esc_attr( $this->value ) . '" disabled="disabled" placeholder="' . $this->label . '">';
+            $output .= '<input class="widefat range-slider-display-value" type="text" name="' . esc_attr( $this->field_name . '-display-value' ) . '" id="' . esc_attr( $this->field_id . '-display-value' ) . '" value="' . esc_attr( $this->value ) . '" disabled="disabled" placeholder="' . esc_attr( $this->label ) . '">';
             // Value Field (hidden, this is what actually gets saved)
-            //$output .= '<input class="range-slider-display-value" type="hidden" name="' . $this->field_name . '" id="' . $this->field_id . '" value="' . esc_attr( $this->value ) . '" autocomplete="off">';
+            //$output .= '<input class="range-slider-display-value" type="hidden" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" value="' . esc_attr( $this->value ) . '" autocomplete="off">';
         $output .= '</div>';
 
         return $output;
     }
     
     private function read_only() {
+        // Read-only values can come from anonymous visitors (a form
+        // submission's stored form ID), so every path out is escaped.
+        $value = is_scalar( $this->value ) ? (string) $this->value : wp_json_encode( $this->value );
         $binary = $this->value === '1' || $this->value === '0' || $this->value === TRUE || $this->value === FALSE;
-        $email = is_email( $this->value );
-        $link = strpos( $this->value, 'http' ) === 0;
-        $output = '<textarea name="' . $this->field_name . '" id="' . $this->field_id . '" style="display: none">'. $this->value .'</textarea>';
+        $email = is_email( $value );
+        $link = strpos( $value, 'http' ) === 0;
+        $output = '<textarea name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" style="display: none">' . esc_textarea( $value ) . '</textarea>';
         if ( $link || $email ) {
-            $output .= '<a href="' . ( $email ? 'mailto:' : '' ) . $this->value . '" target="_blank">';
+            $output .= '<a href="' . esc_url( ( $email ? 'mailto:' : '' ) . $value ) . '" target="_blank" rel="noopener noreferrer">';
         }
-        $output .= $binary ? __( (bool) $this->value ? 'True' : 'False', 'developers_only' ) : esc_attr( $this->value );
+        $output .= $binary ? ( (bool) $this->value ? esc_html__( 'True', 'developers_only' ) : esc_html__( 'False', 'developers_only' ) ) : esc_html( $value );
         if ( $link || $email ) {
             $output .= '</a>';
         }
@@ -751,12 +754,14 @@ class DO_Form_Field_Display {
     
     private function read_only_json() {
         $value = is_string( $this->value ) ? json_decode( $this->value ) : $this->value;
-        $output = '<textarea name="' . $this->field_name . '" id="' . $this->field_id . '" style="display: none">' . json_encode( $value ) . '</textarea>';
+        $output = '<textarea name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" style="display: none">' . esc_textarea( (string) wp_json_encode( $value ) ) . '</textarea>';
         if ( count( (array) $value ) ) {
             $output .= '<table class="read-only-json" cellpadding="0" cellspacing="0" border="0">';
             foreach ( (array) $value as $data_label => $data_value ) {
+                // Submitted by anonymous visitors: escape both columns.
+                $data_value = is_scalar( $data_value ) ? (string) $data_value : wp_json_encode( $data_value );
                 $output .= '<tr>';
-                $output .= '<th scope="row">' . $data_label . '</th><td>' . $data_value . '</td>';
+                $output .= '<th scope="row">' . esc_html( $data_label ) . '</th><td>' . esc_html( $data_value ) . '</td>';
                 $output .= '</tr>';
             }
             $output .= '</table>';
@@ -773,7 +778,7 @@ class DO_Form_Field_Display {
                 $option_label = isset( $option['label'] ) ? $option['label'] : $option;
                 $option_value = isset( $option['value'] ) ? $option['value'] : $i;
                 $output .= '<div class="devo-scale-item">';
-                $output .= '<input class="widefat" type="radio" name="' . $this->field_name . '" id="' . $this->field_id . '_' . strtolower( str_replace( ' ', '-', $option_value ) ) . '" value="' . esc_attr( $option_value ) . '" ' . checked( $option_value, $this->value, FALSE ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '> <label for="' . $this->field_id . '_' . strtolower( str_replace( ' ', '-', $option_value ) ) . '" class="radio-label">' . $option_label . '</label>';
+                $output .= '<input class="widefat" type="radio" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id . '_' . strtolower( str_replace( ' ', '-', $option_value ) ) ) . '" value="' . esc_attr( $option_value ) . '" ' . checked( $option_value, $this->value, FALSE ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '> <label for="' . esc_attr( $this->field_id . '_' . strtolower( str_replace( ' ', '-', $option_value ) ) ) . '" class="radio-label">' . esc_html( $option_label ) . '</label>';
                 $output .= '</div>';
                 $i++;
             }
@@ -791,14 +796,14 @@ class DO_Form_Field_Display {
         //devo_var_dump($this->field_options);
         if ( is_array( $this->field_options ) && count( $this->field_options ) ) {
             if ( $is_select_multiple ) {
-                $output .= '<span class="footnote">' . __( 'Hold cmd or ctrl to select multiple', 'developers_only' ) . '</span><br>';
+                $output .= '<span class="footnote">' . esc_html__( 'Hold cmd or ctrl to select multiple', 'developers_only' ) . '</span><br>';
             }
-            $output .= '<select name="' . $this->field_name . ( $is_select_multiple ? '[]' : '' ) . '" ' . $css_attribute . '="' . $this->field_id . '"' . ( $this->disabled ? ' disabled="disabled" class="devo-disabled"' : '' ) . ( $is_select_multiple ? ' multiple' : '' ) . '>';
-            $output .= '<option value="">' . ( $this->label ? $this->label : __( 'Select', 'developers_only' ) ) . '</option>';
+            $output .= '<select name="' . esc_attr( $this->field_name . ( $is_select_multiple ? '[]' : '' ) ) . '" ' . $css_attribute . '="' . esc_attr( $this->field_id ) . '"' . ( $this->disabled ? ' disabled="disabled" class="devo-disabled"' : '' ) . ( $is_select_multiple ? ' multiple' : '' ) . '>';
+            $output .= '<option value="">' . esc_html( $this->label ? $this->label : __( 'Select', 'developers_only' ) ) . '</option>';
             foreach ( $this->field_options as $option ) {
                 $option_label = isset( $option['label'] ) ? $option['label'] : $option;
                 $option_value = isset( $option['value'] ) ? $option['value'] : $option;
-                $output .=  '<option value="' . esc_attr( $option_value ) . '" ' . ( $is_select_multiple ? ( in_array( $option_value, ( is_array( $this->value ) ? $this->value : [ $this->value ] ) ) ? ' selected="selected"' : '' ) : selected( $option_value, $this->value, FALSE ) ) . '>' . ( $this->in_a_multi ? $this->label . ' - ' : '' ) . $option_label . '</option>';
+                $output .=  '<option value="' . esc_attr( $option_value ) . '" ' . ( $is_select_multiple ? ( in_array( $option_value, ( is_array( $this->value ) ? $this->value : [ $this->value ] ) ) ? ' selected="selected"' : '' ) : selected( $option_value, $this->value, FALSE ) ) . '>' . esc_html( ( $this->in_a_multi ? $this->label . ' - ' : '' ) . $option_label ) . '</option>';
             }
             $output .= '</select>';
         }
@@ -816,12 +821,12 @@ class DO_Form_Field_Display {
     
     private function state() {
         include( locate_template( 'api/fields/states.php' ) );
-        $output = '<select name="' . $this->field_name . '" id="' . $this->field_id . '"' . ( $this->disabled ? ' disabled="disabled" class="devo-disabled"' : '' ) . '>';
-        $output .= '<option value="">' . ( $this->label ? $this->label : __( 'Select a State', 'developers_only' ) ) . '</option>';
+        $output = '<select name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '"' . ( $this->disabled ? ' disabled="disabled" class="devo-disabled"' : '' ) . '>';
+        $output .= '<option value="">' . esc_html( $this->label ? $this->label : __( 'Select a State', 'developers_only' ) ) . '</option>';
         foreach ( $states as $state_abrv => $state ) {
             $option_label = $state;
             $option_value = $state_abrv;
-            $output .=  '<option value="' . esc_attr( $option_value ) . '" ' . selected( $option_value, $this->value, FALSE ) . '>' . $option_label . '</option>';
+            $output .=  '<option value="' . esc_attr( $option_value ) . '" ' . selected( $option_value, $this->value, FALSE ) . '>' . esc_html( $option_label ) . '</option>';
         }
         $output .= '</select>';
 
@@ -844,13 +849,13 @@ class DO_Form_Field_Display {
     }
 
     private function text() {
-        $output = '<input class="widefat' . ( $this->disabled ? ' devo-disabled' : '' ) . '" type="text" name="' . $this->field_name . '" id="' . $this->field_id . '" value="' . esc_attr( $this->value ) . '" size="60"' . ( $this->disabled ? ' disabled="disabled"' : '' ) . ' placeholder="' . $this->label . '">';
+        $output = '<input class="widefat' . ( $this->disabled ? ' devo-disabled' : '' ) . '" type="text" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" value="' . esc_attr( $this->value ) . '" size="60"' . ( $this->disabled ? ' disabled="disabled"' : '' ) . ' placeholder="' . esc_attr( $this->label ) . '">';
 
         return $output;
     }
     
     private function textarea() {
-        $output = '<textarea class="widefat type-' . $this->type . '" name="' . $this->field_name . '" id="' . $this->field_id . '" size="60" rows="5"' . ( $this->label ? ' placeholder="' . $this->label . '"' : '' ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>' . stripslashes( $this->value ) . '</textarea>';
+        $output = '<textarea class="widefat type-' . esc_attr( $this->type ) . '" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" size="60" rows="5"' . ( $this->label ? ' placeholder="' . esc_attr( $this->label ) . '"' : '' ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>' . esc_textarea( is_string( $this->value ) ? stripslashes( $this->value ) : '' ) . '</textarea>';
 
         return $output;
     }
@@ -897,12 +902,12 @@ class DO_Form_Field_Display {
     private function year_select() {
         include( locate_template( 'api/fields/years.php' ) );
         $output = '<span class="multi-label"></span>';
-        $output .= '<select name="' . $this->field_name . '" id="' . $this->field_id . '"' . ( $this->disabled ? ' disabled="disabled" class="devo-disabled"' : '' ) . '>';
-        $output .= '<option value="">' . ( $this->label ? $this->label : __( 'Select a Year', 'developers_only' ) ) . '</option>';
+        $output .= '<select name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '"' . ( $this->disabled ? ' disabled="disabled" class="devo-disabled"' : '' ) . '>';
+        $output .= '<option value="">' . esc_html( $this->label ? $this->label : __( 'Select a Year', 'developers_only' ) ) . '</option>';
         foreach ( $years as $year ) {
             $option_label = $year;
             $option_value = $year;
-            $output .=  '<option value="' . esc_attr( $option_value ) . '" ' . selected( $option_value, $this->value, FALSE ) . '>' . $option_label . '</option>';
+            $output .=  '<option value="' . esc_attr( $option_value ) . '" ' . selected( $option_value, $this->value, FALSE ) . '>' . esc_html( $option_label ) . '</option>';
         }
         $output .= '</select>';
 
@@ -975,11 +980,12 @@ class DO_Form_Field_Display {
         $output = '<div class="twoColumnTbl">';
         foreach ( $distribute as $column_num => $column ) {
             $output .= '<div class="column' . ( $column_num + 1 ) . '">';
-            $output .= '<ul class="' . $field_key . '-' . $field_type . '">';
+            $output .= '<ul class="' . esc_attr( $field_key . '-' . $field_type ) . '">';
             foreach ( $column as $option ) {
                 $option_label = isset( $option['label'] ) ? $option['label'] : $option;
                 $option_value = isset( $option['value'] ) ? $option['value'] : $option;
-                $output .=  '<li><div class="multi-field"><input class="widefat" type="' . $field_type . '" name="' . $field_key . $array_field . '" id="' . $field_key . '_' . strtolower( str_replace( ' ', '-', $option_value ) ) . '" value="' . $option_value . '" '. checked( in_array( $option_value, $value_array ), TRUE, FALSE ) .'> <label for="' . $field_key . '_' . strtolower( str_replace( ' ', '-', $option_value ) ) . '" class="' . $field_type . '-label">' . $option_label . '</label></div></li>';
+                $option_id = $field_key . '_' . strtolower( str_replace( ' ', '-', $option_value ) );
+                $output .=  '<li><div class="multi-field"><input class="widefat" type="' . esc_attr( $field_type ) . '" name="' . esc_attr( $field_key . $array_field ) . '" id="' . esc_attr( $option_id ) . '" value="' . esc_attr( $option_value ) . '" '. checked( in_array( $option_value, $value_array ), TRUE, FALSE ) .'> <label for="' . esc_attr( $option_id ) . '" class="' . esc_attr( $field_type ) . '-label">' . esc_html( $option_label ) . '</label></div></li>';
             }
             $output .=  '</ul>';
             $output .=  '</div>';

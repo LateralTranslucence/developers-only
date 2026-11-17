@@ -76,7 +76,7 @@ class DO_Admin_Page_Screen extends DO_Options_Screen {
         //$tab_names = count( $this->fields ) ? array_keys( $this->fields ) : [ '' ];
         //$active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : $this->tab_id( $tab_names[0] ); ?>
 
-        <h1><?php echo $this->page_title ?></h1>
+        <h1><?php echo esc_html( $this->page_title ) ?></h1>
 
         <?php // if there is more than one section, make tabs ?>
         <?php /*if ( $tabs ) :

@@ -76,7 +76,9 @@ class DO_Options_Screen {
             $name = $this->name;
             $icon = $settings['icon'];
             add_action( 'admin_head', function() use( $name, $icon ) {
-                echo '<style>#adminmenu li#toplevel_page_'. $name .' div.wp-menu-image:before { content: "'. $icon .'"; }</style>' . "\n";
+                // The icon is a CSS escape like \f177; allow only that shape.
+                $icon = preg_replace( '/[^\\\\a-fA-F0-9]/', '', (string) $icon );
+                echo '<style>#adminmenu li#toplevel_page_' . esc_attr( $name ) . ' div.wp-menu-image:before { content: "' . $icon . '"; }</style>' . "\n";
             });
         }
         // Hide menu
@@ -252,7 +254,7 @@ class DO_Options_Screen {
                 add_settings_field( $field_id, $field_title, function() use( $field_name, $type, $field_options, $field_title, $option_name, $obj, $form_field_class, $field_settings ) {
                     // Notes
                     if ( isset( $this->notes[ $field_title ] ) ) {
-                        echo '<span class="red small">' .  $this->notes[ $field_title ] . '</span><br>';
+                        echo '<span class="red small">' . wp_kses_post( $this->notes[ $field_title ] ) . '</span><br>';
                     }
                     // If using DO_CPT_Form_Field
                     if ( $form_field_class ) {
@@ -284,10 +286,10 @@ class DO_Options_Screen {
                             $field_settings['force_value'] = sanitize_text_field( $_GET[ $field_name ] );
                         }
                         if ( $count_characters ) {
-                            echo '<div class="count-characters" data-character-limit="' . $count_characters . '">';
+                            echo '<div class="count-characters" data-character-limit="' . (int) $count_characters . '">';
                             echo '<span class="character-count-info">
-                                    <span class="statement">Maximum ' . $count_characters . ' characters</span>
-                                    <span class="status"><span class="number">' . $count_characters . '</span> characters remaining</span>
+                                    <span class="statement">Maximum ' . (int) $count_characters . ' characters</span>
+                                    <span class="status"><span class="number">' . (int) $count_characters . '</span> characters remaining</span>
                                 </span>';
                         }
                         echo $this->option_fields_display( $type, $field_name, $field_options, $field_settings );
@@ -306,23 +308,28 @@ class DO_Options_Screen {
         $show_meta_field_name = current_user_can( $capability );
         $tabs = count( $this->fields ) > 1;
         $tab_names = count( $this->fields ) ? array_keys( $this->fields ) : [ '' ];
-        $active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : $this->name . '_' . $this->tab_id( $tab_names[0] );
+        // Only accept a tab this screen actually has
+        $tab_ids = [];
+        foreach ( $tab_names as $tab_name ) {
+            $tab_ids[] = $this->name . '_' . $this->tab_id( $tab_name );
+        }
+        $requested_tab = isset( $_GET['tab'] ) && is_string( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+        $active_tab = in_array( $requested_tab, $tab_ids, TRUE ) ? $requested_tab : $tab_ids[0];
         $option_name = $tabs ? $active_tab : $this->name; ?>
-        <?php if ( $show_meta_field_name ) : ?><p class="footnote small"><b>Option Name:</b> <?php echo $option_name ?></p><?php endif; ?>
-        <h1><?php echo $this->page_title ?></h1>
+        <?php if ( $show_meta_field_name ) : ?><p class="footnote small"><b>Option Name:</b> <?php echo esc_html( $option_name ) ?></p><?php endif; ?>
+        <h1><?php echo esc_html( $this->page_title ) ?></h1>
 
         <?php // if there is more than one section, make tabs ?>
-        <?php if ( $tabs ) :
-            $url_query_vars = array_merge( $_GET, [ 'page' => $this->name ] ); ?>
+        <?php if ( $tabs ) : ?>
             <h2 class="nav-tab-wrapper">
             <?php foreach ( $this->fields as $tab_name => $fields ) :
-                $url_query_vars['tab'] = $this->name . '_' . $this->tab_id( $tab_name ); ?>
-                <a href="?<?php echo devo_array_to_query_string( $url_query_vars, '=', '&' ) ?>" class="nav-tab<?php echo $active_tab == $this->name . '_' . $this->tab_id( $tab_name ) ? ' nav-tab-active' : ''; ?>"><?php echo $tab_name ?></a>
+                $tab_url = add_query_arg( [ 'page' => $this->name, 'tab' => $this->name . '_' . $this->tab_id( $tab_name ) ] ); ?>
+                <a href="<?php echo esc_url( $tab_url ) ?>" class="nav-tab<?php echo $active_tab == $this->name . '_' . $this->tab_id( $tab_name ) ? ' nav-tab-active' : ''; ?>"><?php echo esc_html( $tab_name ) ?></a>
             <?php endforeach; ?>
             </h2>
         <?php endif; ?>
 
-        <form action="<?php echo $this->network ? 'edit.php?action=' . $this->name : 'options.php' ?>" method="post">
+        <form action="<?php echo esc_url( $this->network ? network_admin_url( 'edit.php?action=' . $this->name ) : admin_url( 'options.php' ) ) ?>" method="post">
             <?php
             $button_text = is_array( $this->button_text ) ? ( isset( $this->button_text[ $tab_name ] ) ? $this->button_text[ $tab_name ] : 'Submit' ) : $this->button_text;
             // Show the fields
@@ -356,10 +363,10 @@ class DO_Options_Screen {
                     // settings_fields( $option_group )
                     settings_fields( $this->name . '_' . $this->tab_id( $tab_name ) );
                     // do_settings_sections( $page )
-                    echo '<div class="' . str_replace( '_', '-', $this->name . '-' . $this->tab_id( $tab_name ) ) . '-fields">';
+                    echo '<div class="' . esc_attr( str_replace( '_', '-', $this->name . '-' . $this->tab_id( $tab_name ) ) ) . '-fields">';
                         do_settings_sections( $this->name . '_' . $this->tab_id( $tab_name ) );
                     echo '</div>';
-                    ?><input type="hidden" value="<?php echo $this->name . '_' . $this->tab_id( $tab_name ) ?>" name="tab"><?php
+                    ?><input type="hidden" value="<?php echo esc_attr( $this->name . '_' . $this->tab_id( $tab_name ) ) ?>" name="tab"><?php
                 }
             }
             // Submit button
@@ -393,7 +400,7 @@ class DO_Options_Screen {
     public function options_validate( $input ) {
         $validated_input = [];
         $validated_input_temp = [];
-        $current_tab_id = $this->tab_id( $_POST['tab'] );
+        $current_tab_id = isset( $_POST['tab'] ) && is_string( $_POST['tab'] ) ? $this->tab_id( sanitize_key( wp_unslash( $_POST['tab'] ) ) ) : '';
         foreach ( $this->fields as $tab_name => $fields ) {
             $tab_id = $this->tab_id( $this->name . ' ' . $tab_name );
             if ( $tab_id == $current_tab_id ) {
@@ -456,10 +463,29 @@ class DO_Options_Screen {
         return $validated_input;
     }
 
+    /* Saves a network options screen. Network admin forms post to edit.php
+     * rather than options.php, so core's nonce and capability checks don't
+     * run; they have to happen here. */
     public function network_callback () {
-        $validated = $this->options_validate( $_POST );
-        update_site_option( $this->name, $validated );
-        wp_redirect(
+        if ( ! current_user_can( 'manage_network_options' ) ) {
+            wp_die( esc_html__( 'Sorry, you are not allowed to manage options for this network.', 'developers_only' ), 403 );
+        }
+        // The tab names the settings group, and so the nonce settings_fields() printed
+        $tab_ids = [];
+        foreach ( array_keys( $this->fields ) as $tab_name ) {
+            $tab_ids[] = $this->name . '_' . $this->tab_id( $tab_name );
+        }
+        $tab = isset( $_POST['tab'] ) && is_string( $_POST['tab'] ) ? sanitize_key( wp_unslash( $_POST['tab'] ) ) : '';
+        if ( ! in_array( $tab, $tab_ids, TRUE ) ) {
+            wp_die( esc_html__( 'Unknown settings section.', 'developers_only' ), 400 );
+        }
+        check_admin_referer( $tab . '-options' );
+        // Same option name the screen reads from (see options_init)
+        $option_name = count( $this->fields ) > 1 ? $tab : $this->name;
+        $input = isset( $_POST[ $option_name ] ) && is_array( $_POST[ $option_name ] ) ? wp_unslash( $_POST[ $option_name ] ) : [];
+        $validated = $this->options_validate( $input );
+        update_site_option( $option_name, $validated );
+        wp_safe_redirect(
             add_query_arg(
                 [ 'page' => $this->name, 'updated' => 'true' ],
                 ( is_multisite() ? network_admin_url( 'admin.php' ) : admin_url( 'admin.php' ) )
@@ -480,8 +506,8 @@ class DO_Options_Screen {
         }
         foreach ( $admin_notices as $notice ) : ?>
             <?php if ( isset( $notice['message'] ) && strlen( $notice['message'] ) ) : ?>
-                <div class="<?php echo $notice['type'] ?> notice">
-                    <p><?php echo $notice['message'] ?></p>
+                <div class="<?php echo esc_attr( isset( $notice['type'] ) ? $notice['type'] : '' ) ?> notice">
+                    <p><?php echo wp_kses_post( $notice['message'] ) ?></p>
                 </div>
             <?php endif; ?>
         <?php endforeach;
