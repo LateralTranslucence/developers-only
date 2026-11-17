@@ -14,23 +14,23 @@ function devo_button_shortcode( $attr, $content ) {
         }
         $attr = $attr_temp;
     }
+    // No onclick: anyone who can write a shortcode could otherwise attach
+    // script to the page. devo_cta() escapes everything else.
     $attributes = shortcode_atts( [
         'href' => FALSE,
         'class' => FALSE,
         'modal' => FALSE,
         'modal-class' => FALSE,
         'id' => FALSE,
-        'onclick' => FALSE,
     ], $attr, 'button' );
 
     $href = $attributes['href'];
     $classes = $attributes['class'] && strlen( $attributes['class'] ) ? [ $attributes['class'] ] : 'solid-button';
     $modal = $attributes['modal'] === 'true';
     $modal_class = $attributes['modal-class'];
-    $id = $attributes['href'];
-    $onclick = $attributes['onclick'];
+    $id = $attributes['id'];
 
-    $output = devo_cta( $content, $href, [ 'modal' => $modal, 'modal_class' => $modal_class, 'classes' => $classes, 'id' => $id, 'onclick' => $onclick ] );
+    $output = devo_cta( $content, $href, [ 'modal' => $modal, 'modal_class' => $modal_class, 'classes' => $classes, 'id' => $id ] );
     //$output = str_replace( "\n", '', $output );
 
     return $output;
@@ -62,13 +62,13 @@ function devo_dropdown_button_shortcode( $atts, $content = null ) {
         }
     }
     $output = '<nav class="dropdown">';
-    $output .= '<p><button class="button color-border"><span>' . $dropdown_title . '</span></button></p>';
+    $output .= '<p><button class="button color-border"><span>' . esc_html( $dropdown_title ) . '</span></button></p>';
     $output .= '<ul class="dropdown-content">';
     foreach( $dropdown_items as $dropdown_item ) {
         $item = explode( ',', $dropdown_item );
         $item_label = isset( $item[0] ) ? trim( $item[0] ) : '';
         $item_link = isset( $item[1] ) ? str_replace( '<br />', '', trim( $item[1] ) ) : '#';
-        $output .= '<li><a href="' . $item_link . '">' . $item_label . '</a></li>';
+        $output .= '<li><a href="' . devo_esc_link( $item_link ) . '">' . esc_html( $item_label ) . '</a></li>';
     }
     $output .= '</ul>';
     $output .= '</nav>';
@@ -91,7 +91,6 @@ function devo_iframe_shortcode( $attr, $content = null ) {
 			'scrolling' => false,
 			'seamless' => false,
 			'src' => false,
-			'srcdoc' => false,
 			'width' => false,
 			'class' => false,
 			'id' => false,
@@ -99,19 +98,23 @@ function devo_iframe_shortcode( $attr, $content = null ) {
 			'data-src' => false
 		], $attr, 'iframe'
 	);
+	// No srcdoc: it is a whole HTML document, so it can't be made safe by
+	// escaping the attribute. URLs are limited to http(s).
+	$url_attributes = [ 'src', 'data-src', 'longdesc' ];
 	// open iframe
 	$output = '<iframe ';
 	// assemble attributes
 	foreach ( $attributes as $name => $att ) {
 		if ( $att !== false ) {
-			$output .= $name . '="' . $att . '" ';
+			$value = in_array( $name, $url_attributes, TRUE ) ? esc_url( $att, [ 'http', 'https' ] ) : esc_attr( $att );
+			$output .= $name . '="' . $value . '" ';
 		}
 	}
 	// close bracket
 	$output .= '>';
 	// alt content
 	if ( $content ) {
-		$output .= $content;
+		$output .= wp_kses_post( $content );
 	}
 	// close iframe
 	$output .= '</iframe>';
@@ -149,13 +152,14 @@ function devo_menu_shortcode( $attr ) {
     $output = '';
     // wrap?
     if ( $ul_wrap ) {
-        $output .= '<ul id="menu-' . $name . '" class="menu">';
+        $output .= '<ul id="' . esc_attr( 'menu-' . sanitize_title( $name ) ) . '" class="menu">';
     }
     // If there is a menu, build it
     if ( $menu_items ) {
         foreach ( $menu_items as $key => $item ) {
             if ( ! in_array( $item->title, $exclude ) ) {
-                $output .= '<li class="' . implode( ' ', $item->classes ) . '"><a href="' . $item->url . '">' . $item->title . '</a></li>';
+                $classes = is_array( $item->classes ) ? array_map( 'sanitize_html_class', $item->classes ) : [];
+                $output .= '<li class="' . esc_attr( implode( ' ', $classes ) ) . '"><a href="' . esc_url( $item->url ) . '">' . wp_kses_post( $item->title ) . '</a></li>';
             }
         }
     }
@@ -178,16 +182,11 @@ function devo_quote_shortcode( $attr, $content = null ) {
 }
 add_shortcode( 'quote', 'devo_quote_shortcode' );
 
-// [social_media]
-function devo_social_media_shortcode() {
-    return '<SocialMenu />';
-}
-add_shortcode( 'social_media', 'devo_social_media_shortcode' );
-
 // [url]
 function devo_url_shortcode( $attr ) {
-    $url = home_url() . $_SERVER['REQUEST_URI'];
-    return $url;
+    // REQUEST_URI is whatever the visitor sent; escape it.
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) && is_string( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '/';
+    return esc_url( devo_absolute_url( $request_uri ) );
 }
 add_shortcode( 'url', 'devo_url_shortcode' );
 

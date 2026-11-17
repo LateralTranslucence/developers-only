@@ -3,40 +3,60 @@
  * Build JS components for use in Shortcodes
  */
 
+/* Escapes a link target for an HTML attribute without assuming it's absolute.
+ *
+ * CTA links are often bare internal paths ("blog", "about/team"), which
+ * esc_url() would turn into "http://blog". So only values with a scheme go
+ * through esc_url() - which also drops javascript: and other unsafe
+ * protocols - and everything else is attribute-escaped as a path. Entities
+ * and whitespace are resolved first, so "javascript&#58;" or "java\tscript:"
+ * can't slip past the scheme check. */
+function devo_esc_link( $url ) {
+    if ( ! is_scalar( $url ) ) {
+        return '';
+    }
+    $url = trim( html_entity_decode( (string) $url, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
+    $compact = preg_replace( '/[\x00-\x20\x7f]+/', '', $url );
+    if ( preg_match( '/^[a-z][a-z0-9+.\-]*:/i', $compact ) || strpos( $compact, '//' ) === 0 ) {
+        return esc_url( $compact );
+    }
+    return esc_attr( $url );
+}
+
+/* Builds a <CTA> tag for the React front end to render. Every attribute is
+ * escaped: the values come from shortcode attributes, which anyone who can
+ * edit a post can write. */
 function devo_cta( $text = FALSE, $url = FALSE, $settings = [] ) {
     $modal = isset( $settings['modal'] ) ? $settings['modal'] : FALSE;
     $modal_class = isset( $settings['modal_class'] ) ? $settings['modal_class'] : FALSE;
-    $iframe_name = isset( $settings['iframe_name'] ) ? $settings['iframe_name'] : FALSE;
     $id = isset( $settings['id'] ) && $settings['id'] && strlen( $settings['id'] ) ? $settings['id'] : FALSE;
     $classes = isset( $settings['classes'] ) && (bool) $settings['classes'] ? ( is_array( $settings['classes'] ) ? implode( ' ', $settings['classes'] ) : $settings['classes'] ) : FALSE;
-    $onClick = isset( $settings['onclick'] ) ? $settings['onclick'] : FALSE;
     $custom_attribute = isset( $settings['custom_attribute'] ) ? $settings['custom_attribute'] : FALSE;
     $target = isset( $settings['target'] ) ? $settings['target'] : FALSE;
+    // onclick is no longer supported: it would put script in the page.
 
-    $output = '<CTA url="' . ( $url ? $url : '' ) . '"';
+    // URLs may be bare paths, anchors, mailto: or tel: (see devo_esc_link()).
+    $output = '<CTA url="' . ( $url ? devo_esc_link( $url ) : '' ) . '"';
     if ( $text ) {
-        $output .= 'text="' . $text . '"';
+        $output .= ' text="' . esc_attr( $text ) . '"';
     }
     if ( $modal ) {
-        $output .= 'modal="' . $modal . '"';
+        $output .= ' modal="' . esc_attr( $modal === TRUE ? 'true' : $modal ) . '"';
     }
     if ( $modal_class ) {
-        $output .= 'modal_class="' . $modal_class . '"';
+        $output .= ' modal_class="' . esc_attr( $modal_class ) . '"';
     }
     if ( $id ) {
-        $output .= 'id="' . $id . '"';
+        $output .= ' id="' . esc_attr( $id ) . '"';
     }
     if ( $classes ) {
-        $output .= 'classes="' . $classes . '"';
-    }
-    if ( $onClick ) {
-        $output .= 'onClick="' . $onClick . '"';
+        $output .= ' classes="' . esc_attr( $classes ) . '"';
     }
     if ( $custom_attribute ) {
-        $output .= 'customAttribute="' . $custom_attribute . '"';
+        $output .= ' customAttribute="' . esc_attr( $custom_attribute ) . '"';
     }
     if ( $target ) {
-        $output .= 'target="' . $target . '"';
+        $output .= ' target="' . esc_attr( $target ) . '"';
     }
     $output .= '/>';
 
@@ -54,20 +74,20 @@ function devo_image( $image = FALSE, $size = 'full', $settings = [] ) {
     $lazy_load = isset( $settings['lazy_load'] ) ? $settings['lazy_load'] : TRUE;
     $output = '';
     if ( $image ) {
-        $output .= '<Image image="' . $image . '"';
-        $output .= 'size="' . $size . '"';
+        $output .= '<Image image="' . esc_attr( $image ) . '"';
+        $output .= ' size="' . esc_attr( $size ) . '"';
         if ( $classes ) {
-            $output .= 'classes="' . $classes . '"';
+            $output .= ' classes="' . esc_attr( $classes ) . '"';
         }
         if ( $wrapper_data_attr ) {
-            $output .= 'wrapperDataAttr="' . $wrapper_data_attr . '"';
+            $output .= ' wrapperDataAttr="' . esc_attr( $wrapper_data_attr ) . '"';
         }
         if ( $image_data_attr_array ) {
-            $output .= 'imageDataAttr="' . $image_data_attr_array . '"';
+            $output .= ' imageDataAttr="' . esc_attr( is_array( $image_data_attr_array ) ? implode( ' ', $image_data_attr_array ) : $image_data_attr_array ) . '"';
         }
         if ( $overlay ) {
-            $output .= 'overlay="' . $overlay . '"';
-        } 
+            $output .= ' overlay="' . esc_attr( $overlay ) . '"';
+        }
         $output .= '/>';
     }
     return $output;
@@ -92,11 +112,14 @@ function devo_video( $video_url = FALSE, $settings = [] ) {
     $video_data_attr = [];
     if ( $video_data_attr_array ) {
         foreach ( $video_data_attr_array as $attr_key => $attr_value ) {
-            $video_data_attr[] = ' ' . $attr_key . '="' . $attr_value . '"';
+            $attr_key = preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $attr_key ) );
+            if ( strlen( $attr_key ) && strpos( $attr_key, 'on' ) !== 0 ) {
+                $video_data_attr[] = ' ' . $attr_key . '="' . esc_attr( $attr_value ) . '"';
+            }
         }
     }
     ob_start(); ?>
-    <figure class="devo-video <?php echo $type ?>"<?php echo $width ? ' style="max-width: ' . $width . '"' : '' ?><?php echo implode( '', $video_data_attr ) ?>>
+    <figure class="devo-video <?php echo esc_attr( $type ) ?>"<?php echo $width ? ' style="max-width: ' . esc_attr( $width ) . '"' : '' ?><?php echo implode( '', $video_data_attr ) ?>>
         <span class="devo-video-wrapper">
             <?php if ( $type == 'streaming' ) : ?>
                 <?php if ( $source == 'vimeo' ) :
@@ -106,30 +129,30 @@ function devo_video( $video_url = FALSE, $settings = [] ) {
                         <iframe id="video-player-<?php echo esc_attr( $player_number ) ?>"
                             data-video-index="0"
                             data-player-number="<?php echo esc_attr( $player_number ) ?>"
-                            src="<?php echo esc_attr( $video_embed_url ) . ( $site_language !== 'en' ? '&texttrack=' . $site_language : '' ) . ( $timestamp ? '#t=' . $timestamp : '' ) ?>">
+                            src="<?php echo esc_url( $video_embed_url . ( $site_language !== 'en' ? '&texttrack=' . rawurlencode( $site_language ) : '' ) . ( $timestamp ? '#t=' . rawurlencode( $timestamp ) : '' ) ) ?>">
                         </iframe>
                     <?php else :
                         // Uses the Vimeo player SDK (initialized through the data-vimeo-url attribute) ?>
                         <div id="video-player-<?php echo esc_attr( $player_number ) ?>"
                             data-video-index="0"
                             data-player-number="<?php echo esc_attr( $player_number ) ?>"
-                            data-video-url="<?php echo esc_attr( $video_embed_url ) . ( $timestamp ? '#t=' . $timestamp : '' ) ?>"
-                            data-video-t="<?php echo ( $timestamp ? '#t=' . $timestamp : '' ) ?>"
+                            data-video-url="<?php echo esc_url( $video_embed_url . ( $timestamp ? '#t=' . rawurlencode( $timestamp ) : '' ) ) ?>"
+                            data-video-t="<?php echo esc_attr( $timestamp ? '#t=' . $timestamp : '' ) ?>"
                             <?php if ( $site_language !== 'en' ) : ?>
-                                data-video-texttrack="<?php echo $site_language ?>"
+                                data-video-texttrack="<?php echo esc_attr( $site_language ) ?>"
                             <?php endif; ?>
                             class="video-player"></div>
                         <?php endif; ?>
                 <?php else : ?>
-                    <iframe src="" data-src="<?php echo $video_embed_url ?>" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen>
-                        <a href="<?php echo $video_embed_url ?>" target="_blank" title="<?php echo $label ?>"><?php echo $label ?></a>
+                    <iframe src="" data-src="<?php echo esc_url( $video_embed_url ) ?>" title="<?php echo esc_attr( $label ) ?>" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen>
+                        <a href="<?php echo esc_url( $video_embed_url ) ?>" target="_blank" title="<?php echo esc_attr( $label ) ?>"><?php echo esc_html( $label ) ?></a>
                     </iframe>
                 <?php endif; ?>
             <?php elseif ( $type == 'embed' ) : ?>
-                <video autoPlay muted playsInline<?php echo $loop ? ' loop' : '' ?> poster="<?php echo $poster ?>">
-                    <source data-src="<?php echo $video_url ?>" type="video/mp4">
+                <video autoPlay muted playsInline<?php echo $loop ? ' loop' : '' ?> poster="<?php echo esc_url( $poster ) ?>">
+                    <source data-src="<?php echo esc_url( $video_url ) ?>" type="video/mp4">
                     <?php if ( $webm ) : ?>
-                        <source data-src="<?php echo $webm ?>" type="video/webm">
+                        <source data-src="<?php echo esc_url( $webm ) ?>" type="video/webm">
                     <?php endif; ?>
                 </video>
             <?php endif; ?>
