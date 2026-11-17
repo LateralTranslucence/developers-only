@@ -528,39 +528,49 @@ if ( is_admin() ) {
 }
 
 // Allow specified file types in media uploads
-function devo_add_file_types_to_uploads( $file_types ) {
+function devo_add_file_types_to_uploads( $file_types, $user = NULL ) {
 	$new_filetypes = [];
-	$new_filetypes['svg'] = 'image/svg+xml';
 	$new_filetypes['webp'] = 'image/webp';
     $new_filetypes['vtt'] = 'text/vtt';
+    // An SVG is a document that can carry script, so only users who may
+    // already publish unfiltered HTML can upload one.
+    $user = $user ? $user : wp_get_current_user();
+    if ( $user && user_can( $user, 'unfiltered_html' ) ) {
+        $new_filetypes['svg'] = 'image/svg+xml';
+    }
 	$file_types = array_merge( $file_types, $new_filetypes );
 	return $file_types;
 }
-add_action( 'upload_mimes', 'devo_add_file_types_to_uploads' );
+add_filter( 'upload_mimes', 'devo_add_file_types_to_uploads', 10, 2 );
 
-// Allow script & iframe tag within posts
-function devo_allow_tags( $allowed_post_tags ){
-    $allowed_post_tags['span'] = [
+/* Extra tags for post content and the theme's HTML fields (both are filtered
+ * with wp_kses_post()). <cta> is the theme's own link/button tag. <iframe>
+ * is only allowed for users who can post unfiltered HTML anyway; <script>
+ * never is. */
+function devo_allow_tags( $allowed_post_tags, $context = 'post' ) {
+    if ( $context !== 'post' ) {
+        return $allowed_post_tags;
+    }
+    $allowed_post_tags['span'] = array_merge( isset( $allowed_post_tags['span'] ) && is_array( $allowed_post_tags['span'] ) ? $allowed_post_tags['span'] : [], [
         'class' => TRUE,
         'id' => TRUE,
         'style' => TRUE,
-    ];
-    $allowed_post_tags['script'] = [
-        'type' => TRUE,
-        'src' => TRUE,
-        'height' => TRUE,
-        'width' => TRUE,
-    ];
-    $allowed_post_tags['iframe'] = [
-        'src' => TRUE,
-        'width' => TRUE,
-        'height' => TRUE,
-        'class' => TRUE,
-        'frameborder' => TRUE,
-        'webkitAllowFullScreen' => TRUE,
-        'mozallowfullscreen' => TRUE,
-        'allowFullScreen' => TRUE
-    ];
+    ] );
+    if ( current_user_can( 'unfiltered_html' ) ) {
+        $allowed_post_tags['iframe'] = [
+            'src' => TRUE,
+            'width' => TRUE,
+            'height' => TRUE,
+            'class' => TRUE,
+            'title' => TRUE,
+            'loading' => TRUE,
+            'allow' => TRUE,
+            'frameborder' => TRUE,
+            'webkitallowfullscreen' => TRUE,
+            'mozallowfullscreen' => TRUE,
+            'allowfullscreen' => TRUE,
+        ];
+    }
     $allowed_post_tags['cta'] = [
         'url' => TRUE,
         'text' => TRUE,
@@ -571,7 +581,7 @@ function devo_allow_tags( $allowed_post_tags ){
     ];
     return $allowed_post_tags;
 }
-add_filter( 'wp_kses_allowed_html', 'devo_allow_tags', 1 );
+add_filter( 'wp_kses_allowed_html', 'devo_allow_tags', 1, 2 );
 
 // Changing excerpt more
 function devo_excerpt_more( $more ) {
@@ -580,12 +590,14 @@ function devo_excerpt_more( $more ) {
 add_filter( 'excerpt_more', 'devo_excerpt_more' );
 
 function devo_case_insensitive_urls() {
-    $request_uri = isset( $_SERVER['REQUEST_URI'] ) && strlen( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : FALSE;
-    $query_string = isset( $_SERVER['QUERY_STRING'] ) && strlen( $_SERVER['QUERY_STRING'] ) ? '?' . $_SERVER['QUERY_STRING'] : '';
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) && is_string( $_SERVER['REQUEST_URI'] ) && strlen( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : FALSE;
+    $query_string = isset( $_SERVER['QUERY_STRING'] ) && is_string( $_SERVER['QUERY_STRING'] ) && strlen( $_SERVER['QUERY_STRING'] ) ? '?' . $_SERVER['QUERY_STRING'] : '';
     $path = $query_string && $request_uri ? str_replace( $query_string, '', $request_uri ) : ( $request_uri ? $request_uri : FALSE );
     if ( $path && preg_match( '/[A-Z]/', $path ) ) {
-        $lowercase_url = strtolower( $path ) . $query_string;
-        wp_redirect( $lowercase_url );
+        // Collapse leading slashes: //Evil.com must stay a path on this
+        // site, not become a protocol-relative URL to another one.
+        $lowercase_path = '/' . ltrim( strtolower( $path ), '/' );
+        wp_safe_redirect( devo_absolute_url( $lowercase_path ) . $query_string );
         exit;
     }
 }

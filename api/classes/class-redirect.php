@@ -38,16 +38,36 @@ class DO_Redirect {
         return $vars;
     }
 
+	/* The devo_redirect query var is public - anyone can add
+	 * ?devo_redirect=https://elsewhere to a URL - so its value is never used
+	 * as the destination directly. It is only honoured when it is exactly what
+	 * this redirect's own rewrite rule produces, and then the destination is
+	 * built from the configured target. */
 	public function template_include( $template ) {
 	    global $wp_query;
-		if( isset( $wp_query->query_vars['devo_redirect'] ) ) {
-            if ( strpos( $wp_query->query_vars['devo_redirect'], 'http' ) !== FALSE ) {
-                wp_redirect( urldecode( $wp_query->query_vars['devo_redirect'] ), $this->code );
-            } else {
-                wp_safe_redirect( home_url( '/' . trim( urldecode( $wp_query->query_vars['devo_redirect'] ), '/' ) . '/' ), $this->code );
-            }
-			exit;
+		if ( ! isset( $wp_query->query_vars['devo_redirect'] ) || ! is_string( $wp_query->query_vars['devo_redirect'] ) ) {
+			return $template;
 		}
-        return $template;
+		$requested = urldecode( $wp_query->query_vars['devo_redirect'] );
+		$destination = FALSE;
+		if ( strpos( $this->from_path, '[slug]' ) !== FALSE && strpos( $this->to_url, '[slug]' ) !== FALSE ) {
+			$target_template = trim( $this->to_url, '/' );
+			$pattern = '#^' . str_replace( '\\[slug\\]', '([^/]+)', preg_quote( $target_template, '#' ) ) . '$#';
+			if ( preg_match( $pattern, $requested, $matches ) ) {
+				$destination = str_replace( '[slug]', rawurlencode( urldecode( $matches[1] ) ), $target_template );
+			}
+		} elseif ( $requested === $this->to_url ) {
+			$destination = $this->to_url;
+		}
+		if ( $destination === FALSE ) {
+			return $template;
+		}
+		// External targets are configured in code, so they may leave the site
+		if ( preg_match( '#^https?://#i', $destination ) ) {
+			wp_redirect( esc_url_raw( $destination ), $this->code );
+		} else {
+			wp_safe_redirect( home_url( '/' . trim( $destination, '/' ) . '/' ), $this->code );
+		}
+		exit;
 	}
 }
