@@ -26,7 +26,7 @@ if ( $post && isset( $devo_custom_post_types[ $post->post_type ] ) ) :
     $post_type_details = $devo_custom_post_types[ $post->post_type ];
     $post_type_label = isset( $post_type_details->post_type_display_name ) ? $post_type_details->post_type_display_name : '';
     $seo_title = isset( $post_type_details->seo_title ) ? devo_get_seo_field_value( $post_type_details->seo_title, $post ) : '';
-    $og_image = get_stylesheet_directory_uri() . '/public/images/og-image.jpg';
+    $og_image = get_stylesheet_directory_uri() . '/public/images/og-image.png';
     $image = isset( $post_type_details->seo_image ) && $post_type_details->seo_image && strlen( $post_seo_image = devo_get_seo_field_value( $post_type_details->seo_image, $post ) ) ? $post_seo_image : $og_image;
     $seo_image = is_array( $image ) && count( $image ) && isset( $image['cinema_600'] ) ? $image['cinema_600']['url'] : ( is_array( $image ) ? $og_image : $image );
     $seo_url = esc_attr( home_url( trim( devo_get_relative_permalink( $post->ID ), '/' ) . '/' ) );

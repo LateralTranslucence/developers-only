@@ -1,6 +1,33 @@
 <?php
 // Define constants
-define( 'DO_VER', DO_ENVIRONMENT == 'local' ? time() : 'DEPLOY_TIMESTAMP' );
+
+/* DO_ENVIRONMENT is one of local, dev, stg or prod. A site can pin it in
+ * wp-config.php ( define( 'DO_ENVIRONMENT', 'prod' ); ); when it doesn't, it is
+ * derived from WordPress's own environment type so the theme activates on any
+ * install. */
+if ( ! defined( 'DO_ENVIRONMENT' ) ) {
+    $devo_environment_map = [
+        'local' => 'local',
+        'development' => 'dev',
+        'staging' => 'stg',
+        'production' => 'prod',
+    ];
+    $devo_environment_type = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
+    define( 'DO_ENVIRONMENT', isset( $devo_environment_map[ $devo_environment_type ] ) ? $devo_environment_map[ $devo_environment_type ] : 'prod' );
+    unset( $devo_environment_map, $devo_environment_type );
+}
+
+// Cache-busting version for enqueued assets: the theme version from style.css,
+// or the current time on local so edits always show up.
+define( 'DO_VER', DO_ENVIRONMENT === 'local' ? (string) time() : (string) wp_get_theme( get_template() )->get( 'Version' ) );
+
+/* Version for a file in public/dist. Those files keep the same name between
+ * builds, so the theme version alone wouldn't bust the cache after a rebuild;
+ * the file's modification time does. */
+function devo_asset_ver( $relative_path ) {
+    $file = __DIR__ . '/' . ltrim( $relative_path, '/' );
+    return file_exists( $file ) ? DO_VER . '.' . filemtime( $file ) : DO_VER;
+}
 
 // Include Helper Functions
 include_once( __DIR__ . '/api/functions.helpers.php' );
@@ -53,7 +80,7 @@ function devo_scripts() {
             // silently inverting.
 
             // Load global styles
-            wp_enqueue_style( 'devo-global', get_template_directory_uri() . '/public/dist/devo-global.css', [], DO_VER );
+            wp_enqueue_style( 'devo-global', get_template_directory_uri() . '/public/dist/devo-global.css', [], devo_asset_ver( 'public/dist/devo-global.css' ) );
 
             // Component CSS Vite extracted from the React entry. Still framework
             // CSS, so it belongs alongside devo-global rather than after the
@@ -65,7 +92,7 @@ function devo_scripts() {
             }
 
             // Load extension global styles (extensions/app/styles/extensions-global.scss)
-            wp_enqueue_style( 'extensions-global', get_template_directory_uri() . '/public/dist/extensions-global.css', $devo_style_deps, DO_VER );
+            wp_enqueue_style( 'extensions-global', get_template_directory_uri() . '/public/dist/extensions-global.css', $devo_style_deps, devo_asset_ver( 'public/dist/extensions-global.css' ) );
         }
     }
 }
@@ -92,7 +119,7 @@ function devo_admin_scripts() {
     wp_register_script( 'list', get_template_directory_uri() . '/public/js/libs/list.js', [], '12232019' );
     // AF Admin
     wp_enqueue_script( 'devo-admin', get_template_directory_uri() . '/public/js/admin.js', [ 'jquery', 'list' ], DO_VER, TRUE );
-    wp_enqueue_style( 'devo-admin', get_template_directory_uri() . '/public/dist/admin.css', [ 'dashicons' ], DO_VER, 'all' );
+    wp_enqueue_style( 'devo-admin', get_template_directory_uri() . '/public/dist/admin.css', [ 'dashicons' ], devo_asset_ver( 'public/dist/admin.css' ), 'all' );
     // Image upload
     wp_enqueue_media();
     wp_enqueue_script( 'devo-media-upload-field', get_template_directory_uri() . '/public/js/media-upload-field.js', [ 'jquery', 'jquery-ui-core', 'jquery-ui-sortable' ], '08062024', TRUE );
@@ -169,21 +196,11 @@ function devo_load_extension_classes() {
 add_action( 'after_setup_theme', 'devo_load_extension_classes', 0 );
 
 function devo_create_objects() {
-    // Site Settings
-    global $site_settings;
-    include( locate_template( 'api/fields/colors.php' ) );
-    $site_settings = new DO_Options_Screen( 'site_settings' );
-    $site_settings->settings( [
-        'submenu' => 'themes.php',
-        'page_title' => 'Site Settings',
-        'notes' => [
-        ],
-    ] );
-    $site_settings->fields( [
-        'Cookie Consent Text' => 'html',
-        'Header Script' => 'code',
-        'Footer Script' => 'code',
-    ], 'Misc' );
+    // There is no Site Settings screen: its fields (cookie consent text, header
+    // and footer scripts) were never read. Banner copy comes from the
+    // devo_cookie_consent_text filter, and third-party scripts are added from
+    // extensions/api/*.php on wp_head / wp_footer (see below). An extension that
+    // wants its own settings screen can create one with DO_Options_Screen.
 
     // Custom Image Sizes
     add_image_size( 'cinema_1000', 1000, 673, [ 'center', 'top' ] );
@@ -453,7 +470,8 @@ if ( ! function_exists( 'devo_login_url_title' ) ) {
 add_filter( 'login_headertext', 'devo_login_url_title' );
 // CSS
 function devo_login_stylesheet() {
-    wp_enqueue_style( 'devo-login', get_template_directory_uri() . '/public/dist/devo-login.css', [ 'login' ], DO_VER );
+    // Vite emits the login entry as login.css (see vite.config.ts).
+    wp_enqueue_style( 'devo-login', get_template_directory_uri() . '/public/dist/login.css', [ 'login' ], devo_asset_ver( 'public/dist/login.css' ) );
 }
 add_action( 'login_enqueue_scripts', 'devo_login_stylesheet' );
 
@@ -639,8 +657,3 @@ function devo_set_block_image( $block_image, $post_id = FALSE ) {
     return $block_image ? $block_image : $fallback_image;
 }
 add_filter( 'devo_block_image', 'devo_set_block_image', 10, 2 );
-
-
-if ( $ext_functions = locate_template( '/extensions/api/functions.php' ) ) {
-    require_once( $ext_functions );
-}
