@@ -34,7 +34,12 @@ function devo_api_custom_data( $post, $post_type_details = FALSE ) {
             $post_type_details = $devo_custom_post_types[ $post->post_type ];
         }
         $post->fields = [];
+        $private_fields = isset( $post_type_details->private_fields ) && is_array( $post_type_details->private_fields ) ? $post_type_details->private_fields : [];
         foreach ( $post_type_details->meta_fields as $field_key => $field_details ) {
+            // Staff-only settings (see the private_fields post type setting)
+            if ( in_array( $field_key, $private_fields, TRUE ) ) {
+                continue;
+            }
             $field_type = devo_get_meta_field_type( $field_details );
             $api_display = new DO_Form_Field_API_Display( $field_type, $field_key, $post->ID, $post_type_details );
             $post->fields[ $field_key ] = $api_display->output;

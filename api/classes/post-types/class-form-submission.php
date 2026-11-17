@@ -13,6 +13,9 @@ class DO_Form_Submission extends DO_Custom_Post_Type {
             'show_in_menu' => 'edit.php?post_type=devo_form',
             'restrict_users' => [ 'administrator' ],
             'has_archive' => FALSE,
+            // Submissions hold visitors' personal data. Keep them out of the
+            // front end entirely: no single URLs, no /wp/v2/ route, no search.
+            'public' => FALSE,
         ];
     }
     // [ 'BoxName' => [ ... ] ]

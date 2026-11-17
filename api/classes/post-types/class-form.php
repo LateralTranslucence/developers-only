@@ -22,6 +22,14 @@ class DO_Form extends DO_Custom_Post_Type {
                 'Thank You Redirect' => 'Can only be an internal URL.'
             ],
             'schema' => 'ContactPage',
+            // Routing and notification settings are for staff only; never send
+            // them to the browser.
+            'private_fields' => [
+                'Email Submissions To',
+                'Email Submissions Logic',
+                'Email Subject',
+                'Email Confirmation',
+            ],
             'dynamic_interface' => [
                 'settings' => [
                     'type' => 'array',

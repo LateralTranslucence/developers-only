@@ -40,6 +40,7 @@ abstract class DO_Custom_Post_Type {
             $post_type_post_title,
             $post_type_display_name,
             $pre_form_callback,
+            $private_fields,
             $public,
             $restrict_users,
             $schema,
@@ -90,6 +91,7 @@ abstract class DO_Custom_Post_Type {
         $this->post_type_display_name = ucfirst( end( $post_type_array ) );
         $this->post_type_slug = strtolower( preg_replace( '/[\s_]/', '-', end( $post_type_array ) ) );
         $this->post_type_rest_slug = $this->post_type_slug;
+        $this->private_fields = [];
         $this->public = TRUE;
         $this->restrict_users = FALSE;
         $this->schema = [];
@@ -358,6 +360,13 @@ abstract class DO_Custom_Post_Type {
             case 'pre_form_callback':
                 $this->pre_form_callback = $setting_value;
                 break;
+
+            // Private Fields: meta field labels that are never sent to the
+            // front end (REST responses, /archive/, /devo-search). For values
+            // only staff should see, like notification recipients.
+            case 'private_fields':
+                $this->private_fields = is_array( $setting_value ) ? $setting_value : [ $setting_value ];
+                break;
                 
             // Public
             case 'public':
@@ -465,6 +474,9 @@ abstract class DO_Custom_Post_Type {
         $this->post_type_details->post_type = $this->post_type;
         $this->post_type_details->post_type_display_name = $this->post_type_display_name;
         $this->post_type_details->post_type_slug = $this->post_type_slug;
+        $this->post_type_details->private_fields = array_map( function( $field_label ) {
+            return devo_meta_field_key( $field_label, $this->meta_prefix );
+        }, $this->private_fields );
         $this->post_type_details->schema = $this->schema;
         $this->post_type_details->seo_description = $this->seo_description();
         $this->post_type_details->seo_image = $this->seo_image();
@@ -560,16 +572,19 @@ abstract class DO_Custom_Post_Type {
             'supports' => FALSE,
             'menu-icon' => '',
             'exclude_from_search' => ! $this->public,
-            'publicly_queryable' => TRUE,
+            // A non-public post type (form submissions, admin pages) must not be
+            // reachable from the front end at all: no single URLs and no REST
+            // routes. Either can still be switched on in post_type_args().
+            'publicly_queryable' => (bool) $this->public,
             'show_in_nav_menus' => FALSE,
             'delete_with_user' => FALSE,
-            'show_in_rest' => TRUE,
+            'show_in_rest' => (bool) $this->public,
             'rest_base' => $this->post_type_rest_slug,
             'show_in_admin_bar' => $this->show_in_admin_bar,
         ];
         // Set visibility based on $this->current_user_can
         if ( $this->current_user_can ) {
-            $default_args['show_in_nav_menus'] = TRUE;
+            $default_args['show_in_nav_menus'] = (bool) $this->public;
             $default_args['show_ui'] = TRUE;
         } else {
             $default_args['show_in_nav_menus'] = FALSE;
