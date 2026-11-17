@@ -28,13 +28,25 @@ header#header {
                 position: relative;
 
                 &.hasChildren {
-                    // Shown only in the off-canvas panel, where hover is not
-                    // available and the submenu is opened by tapping.
+                    // Discloses the submenu for keyboard and touch; hover
+                    // still opens it too.
                     > button.dropdownToggle {
-                        display: none;
+                        display: inline-block;
+                        width: 1.5em;
+                        height: 1.5em;
+                        padding: 0;
                         background: transparent;
                         border: none;
+                        position: relative;
                         cursor: pointer;
+
+                        &::before {
+                            @include iconPseudoElement();
+                            content: '\f107';
+                        }
+                        &[aria-expanded='true']::before {
+                            content: '\f106';
+                        }
                     }
                     > menu.subMenu {
                         display: none;
@@ -47,9 +59,17 @@ header#header {
                             list-style: none;
                         }
                     }
-                    &:hover > menu.subMenu {
+                    &:hover > menu.subMenu,
+                    &.open > menu.subMenu {
                         display: flex;
                     }
+                }
+
+                // The off-canvas panel's close button; see .mobileOpen below
+                &.menu__close {
+                    display: none;
+                    // Lets the button position against the panel itself
+                    position: static;
                 }
             }
         }
@@ -97,22 +117,30 @@ header#header {
                 right: 0;
                 z-index: 9999;
 
-                > ul {
+                > li {
                     width: 100%;
-                    flex-direction: column;
+                }
 
-                    > li {
-                        width: 100%;
-                    }
+                // Submenus open in place rather than floating over the panel
+                li.hasChildren > menu.subMenu {
+                    position: static;
                 }
             }
-            &.mobileOpen {
-                button#navClose {
+        }
+
+        // Set by Header.tsx while the toggle has the panel open. Not tied to
+        // the breakpoint, so a theme that collapses the menu at a different
+        // width still gets a close button.
+        &.mobileOpen {
+            menu.menu {
+                display: flex;
+
+                > li.menu__close {
                     display: block;
                 }
-                menu.menu {
-                    display: flex;
-                }
+            }
+            button#navClose {
+                display: block;
             }
         }
     }

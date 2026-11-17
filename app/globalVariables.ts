@@ -1,7 +1,4 @@
-import { Menus } from '@/utils/types/Menu';
-
 export const APIEndpoint: string = window.homeURL + '/wp-json/wp/v2';
-export const devoMenus: Menus = {};
 
 // Read once at startup, before React replaces the server-rendered SEO tags
 const metaContent = ( selector: string ): string => {
