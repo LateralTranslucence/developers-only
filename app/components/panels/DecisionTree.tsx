@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { getArrayField, length, parse } from '@/utils/helpers';
 import CTA from '@/components/shared/CTA';
 import Heading from '@/components/shared/Heading';
-import Image from '@/components/shared/Image';
+import MediaLoader from '@/components/shared/MediaLoader';
 import '@/styles/components/blocks.scss';
 import '@/styles/components/decision-tree.scss';
 import { PanelProps } from '@/utils/types/PanelProps';
@@ -80,7 +80,7 @@ const DecisionTree:React.FC<PanelProps> = ( {
                                                         <li key={ index }>
                                                             <CTA url={ item.url } classes={ length( item.icon ) ? [ 'text-button', 'has-icon' ] : [ 'text-button' ] }>
                                                                 { item.icon && length( item.icon ) ?
-                                                                    <Image image={ item.icon } />
+                                                                    <MediaLoader media={ item.icon } />
                                                                 : null }
                                                                 <span>{ item.title }</span>
                                                             </CTA>
