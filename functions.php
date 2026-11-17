@@ -126,7 +126,7 @@ function devo_admin_scripts() {
     // Icon Library
     wp_enqueue_script( 'devo-media-library-tabs', get_template_directory_uri() . '/public/js/media-library-tabs.js', array( 'jquery', 'media-upload', 'media-views' ), DO_VER, TRUE );
     // Binary checkbox in admin column
-    wp_enqueue_script( 'devobinary-toggle', get_template_directory_uri() . '/public/js/binary-toggle.js', [ 'jquery' ], '08062024', TRUE );
+    wp_enqueue_script( 'devo-binary-toggle', get_template_directory_uri() . '/public/js/binary-toggle.js', [ 'jquery' ], DO_VER, TRUE );
     // Color picker
     wp_enqueue_style( 'wp-color-picker' );
     wp_enqueue_script( 'wp-color-picker' );
@@ -382,6 +382,36 @@ function devo_set_noindex( $noindex ) {
     return $noindex;
 }
 add_filter( 'devo_noindex', 'devo_set_noindex' );
+
+/* Flushes rewrite rules only when the theme's own rules may have changed: on
+ * activation, after a theme update, or when a post type is added, removed or
+ * re-slugged (an extension post type, say). Rules used to be flushed on every
+ * landing page save, which is slow and unnecessary - they match any slug.
+ *
+ * A rule added in code without any of those changing (a new DO_Redirect, for
+ * instance) still needs a manual flush: Settings > Permalinks > Save, or the
+ * Refresh button on the View Permalinks screen. */
+function devo_rewrite_signature() {
+    global $devo_custom_post_types;
+    $slugs = [];
+    foreach ( (array) $devo_custom_post_types as $post_type => $details ) {
+        $slugs[ $post_type ] = isset( $details->post_type_slug ) ? $details->post_type_slug : '';
+    }
+    ksort( $slugs );
+    return md5( wp_json_encode( [ wp_get_theme( get_template() )->get( 'Version' ), $slugs ] ) );
+}
+function devo_maybe_flush_rewrite_rules() {
+    $signature = devo_rewrite_signature();
+    if ( get_option( 'devo_rewrite_signature' ) !== $signature ) {
+        flush_rewrite_rules( FALSE );
+        update_option( 'devo_rewrite_signature', $signature, TRUE );
+    }
+}
+add_action( 'wp_loaded', 'devo_maybe_flush_rewrite_rules' );
+// Activating the theme always flushes
+add_action( 'after_switch_theme', function() {
+    delete_option( 'devo_rewrite_signature' );
+} );
 
 // Clean up rewrite rules
 function devo_clean_up_rewrite_rules( $rules ) {
