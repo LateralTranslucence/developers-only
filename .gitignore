@@ -11,3 +11,7 @@ Thumbs.db
 /node_modules
 
 
+
+# TypeScript build artefacts (tsc -b writes these next to the tsconfig)
+*.tsbuildinfo
+vite.config.d.ts
