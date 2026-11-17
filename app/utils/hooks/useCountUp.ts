@@ -9,8 +9,15 @@ interface CountUpOptions {
 // Ease-out cubic: fast start, decelerates to finish
 const ease = ( t: number ): number => 3 * t - 3 * t * t + t * t * t;
 
+const prefersReducedMotion = (): boolean => {
+    return typeof window.matchMedia === 'function' && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches;
+};
+
 const useCountUp = ( target: number, options: CountUpOptions = {} ) => {
     const { duration = 2000, decimals = false, from = 0 } = options;
+    // Counting up is decorative; readers who ask for reduced motion get the
+    // final value straight away.
+    const [ reducedMotion ] = useState<boolean>( prefersReducedMotion );
     const [ value, setValue ] = useState( from );
     const elementRef = useRef<HTMLElement | null>( null );
     const rdevoRef = useRef<number | null>( null );
@@ -18,7 +25,7 @@ const useCountUp = ( target: number, options: CountUpOptions = {} ) => {
 
     useEffect( () => {
         const element = elementRef.current;
-        if ( !element ) return;
+        if ( !element || reducedMotion ) return;
 
         const animate = ( timestamp: number ) => {
             if ( !startTimeRef.current ) startTimeRef.current = timestamp;
@@ -29,13 +36,6 @@ const useCountUp = ( target: number, options: CountUpOptions = {} ) => {
                 rdevoRef.current = requestAnimationFrame( animate );
             }
         };
-
-        // Counting up is decorative; readers who ask for reduced motion get the
-        // final value straight away.
-        if ( window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches ) {
-            setValue( target );
-            return;
-        }
 
         const observer = new IntersectionObserver(
             ( entries ) => {
@@ -53,9 +53,9 @@ const useCountUp = ( target: number, options: CountUpOptions = {} ) => {
             observer.disconnect();
             if ( rdevoRef.current !== null ) cancelAnimationFrame( rdevoRef.current );
         };
-    }, [ target, from, duration, decimals ] );
+    }, [ target, from, duration, decimals, reducedMotion ] );
 
-    return [ elementRef, value ] as const;
+    return [ elementRef, reducedMotion ? target : value ] as const;
 };
 
 export default useCountUp;

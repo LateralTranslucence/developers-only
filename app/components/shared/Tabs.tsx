@@ -95,11 +95,16 @@ interface TabProps {
     value: number;
 }
 
+// With an anchorId, the panel carries it (so #anchor links reach the content)
+// and the tab gets the same id plus -tab; ids must be unique.
+const tabElementId = ( anchorId: string | undefined, baseId: string, value: number ): string => anchorId ? `${ anchorId }-tab` : `${ baseId }-tab-${ value }`;
+const panelElementId = ( anchorId: string | undefined, baseId: string, value: number ): string => anchorId || `${ baseId }-panel-${ value }`;
+
 const Tab: React.FC<TabProps> = ( { anchorId, children, className = '', value } ): JSX.Element => {
     const { activeValue, baseId, moveFocus, moveFocusToEdge, orientation, registerTab, setActiveValue } = useTabsContext();
     const isActive: boolean = activeValue === value;
-    const tabId: string = anchorId || `${ baseId }-tab-${ value }`;
-    const panelId: string = anchorId || `${ baseId }-panel-${ value }`;
+    const tabId: string = tabElementId( anchorId, baseId, value );
+    const panelId: string = panelElementId( anchorId, baseId, value );
     const nextKey: string = orientation === 'vertical' ? 'ArrowDown' : 'ArrowRight';
     const prevKey: string = orientation === 'vertical' ? 'ArrowUp' : 'ArrowLeft';
 
@@ -151,8 +156,8 @@ interface PanelProps {
 const Panel: React.FC<PanelProps> = ( { anchorId, children, className = '', value } ): JSX.Element => {
     const { activeValue, baseId } = useTabsContext();
     const isActive: boolean = activeValue === value;
-    const tabId: string = anchorId || `${ baseId }-tab-${ value }`;
-    const panelId: string = anchorId || `${ baseId }-panel-${ value }`;
+    const tabId: string = tabElementId( anchorId, baseId, value );
+    const panelId: string = panelElementId( anchorId, baseId, value );
 
     return (
         <div

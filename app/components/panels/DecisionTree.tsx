@@ -1,13 +1,12 @@
-import React from 'react';
-import { useState } from 'react';
+import React, { JSX } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { getArrayField, length, parse } from '@/utils/helpers';
 import CTA from '@/components/shared/CTA';
 import Heading from '@/components/shared/Heading';
-import Image from '@/components/shared/Image';
+import MediaLoader from '@/components/shared/MediaLoader';
 import '@/styles/components/blocks.scss';
 import '@/styles/components/decision-tree.scss';
 import { PanelProps } from '@/utils/types/PanelProps';
-import { CustomAttributes } from '@/utils/types/CustomAttributes';
 import { Media } from '@/utils/types/Media';
 
 interface DecisionTreeListItem {
@@ -33,33 +32,43 @@ const DecisionTree:React.FC<PanelProps> = ( {
     // Cards
     const cards: Array<DecisionTreeCard> = getArrayField<DecisionTreeCard>( post.fields, panelPrefix + '_cards' + panelSuffix );
 
-    const [ openTree, setOpenTree ] = useState<number | boolean | null>( null );
-    const openTheTree = ( e: React.MouseEvent<HTMLButtonElement, MouseEvent> ) => {
-        const target: HTMLElement = e.target as HTMLElement;
-        const li: HTMLElement | null = target ? target.closest( 'li' ) : null;
-        const openIndex: number | null = li ? Number( li.getAttribute( 'data-index' ) ) : null;
-        if ( openIndex !== null ) {
-            setOpenTree( Number( openIndex ) );
-        }
+    const baseId: string = useId();
+    const [ openTree, setOpenTree ] = useState<number | null>( null );
+    // Each card's expand and collapse buttons. Only one of the two is shown at
+    // a time, so focus moves to the other when it's pressed.
+    const expandRefs = useRef<Array<HTMLButtonElement | null>>( [] );
+    const collapseRefs = useRef<Array<HTMLButtonElement | null>>( [] );
+    const focusAfterRender = useRef<HTMLButtonElement | null>( null );
+
+    useEffect( () => {
+        focusAfterRender.current?.focus();
+        focusAfterRender.current = null;
+    }, [ openTree ] );
+
+    const openTheTree = ( index: number ): void => {
+        focusAfterRender.current = collapseRefs.current[ index ];
+        setOpenTree( index );
     };
-    const closeTheTree = () => {
-        setOpenTree( false );
+    const closeTheTree = ( index: number ): void => {
+        focusAfterRender.current = expandRefs.current[ index ];
+        setOpenTree( null );
     };
-    
+
     if ( length( cards ) ) {
         return (
             <ul className={ 'decision-tree blocks blocks--card blocks--three' + ( typeof openTree === 'number' ? ' decision-tree--' + openTree + '-open' : '' ) }>
                 { cards.map( ( card: DecisionTreeCard, index: number ) => {
                     if ( index < 2 ) {
-                        const animation: CustomAttributes = openTree === null ? ( index === 0 ? { 'data-aos': 'fade-right' } : { 'data-aos': 'fade-left' } ) : {};
+                        const isOpen: boolean = openTree === index;
+                        const detailId: string = `${ baseId }-detail-${ index }`;
                         return (
-                            <li key={ index } data-index={ index } className={ ' decision-tree__card' + ( openTree === index ? ' decision-tree__card--open' : '' ) } { ...animation }>
+                            <li key={ index } data-index={ index } className={ 'decision-tree__card' + ( isOpen ? ' decision-tree__card--open' : '' ) }>
                                 <div className="blocks__content">
                                     <Heading tag="h3" title={ card.title } />
                                     <span className="decision-tree__overview">
                                         { parse( card.overview ?? '' ) }
                                     </span>
-                                    <span className="decision-tree__detail">
+                                    <span className="decision-tree__detail" id={ detailId }>
                                         <span className="decision-tree__detail-copy">
                                             { parse( card.copy ?? '' ) }
                                             <p><CTA url={ card.cta_url } text={ card.cta_text } classes={ [ 'text-button' ] } /></p>
@@ -71,7 +80,7 @@ const DecisionTree:React.FC<PanelProps> = ( {
                                                         <li key={ index }>
                                                             <CTA url={ item.url } classes={ length( item.icon ) ? [ 'text-button', 'has-icon' ] : [ 'text-button' ] }>
                                                                 { item.icon && length( item.icon ) ?
-                                                                    <Image image={ item.icon } />
+                                                                    <MediaLoader media={ item.icon } />
                                                                 : null }
                                                                 <span>{ item.title }</span>
                                                             </CTA>
@@ -81,10 +90,22 @@ const DecisionTree:React.FC<PanelProps> = ( {
                                             </ul>
                                         </span>
                                     </span>
-                                    <button className="decision-tree__expand" onClick={ ( e ) => openTheTree( e ) }>
+                                    <button
+                                        aria-controls={ detailId }
+                                        aria-expanded={ isOpen }
+                                        className="decision-tree__expand"
+                                        onClick={ () => openTheTree( index ) }
+                                        ref={ ( el ) => { expandRefs.current[ index ] = el; } }
+                                        type="button">
                                         <span>Expand</span>
                                     </button>
-                                    <button className="decision-tree__collapse" onClick={ () => closeTheTree() }>
+                                    <button
+                                        aria-controls={ detailId }
+                                        aria-expanded={ isOpen }
+                                        className="decision-tree__collapse"
+                                        onClick={ () => closeTheTree( index ) }
+                                        ref={ ( el ) => { collapseRefs.current[ index ] = el; } }
+                                        type="button">
                                         <span>Close</span>
                                     </button>
                                 </div>

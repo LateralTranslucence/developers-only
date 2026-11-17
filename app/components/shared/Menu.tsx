@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import CTA from '@/components/shared/CTA';
 import Icon from '@/components/shared/Icon';
 import { useMenus } from '@/utils/stores/Menus';
@@ -7,7 +7,11 @@ import { MenuItem, MenuNode } from '@/utils/types/Menu';
 import { sanitizeTitleWithDashes } from '@/utils/helpers';
 
 interface MenuProps {
+    // Gives the <menu> an id, e.g. for a toggle's aria-controls
+    id?: string;
     name: string;
+    // Adds a close button as the menu's first item (the off-canvas panel)
+    onClose?: () => void;
 }
 
 const buildMenuTree = ( items: Array<MenuItem> ): Array<MenuNode> => {
@@ -36,7 +40,16 @@ const buildMenuTree = ( items: Array<MenuItem> ): Array<MenuNode> => {
     return roots;
 };
 
-const renderMenuItem = ( item: MenuNode, depth: number = 1 ): React.ReactElement => {
+/*
+ * One menu item. An item with children gets a disclosure button that opens
+ * its submenu (aria-expanded), so submenus work by keyboard and touch as well
+ * as on hover. Escape, or focus or a tap moving elsewhere, closes it.
+ */
+const MenuEntry: React.FC<{ item: MenuNode }> = ( { item } ) => {
+    const [ open, setOpen ] = useState<boolean>( false );
+    const itemRef = useRef<HTMLLIElement>( null );
+    const buttonRef = useRef<HTMLButtonElement>( null );
+    const subMenuId: string = useId();
     const title = item.post_title || item.title;
     const hasChildren = item.children.length > 0;
     const classes = item.classes?.length ? [ ...item.classes ] : [];
@@ -45,9 +58,41 @@ const renderMenuItem = ( item: MenuNode, depth: number = 1 ): React.ReactElement
     if ( hasChildren ) {
         classes.push( 'hasChildren' );
     }
+    if ( open ) {
+        classes.push( 'open' );
+    }
+
+    // A tap or click anywhere else closes the submenu
+    useEffect( () => {
+        if ( ! open ) {
+            return;
+        }
+        const onPointerDown = ( event: PointerEvent ): void => {
+            if ( ! itemRef.current?.contains( event.target as Node ) ) {
+                setOpen( false );
+            }
+        };
+        document.addEventListener( 'pointerdown', onPointerDown );
+        return () => document.removeEventListener( 'pointerdown', onPointerDown );
+    }, [ open ] );
+
+    const onKeyDown = ( event: React.KeyboardEvent<HTMLLIElement> ): void => {
+        if ( event.key === 'Escape' && open ) {
+            // Handled here, so an enclosing panel doesn't close as well
+            event.stopPropagation();
+            setOpen( false );
+            buttonRef.current?.focus();
+        }
+    };
+
+    const onBlur = ( event: React.FocusEvent<HTMLLIElement> ): void => {
+        if ( open && ! itemRef.current?.contains( event.relatedTarget as Node | null ) ) {
+            setOpen( false );
+        }
+    };
 
     return (
-        <li key={ item.ID } className={ classes.join( ' ' ) }>
+        <li className={ classes.join( ' ' ) } ref={ itemRef } onKeyDown={ hasChildren ? onKeyDown : undefined } onBlur={ hasChildren ? onBlur : undefined }>
             { item.url === '#' ?
                 <span>{ title }</span>
             : item.fields?._menu_icon ?
@@ -58,9 +103,17 @@ const renderMenuItem = ( item: MenuNode, depth: number = 1 ): React.ReactElement
             : <CTA url={ item.url } text={ title } target={ item.target } /> }
             { hasChildren ?
                 <>
-                    { depth === 1 ? <button className="dropdownToggle"><span className="screenReader">Open/Close</span></button> : null }
-                    <menu className="subMenu">
-                        { item.children.map( ( child ) => renderMenuItem( child, depth + 1 ) ) }
+                    <button
+                        aria-controls={ subMenuId }
+                        aria-expanded={ open }
+                        className="dropdownToggle"
+                        onClick={ () => setOpen( ! open ) }
+                        ref={ buttonRef }
+                        type="button">
+                        <span className="screenReader">{ title } submenu</span>
+                    </button>
+                    <menu className="subMenu" id={ subMenuId }>
+                        { item.children.map( ( child ) => <MenuEntry key={ child.ID } item={ child } /> ) }
                     </menu>
                 </>
             : null }
@@ -68,19 +121,18 @@ const renderMenuItem = ( item: MenuNode, depth: number = 1 ): React.ReactElement
     );
 };
 
-const Menu: React.FC<MenuProps> = ( { name } ) => {
-    const navMenus = useMenus((m) => m.menus);
-    const fetchMenus = useMenus((m) => m.fetchMenus);
-    const setMobileMenuOpen = useMenus((m) => m.setMobileMenuOpen);
+const Menu: React.FC<MenuProps> = ( { id, name, onClose } ) => {
+    const navMenus = useMenus( ( m ) => m.menus );
+    const fetchMenus = useMenus( ( m ) => m.fetchMenus );
 
     useEffect( () => {
         if ( Array.isArray( navMenus[ name ] ) && navMenus[ name ].length > 0 ) {
             return;
         }
 
-        fetchMenus();
+        fetchMenus().catch( ( error: unknown ) => console.error( 'Error fetching menus:', error ) );
     }, [ name, navMenus, fetchMenus ] );
-    
+
     const navMenu: Array<MenuItem> = Array.isArray( navMenus[ name ] ) ? navMenus[ name ] : [];
 
     if ( navMenu.length === 0 ) {
@@ -114,14 +166,17 @@ const Menu: React.FC<MenuProps> = ( { name } ) => {
     const tree = buildMenuTree( navMenu );
 
     return (
-        <menu className="menu">
-            <button 
-                id="mainNavClose"
-                onClick={() => setMobileMenuOpen(false)}
-            >
-                <span>Close Menu</span>
-            </button>
-            { tree.map( ( item ) => renderMenuItem( item ) ) }
+        <menu className="menu" id={ id }>
+            { onClose ?
+                // A <menu>'s children must be <li>; role="none" keeps the
+                // button out of the item count
+                <li className="menu__close" role="none">
+                    <button id="navClose" onClick={ onClose } type="button">
+                        <span className="screenReader">Close menu</span>
+                    </button>
+                </li>
+            : null }
+            { tree.map( ( item ) => <MenuEntry key={ item.ID } item={ item } /> ) }
         </menu>
     );
 };

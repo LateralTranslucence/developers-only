@@ -1,5 +1,5 @@
 import React from 'react';
-import '@/styles/components/error-boundary.scss';
+import ErrorFallback from '@/components/shared/ErrorFallback';
 
 interface ErrorBoundaryProps {
     children: React.ReactNode;
@@ -42,14 +42,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
     render(): React.ReactNode {
         if ( this.state.hasError ) {
-            // Deliberately plain markup (no CTA/Heading/etc.) - if those are
-            // implicated in the crash, the fallback itself must still render.
-            return (
-                <div className="error-boundary">
-                    <p className="error-boundary__message">Something went wrong loading this page.</p>
-                    <a className="error-boundary__link" href={ window.relativeHomeURL || '/' }>Return home</a>
-                </div>
-            );
+            return <ErrorFallback />;
         }
         return this.props.children;
     }

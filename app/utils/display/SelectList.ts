@@ -8,7 +8,7 @@ export default class SelectList {
                 selectList.removeEventListener( 'click', this.onClick );
                 selectList.addEventListener( 'click', this.onClick );
                 // If this is tabs, do more things
-                if ( selectList.classList.contains( 'tabs-nav-toggle' ) ) {
+                if ( selectList.classList.contains( 'tabs__nav-toggle' ) ) {
                     const tabList: Element | null = selectList.nextElementSibling;
                     if ( tabList ) {
                         tabList.removeEventListener( 'click', this.tabOnClick );

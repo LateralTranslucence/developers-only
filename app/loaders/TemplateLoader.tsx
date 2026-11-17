@@ -1,14 +1,14 @@
 import React from 'react';
-import { ComponentLoaderMap } from '@/utils/types/ComponentLoaderMap';
-// Single Templates
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { getPost } from '@/utils/api';
+import { ComponentLoaderMap } from '@/utils/types/ComponentLoaderMap';
+import { getPost, isAbortError } from '@/utils/api';
 import { useCurrentPage } from '@/utils/stores/CurrentPage';
 import { TemplateLoaderProps } from '@/utils/types/TemplateLoaderProps';
 import { TemplateProps } from '@/utils/types/TemplateProps';
-import { APIResult } from '@/utils/types/APIResult';
 import { Post } from '@/utils/types/Post';
 import { pascalToKebab } from '@/utils/helpers';
+import ErrorFallback from '@/components/shared/ErrorFallback';
+// Single Templates
 const Form = lazy( () => import( '@/components/templates/single/Form' ) );
 const SimplePage = lazy( () => import( '@/components/templates/single/SimplePage' ) );
 const LandingPage = lazy( () => import( '@/components/templates/LandingPage' ) );
@@ -18,7 +18,6 @@ const templates: ComponentLoaderMap = {
     'form': Form,
     'landing-page': LandingPage,
     'simple-page': SimplePage,
-    '404': Page404,
 };
 
 // Auto-discover extension single-post templates
@@ -35,81 +34,84 @@ for ( const path in extensionTemplates ) {
     }
 }
 
+// URL post type segments whose REST base differs
+const postTypeAliases: Record<string, string> = {
+    'media': 'media-library',
+    'page': 'simple-page',
+};
+
 const ContentReady: React.FC<{ onLoad?: () => void; children: React.ReactNode }> = ( { onLoad, children } ) => {
     useEffect( () => { onLoad?.(); }, [onLoad] );
     return <>{ children }</>;
 };
 
+type LoadState =
+    | { key: string; status: 'found'; post: Post }
+    | { key: string; status: 'missing' | 'error' };
+
 const TemplateLoader: React.FC<TemplateLoaderProps> = ( {
     iframe = false,
+    notFound = false,
     postType,
-    queryString = '',
     slug,
     layoutClassesFunction,
     onLoad,
 } ) => {
-    const [ post, setPost ] = useState<Post | undefined>( undefined );
-    const [ loading, setLoading ] = useState<boolean>( true );
     const setSlug = useCurrentPage( ( state ) => state.setSlug );
+    const finalPostType: string = postTypeAliases[ postType ] ?? postType;
+    const Template: React.ComponentType<TemplateProps> | undefined = notFound ? undefined : templates[ finalPostType ];
+    // Identifies the request; empty when there's nothing to fetch, i.e. no
+    // template could render the result anyway
+    const requestKey: string = Template && slug ? finalPostType + '/' + slug : '';
+    const [ loadState, setLoadState ] = useState<LoadState | null>( null );
 
     // Make the current page slug available to templates via the CurrentPage store
     useEffect( () => {
         setSlug( slug );
     }, [ setSlug, slug ] );
-    let finalPostType: string = postType;
-    if ( finalPostType === 'media' ) {
-        // rename
-        finalPostType = 'media-library';
-    }
-    else if ( finalPostType === 'page' ) {
-        // rename
-        finalPostType = 'simple-page';
-    }
-
-    const TemplateName: React.ComponentType<TemplateProps> = templates[ finalPostType ] ?? templates['404'];
 
     useEffect( () => {
-        let cancelled = false;
-
-        async function fetchData() {
-            setLoading( true );
-            setPost( undefined );
-
-            await getPost( finalPostType, slug, queryString ).then( ( data: APIResult ) => {
-                    if ( cancelled ) {
-                        return;
-                    }
-
-                    if ( data.json ) {
-                        setPost( data.json as Post );
-                    } 
-                    else {
-                        setPost( undefined );
-                    }
-                    setLoading( false );
-                } );
+        if ( ! requestKey ) {
+            return;
         }
-        fetchData();
-        
-        return () => {
-            cancelled = true;
-        };
-    }, [ finalPostType, queryString, slug ] );
+        // Aborting on cleanup also guarantees a slow response for a page the
+        // visitor has already left can't overwrite the current one
+        const controller = new AbortController();
+        getPost( finalPostType, slug, { signal: controller.signal } )
+            .then( ( data ) => {
+                setLoadState( data.json ? { key: requestKey, status: 'found', post: data.json } : { key: requestKey, status: 'missing' } );
+            } )
+            .catch( ( error: unknown ) => {
+                if ( ! isAbortError( error ) ) {
+                    setLoadState( { key: requestKey, status: 'error' } );
+                }
+            } );
+        return () => controller.abort();
+    }, [ finalPostType, requestKey, slug ] );
 
-    if ( loading ) {
+    // Any state held for a different request belongs to a previous page
+    const current: LoadState | null = requestKey && loadState?.key === requestKey ? loadState : null;
+    // Still loading this page
+    if ( requestKey && ! current ) {
         return null;
     }
 
-    if ( TemplateName && post ) {
-            return (
-                <Suspense fallback={ null }>
-                    <ContentReady onLoad={ onLoad }>
-                        <TemplateName post={ post } iframe={ iframe ? iframe : false } layoutClasses={ layoutClassesFunction } />
-                    </ContentReady>
-                </Suspense>
-            );
-    } else {
-        return null;
+    if ( current?.status === 'error' ) {
+        return (
+            <ContentReady onLoad={ onLoad }>
+                <ErrorFallback />
+            </ContentReady>
+        );
     }
+
+    return (
+        <Suspense fallback={ null }>
+            <ContentReady onLoad={ onLoad }>
+                { Template && current?.status === 'found' ?
+                    <Template post={ current.post } iframe={ iframe } layoutClasses={ layoutClassesFunction } />
+                : <Page404 layoutClasses={ layoutClassesFunction } /> }
+            </ContentReady>
+        </Suspense>
+    );
 };
 export default TemplateLoader;

@@ -4,6 +4,11 @@ figure.video {
     max-width: 100%;
     overflow: hidden;
 
+    span.video-wrapper {
+        display: block;
+        position: relative;
+    }
+
     // Self-hosted embeds use a padded box to hold the aspect ratio, with the
     // <video> filling it.
     &.embed span.video-wrapper {
@@ -15,6 +20,37 @@ figure.video {
             left: 0;
             width: 100%;
         }
+    }
+
+    // Streaming players fill the width at 16:9.
+    &.streaming span.video-wrapper > iframe {
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border: 0;
+    }
+}
+
+// Play/pause for a self-hosted background video (Video.tsx), laid over its
+// corner. The glyph shows the action the button will take.
+button.video__toggle {
+    width: 2.5rem;
+    aspect-ratio: 1;
+    padding: 0;
+    background: transparent;
+    border: none;
+    position: absolute;
+    bottom: 0.5rem;
+    left: 0.5rem;
+    z-index: 1;
+    cursor: pointer;
+
+    &::before {
+        @include iconPseudoElement();
+        content: '\f04c';
+    }
+    &--paused::before {
+        content: '\f04b';
     }
 }
 

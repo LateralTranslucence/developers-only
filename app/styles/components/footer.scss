@@ -36,11 +36,6 @@ footer#footer {
         li {
             list-style: none;
         }
-        // Reused generic Menu component includes this for the off-canvas mobile
-        // panel context; not applicable to the inline footer legal nav.
-        button#mainNavClose {
-            display: none;
-        }
     }
 
     p.footer__year {

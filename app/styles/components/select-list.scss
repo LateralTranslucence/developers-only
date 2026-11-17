@@ -5,12 +5,19 @@ ul.select-list, menu.select-list {
     @include select_list();
 }
 
-span.select-list-toggle {
+// A <button>, so the collapsed list can be opened by keyboard
+button.select-list-toggle {
     display: block;
     cursor: pointer;
     width: 100%;
     overflow: hidden;
     position: relative;
+    padding: 0;
+    background: transparent;
+    border: none;
+    font: inherit;
+    color: inherit;
+    text-align: left;
 
     // Caret, flipped when the list is open.
     &::after {

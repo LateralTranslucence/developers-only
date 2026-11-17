@@ -6,11 +6,12 @@ export interface CTASettings {
     button_style?: string;
     children?: ReactNode;
     className?: string;
-    classes?: Array<string>;
+    // An array, or a space-separated string (as from a <cta classes="..."> tag)
+    classes?: Array<string> | string;
     customAttributes?: CustomAttributes;
     id?: string;
-    iframeName?: string;
-    modal?: boolean;
+    // true, or a string flag such as "true" / "1" ("false" is false)
+    modal?: boolean | string;
     modal_class?: string;
     onClick?: ( e: MouseEvent ) => void;
     target?: string;

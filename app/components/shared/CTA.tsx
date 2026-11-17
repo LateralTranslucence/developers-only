@@ -1,11 +1,49 @@
-import React, { HTMLAttributes, AnchorHTMLAttributes, ReactNode, useId } from 'react';
+import React, { AnchorHTMLAttributes, ReactNode, useId } from 'react';
 import { Link } from 'react-router-dom';
 import Modal from '@/components/shared/Modal';
 import { CTASettings } from '@/utils/types/CTASettings';
-import { sanitizeTitleWithDashes, trimChar, urlType as getURLType, videoEmbedURL } from '@/utils/helpers';
-import { TagType } from '@/utils/types/TagType';
 import { CustomAttributes } from '@/utils/types/CustomAttributes';
+import { sanitizeTitleWithDashes, urlType as getURLType, videoEmbedURL, videoType } from '@/utils/helpers';
+import classifyURL, { ClassifiedURL } from '@/utils/helpers/classifyURL';
 import '@/styles/components/buttons.scss';
+
+// `modal` and `classes` can arrive as strings from post content or REST data
+const isModalFlag = ( modal: CTASettings['modal'] ): boolean => {
+    return modal === true || ( typeof modal === 'string' && [ 'true', '1', 'yes', 'modal' ].includes( modal.trim().toLowerCase() ) );
+};
+const toClassList = ( classes: CTASettings['classes'] ): Array<string> => {
+    if ( Array.isArray( classes ) ) {
+        return classes.filter( ( name ): name is string => typeof name === 'string' && name.length > 0 );
+    }
+    return typeof classes === 'string' ? classes.split( /\s+/ ).filter( Boolean ) : [];
+};
+
+// What a modal CTA shows: its own content (a video, an image, or a page in an
+// iframe), or a Modal that already exists on the page (an #id link)
+const ModalContent: React.FC<{ link: ClassifiedURL; text: string; type: string }> = ( { link, text, type } ) => {
+    if ( type === 'video' ) {
+        // Rendered only while the modal is open (see Modal renderWhenOpen), so
+        // playing on mount means playing when the visitor opens it
+        return videoType( link.href ) === 'streaming' ?
+            <figure className="video">
+                <iframe src={ videoEmbedURL( link.href ) } allow="autoplay; fullscreen; picture-in-picture" allowFullScreen title={ text || 'Video' } />
+            </figure>
+        : <figure className="video">
+            <video src={ link.href } controls autoPlay playsInline />
+        </figure>;
+    }
+    if ( type === 'image' ) {
+        return <img src={ link.href } alt={ text } />;
+    }
+    // A page of this site loads through its /iframe/ route, which renders it
+    // without the header and footer
+    const src: string = link.kind === 'route' ? ( window.relativeHomeURL || '' ).replace( /\/+$/, '' ) + '/iframe' + link.to : link.href;
+    return (
+        <div className="iframe-wrapper">
+            <iframe src={ src } title={ text || 'Modal content' } />
+        </div>
+    );
+};
 
 const CTA: React.FC<CTASettings> = ( {
     button_style = '',
@@ -21,37 +59,21 @@ const CTA: React.FC<CTASettings> = ( {
     text = '',
     url,
 } ) => {
-    if ( typeof url === 'object' && url.url ) {
-        url = url.url.replace( window.homeURL, '' ).replace( window.relativeHomeURL, '' );
-    } else if ( typeof url === 'string' ) {
-        url = url.length > 0 && url.indexOf( window.homeURL ) === 0 ? url.replace( window.homeURL, '' ).replace( window.relativeHomeURL, '' ) : url;
-    } else {
-        url = '';
-    }
-
     const generatedModalId: string = useId();
-    const html: ReactNode = children ? children : <span>{ text }</span>;
-    const relativeURL: boolean = Boolean( url.length ) && url.indexOf( 'http' ) === -1 && url.indexOf( 'mailto:' ) === -1;
-    const externalURL: boolean = Boolean( url.length ) && ! relativeURL && url.indexOf( window.homeURL ) !== 0;
-    const vimeoVideo: boolean = url.indexOf( 'vimeo' ) > -1;
-    const containsAnchor: boolean = Boolean( url.length ) && url.indexOf( '#' ) > -1;
-    const anchorOnlyURL: boolean = containsAnchor && url.indexOf( '#' ) === 0;
-    const relativeContainsFileExtension: boolean = relativeURL && url.indexOf( '.' ) > -1;
-    const containsQueryParam: boolean = Boolean( url.length ) && url.indexOf( '?' ) > -1;
-    const queryParamOnly: boolean = containsQueryParam && url.indexOf( '?' ) === 0;
-    const internalPath: string = relativeURL && ! anchorOnlyURL && ! queryParamOnly ? '/' + trimChar( url.replace( window.relativeHomeURL, '' ), '/' ) + ( containsAnchor || containsQueryParam || relativeContainsFileExtension ? '' : '/' ) : url;
-    let href: string = relativeURL ? internalPath.replace( '//', '/' ) : url;
-    href = vimeoVideo ? videoEmbedURL( href ) : href;
-    href = href.indexOf( window.homeURL ) > -1 ? trimChar( href, '/' ) + '/' : href;
-    const urlType: string = getURLType( href );
-    const urlTarget = target ? target : ( relativeURL || href.indexOf( window.homeURL ) === 0 ? '_self' : '_blank' );
-    const ariaHidden = text.indexOf( 'video' ) > -1 && text.indexOf( 'embed' ) > -1;
-    // Anchor-only + modal means "open a Modal that already exists elsewhere on the page";
-    // any other URL + modal means this CTA owns and renders its own Modal content.
-    const modalEnabled = modal && ( vimeoVideo || ! externalURL );
-    const opensExistingModal: boolean = modalEnabled && anchorOnlyURL;
-    const modalID: string = opensExistingModal ? href.replace( '#', '' ) : generatedModalId;
-    const modalURL = modalEnabled && ! opensExistingModal && relativeURL && ! vimeoVideo && href.indexOf( '/iframe' ) === -1 ? window.relativeHomeURL + '/iframe' + href : href;
+    const rawURL: string = typeof url === 'string' ? url : ( url && typeof url.url === 'string' ? url.url : '' );
+    const link: ClassifiedURL = classifyURL( rawURL );
+    const label: string = typeof text === 'string' ? text : '';
+    const html: ReactNode = children ? children : <span>{ label }</span>;
+    const type: string = link.kind === 'none' ? '' : getURLType( link.href );
+
+    // A modal can show a page or file of this site, or any image or video.
+    // An external page is opened normally: most sites refuse to be framed.
+    const modalEnabled: boolean = isModalFlag( modal )
+        && link.kind !== 'none' && link.kind !== 'scheme' && link.kind !== 'query'
+        && ( link.kind !== 'external' || type === 'video' || type === 'image' );
+    // "#id" + modal opens a Modal rendered elsewhere on the page (e.g. a panel's)
+    const opensExistingModal: boolean = modalEnabled && link.kind === 'hash';
+    const modalID: string = opensExistingModal ? link.href.slice( 1 ) : generatedModalId;
 
     const openModal = ( event: React.MouseEvent ): void => {
         event.preventDefault();
@@ -59,96 +81,90 @@ const CTA: React.FC<CTASettings> = ( {
         dialog?.showModal();
     };
 
-    let Tag: TagType = href || onClick ? Link : 'span';
-
-    let attributes: HTMLAttributes<HTMLAnchorElement> | AnchorHTMLAttributes<HTMLAnchorElement> = {
-	    title: text,
-        target: urlTarget,
-        'data-url-type': urlType,
-    };
-
-    classes.push(sanitizeTitleWithDashes(text));
-
-    if ( className.length ) {
-        classes.push( className );
+    const classNames: Array<string> = toClassList( classes );
+    if ( label ) {
+        classNames.push( sanitizeTitleWithDashes( label ) );
+    }
+    if ( className ) {
+        classNames.push( className );
     }
     if ( button_style ) {
-        classes.push( 'button', button_style );
+        classNames.push( 'button', button_style );
     }
     if ( modalEnabled ) {
-        classes.push( 'modal' );
+        classNames.push( 'modal' );
     }
-    const shouldUseAnchor = externalURL || anchorOnlyURL || queryParamOnly || relativeContainsFileExtension || Boolean( onClick );
-    if ( shouldUseAnchor ) {
-        if ( ! onClick ) {
-            attributes.href = relativeURL && ! externalURL ? window.relativeHomeURL + href : href;
-        }
-        Tag = 'a';
-    } else if ( Tag === Link ) {
-        attributes.to = href;
+
+    const linkTarget: string = target ? target : ( link.kind === 'external' ? '_blank' : '_self' );
+    const rel: Array<string> = [];
+    if ( linkTarget === '_blank' ) {
+        rel.push( 'noopener', 'noreferrer' );
     }
+    if ( type === 'pdf' ) {
+        rel.push( 'nofollow' );
+    }
+
+    let attributes: AnchorHTMLAttributes<HTMLAnchorElement> & CustomAttributes = {
+        className: classNames.join( ' ' ) || undefined,
+        title: label || undefined,
+        'data-url-type': link.kind === 'none' ? undefined : type,
+    };
     if ( id ) {
         attributes.id = id;
     }
-    if ( onClick ) {
-        attributes.onClick = onClick;
-    }
-    if ( ariaHidden ) {
-        attributes['aria-hidden'] = true;
-    }
-    if ( urlType === 'pdf' ) {
-        attributes.rel = 'nofollow';
-    }
     if ( customAttributes ) {
-        attributes = { ...attributes, ...customAttributes as CustomAttributes };
+        attributes = { ...attributes, ...customAttributes };
     }
-    if ( modal && modal_class ) {
+    if ( modalEnabled && modal_class ) {
         attributes['data-modal-class'] = modal_class;
     }
+
+    // Modal trigger
     if ( modalEnabled ) {
-        Tag = 'a';
-        attributes.href = '#' + modalID;
-        attributes.onClick = openModal;
-    }
-
-    const classString: string = classes.join( ' ' );
-    attributes.className = classString;
-
-    function HTML() {
-        return <>{ html }</>;
-    }
-
-    // This CTA owns its own modal content (video/image/iframe) - render trigger + Modal together.
-    if ( modalEnabled && ! opensExistingModal ) {
+        const trigger = (
+            <a { ...attributes } href={ '#' + modalID } onClick={ openModal }>
+                { html }
+            </a>
+        );
+        if ( opensExistingModal ) {
+            return trigger;
+        }
         return (
             <>
-                <Tag { ...attributes }>
-                    <HTML />
-                </Tag>
-                <Modal className={ [ urlType, modal_class ].filter( Boolean ).join( ' ' ) } id={ modalID }>
-                    { urlType === 'video' ?
-                        <figure className="video">
-                            <iframe src={ modalURL } allow="autoplay; fullscreen; picture-in-picture" allowFullScreen title={ text || 'Video modal' } />
-                        </figure>
-                    : urlType === 'image' ?
-                        <img src={ modalURL } alt={ text } />
-                    : <div className="iframe-wrapper">
-                        <iframe src={ modalURL } title={ text || 'Modal content' } />
-                    </div> }
+                { trigger }
+                <Modal className={ [ type, modal_class ].filter( Boolean ).join( ' ' ) } id={ modalID } renderWhenOpen>
+                    <ModalContent link={ link } text={ label } type={ type } />
                 </Modal>
             </>
         );
     }
 
-    return (
-        <>
-        { href || text || onClick ?
-            <Tag { ...attributes }>
-                <HTML />
-            </Tag>
-        : <HTML />
-        }
-        </>
-    );
+    // A click handler with nowhere to go is a button, not a link
+    if ( onClick && link.kind === 'none' ) {
+        return (
+            <button { ...( attributes as CustomAttributes ) } type="button" onClick={ onClick }>
+                { html }
+            </button>
+        );
+    }
+
+    if ( link.kind === 'route' ) {
+        return (
+            <Link { ...attributes } to={ link.to } target={ linkTarget } rel={ rel.join( ' ' ) || undefined } onClick={ onClick }>
+                { html }
+            </Link>
+        );
+    }
+
+    if ( link.kind !== 'none' ) {
+        return (
+            <a { ...attributes } href={ link.href } target={ linkTarget } rel={ rel.join( ' ' ) || undefined } onClick={ onClick }>
+                { html }
+            </a>
+        );
+    }
+
+    // No link: a labelled span, or just the children
+    return label ? <span { ...( attributes as CustomAttributes ) }>{ html }</span> : <>{ html }</>;
 };
 export default CTA;

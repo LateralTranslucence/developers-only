@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { APIEndpoint, devoMenus } from '@/globalVariables';
+import { APIEndpoint } from '@/globalVariables';
 import { Menus } from '@/utils/types/Menu';
 
 interface MenusStore {
@@ -12,13 +12,12 @@ interface MenusStore {
 }
 
 export const useMenus = create<MenusStore>( ( set, get ) => ( {
-    menus: devoMenus,
+    menus: {},
     mobileMenuOpen: false,
     pendingRequest: null,
-    setMenus: ( menus ) => {
-        Object.assign( devoMenus, menus );
-        set( { menus: devoMenus } );
-    },
+    // A new object every time: Zustand only notifies subscribers when the
+    // selected value's identity changes
+    setMenus: ( menus ) => set( ( state ) => ( { menus: { ...state.menus, ...menus } } ) ),
     setMobileMenuOpen: ( open ) => set( { mobileMenuOpen: open } ),
     fetchMenus: async () => {
         const { menus, pendingRequest, setMenus } = get();
@@ -39,7 +38,7 @@ export const useMenus = create<MenusStore>( ( set, get ) => ( {
 
                 const data = await response.json() as Menus;
                 setMenus( data );
-                return devoMenus;
+                return get().menus;
             } )
             .finally( () => {
                 set( { pendingRequest: null } );

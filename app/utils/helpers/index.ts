@@ -4,6 +4,8 @@
 */
 
 export { default as addCommas } from '@/utils/helpers/addCommas';
+export { default as classifyURL } from '@/utils/helpers/classifyURL';
+export type { ClassifiedURL, URLKind } from '@/utils/helpers/classifyURL';
 export { default as convertNumberToWords } from '@/utils/helpers/convertNumberToWords';
 export { default as decimalFromDivision } from '@/utils/helpers/decimalFromDivision';
 export { default as evenOdd } from '@/utils/helpers/evenOdd';
@@ -16,6 +18,7 @@ export { default as getMediaField } from '@/utils/helpers/getMediaField';
 export { default as getNumberField } from '@/utils/helpers/getNumberField';
 export { default as getObjectField } from '@/utils/helpers/getObjectField';
 export { default as getParent } from '@/utils/helpers/getParent';
+export { getPostContent, getPostExcerpt, getPostID, getPostSlug, getPostTitle, getPostType } from '@/utils/helpers/postFields';
 export { default as getStringField } from '@/utils/helpers/getStringField';
 export { default as getVimeoID } from '@/utils/helpers/getVimeoID';
 export { default as getYouTubeID } from '@/utils/helpers/getYouTubeID';
@@ -28,6 +31,7 @@ export { default as parse } from '@/utils/helpers/parse';
 export { default as pluralize } from '@/utils/helpers/pluralize';
 export { default as range } from '@/utils/helpers/range';
 export { default as readTime } from '@/utils/helpers/readTime';
+export { isSafeURL, sanitizeSVG } from '@/utils/helpers/sanitize';
 export { default as sanitizeTitleWithDashes } from '@/utils/helpers/sanitizeTitleWithDashes';
 export { default as stripTags } from '@/utils/helpers/stripTags';
 export { default as trimChar } from '@/utils/helpers/trimChar';

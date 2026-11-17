@@ -1,9 +1,26 @@
 import React, { useEffect } from 'react';
-import { stripTags } from '@/utils/helpers';
+import { siteName } from '@/globalVariables';
+import { getPostTitle } from '@/utils/helpers';
 import { Post } from '@/utils/types/Post';
 
+// Plain text from a string that may contain markup or entities (a raw post
+// title, or core's title.rendered)
+const htmlToText = ( html: string ): string => {
+    return new DOMParser().parseFromString( html, 'text/html' ).body.textContent ?? '';
+};
+
+/*
+ * The page's SEO tags. seo_* values arrive from the REST API as raw text
+ * (React escapes them) and seo_url is absolute.
+ *
+ * React 19 hoists the <meta>/<link> tags below into <head>. The <title> is
+ * not rendered as an element: WordPress already prints one (title-tag
+ * support), so this updates that instead of adding a second.
+ */
 const SEOTags: React.FC<{ post: Partial<Post> }> = ( { post } ) => {
-    const title = stripTags( ( post.seo_title ? post.seo_title : post.post_title ) ?? '' );
+    const title: string = post.seo_title || htmlToText( getPostTitle( post ) );
+    const description: string = post.seo_description ?? '';
+    const ogSiteName: string = post.seo_site_name || siteName;
 
     // header.php server-renders these same tags (marked data-react-helmet) for
     // crawlers; remove them once React takes over so they don't duplicate the
@@ -12,20 +29,25 @@ const SEOTags: React.FC<{ post: Partial<Post> }> = ( { post } ) => {
         document.head.querySelectorAll( '[data-react-helmet]' ).forEach( ( el ) => el.remove() );
     }, [] );
 
+    useEffect( () => {
+        if ( title ) {
+            document.title = title;
+        }
+    }, [ title ] );
+
     return (
         <>
-            <title>{ title }</title>
-            <link rel="canonical" href={ post.seo_url ? post.seo_url : post.guid } />
-            <meta property="og:locale" content={ post.seo_locale ? post.seo_locale : '' } />
+            { post.seo_url ? <link rel="canonical" href={ post.seo_url } /> : null }
+            { post.seo_locale ? <meta property="og:locale" content={ post.seo_locale } /> : null }
             <meta property="og:type" content="website" />
-            <meta property="og:title" content={ post.seo_title ? post.seo_title : post.post_title } />
-            <meta property="og:description" content={ post.seo_description } />
-            <meta name="description" content={ post.seo_description } />
-            <meta property="og:url" content={ post.seo_url ? post.seo_url : post.guid } />
-            <meta property="og:site_name" content={ post.seo_site_name ? post.seo_site_name : '{DevelopersOnly}' } />
-            <meta property="og:image" content={ post.seo_image ? post.seo_image : '' } />
+            { title ? <meta property="og:title" content={ title } /> : null }
+            { description ? <meta property="og:description" content={ description } /> : null }
+            { description ? <meta name="description" content={ description } /> : null }
+            { post.seo_url ? <meta property="og:url" content={ post.seo_url } /> : null }
+            { ogSiteName ? <meta property="og:site_name" content={ ogSiteName } /> : null }
+            { post.seo_image ? <meta property="og:image" content={ post.seo_image } /> : null }
             <meta name="twitter:card" content="summary_large_image" />
-            <meta name="robots" content={ post.noindex ? post.noindex : 'index, follow' } />
+            <meta name="robots" content={ post.noindex || 'index, follow' } />
         </>
     );
 };

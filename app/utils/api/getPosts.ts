@@ -1,29 +1,9 @@
 import { APIEndpoint } from '@/globalVariables';
 import { APIResult } from '@/utils/types/APIResult';
 import { Post } from '@/utils/types/Post';
+import fetchJSON from '@/utils/api/fetchJSON';
 
-const getPosts: ( postType: string ) => Promise<APIResult> = async ( postType = '' ): Promise<APIResult> => {
-    try {
-        const postsEndpoint: string = `${APIEndpoint}/${postType}/`;
-
-        if ( window.devoEnv !== 'prod' ) {
-            console.log( 'getPosts ' + postsEndpoint );
-        }
-
-        const response: Response = await fetch( postsEndpoint );
-        const json: Array<Post> = await response.json();
-        const result: APIResult = {
-            totalPages: response.headers.get( 'x-wp-totalpages' ),
-            totalPosts: response.headers.get( 'x-wp-total' ),
-            allHeaders: response.headers,
-            json,
-        };
-
-        return result;
-    
-    } catch ( error ) {
-        console.log( 'Error fetching posts: ' + error );
-        throw error;
-    }
+const getPosts = ( postType: string = '', init: RequestInit = {} ): Promise<APIResult<Array<Post>>> => {
+    return fetchJSON<Array<Post>>( 'getPosts', `${ APIEndpoint }/${ encodeURIComponent( postType ) }/`, init );
 };
 export default getPosts;

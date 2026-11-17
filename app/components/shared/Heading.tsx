@@ -19,17 +19,19 @@ const Heading: React.FC<HeadingProps> = ( {
     const Tag: ElementType = trimChar( tag, '<>' ) as ElementType;
     const hasPretitle: boolean = Boolean( pretitle );
     const hasPublishDate: boolean = Boolean( publishDate );
+    // Copy rather than push onto the prop, which belongs to the caller
+    const headingClasses: Array<string> = [ ...classes ];
     // Either has-date OR has-pretitle, not both
     if ( hasPublishDate ) {
-        classes.push( 'has-date' );
+        headingClasses.push( 'has-date' );
     } else if ( hasPretitle ) {
-        classes.push( 'has-pretitle' );
+        headingClasses.push( 'has-pretitle' );
     }
     if ( align ) {
-        classes.push( 'text-align-' + align );
+        headingClasses.push( 'text-align-' + align );
     }
     const tagAttributes: CustomAttributes = {
-        className: classes.join( ' ' ),
+        className: headingClasses.join( ' ' ),
     };
     if ( id ) {
         tagAttributes.id = id;
@@ -39,7 +41,7 @@ const Heading: React.FC<HeadingProps> = ( {
     }
     return (
         <>
-        <Tag { ...tagAttributes } data-aos="fade-in">
+        <Tag { ...tagAttributes }>
             <CTA url={ url }>
                 { hasPublishDate ?
                     <>

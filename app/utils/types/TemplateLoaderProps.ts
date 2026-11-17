@@ -1,11 +1,9 @@
-import { Post } from '@/utils/types/Post';
-
 export interface TemplateLoaderProps {
     iframe?: boolean;
     layoutClassesFunction?: ( classes: Array<string> ) => void;
+    // Render the 404 template without asking the API (e.g. a URL no route matches)
+    notFound?: boolean;
     onLoad?: () => void;
-    post?: Post;
     postType: string;
-    queryString?: string;
     slug: string;
 }

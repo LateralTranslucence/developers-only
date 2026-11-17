@@ -1,6 +1,6 @@
 import React, { JSX } from 'react';
 import { PartialTemplateProps } from '@/utils/types/PartialTemplateProps';
-import { getMediaField, metaFieldKey } from '@/utils/helpers';
+import { getMediaField, getPostTitle, metaFieldKey } from '@/utils/helpers';
 import CTA from '@/components/shared/CTA';
 import Heading from '@/components/shared/Heading';
 import Image from '@/components/shared/Image';
@@ -12,12 +12,12 @@ const DefaultSimple: React.FC<PartialTemplateProps> = ( {
     post,
     showFeatured = false,
 } ): JSX.Element => {
-    const image: Media = post.post_type_details.post_thumbnail ? getMediaField( post.fields, metaFieldKey( post.post_type_details.post_thumbnail, post.post_type_details.meta_prefix ) ) : {} as Media;
+    const image: Media = post.post_type_details?.post_thumbnail ? getMediaField( post.fields, metaFieldKey( post.post_type_details.post_thumbnail, post.post_type_details.meta_prefix ) ) : {} as Media;
 
     // CTA settings
     const ctaSettings: CTASettings = {
         url: post.permalink,
-        text: post.post_title,
+        text: getPostTitle( post ),
         classes: [ 'blocks__link' ],
     };
 
@@ -25,7 +25,7 @@ const DefaultSimple: React.FC<PartialTemplateProps> = ( {
         <li key={ index } className={ ' --has-link' + ( showFeatured && post.is_featured ? ' featured' : '' ) }>
             <CTA { ...ctaSettings }>
                 <Image image={ image } size="square_600" />
-                <Heading tag="h3" title={ post.post_title } />
+                <Heading tag="h3" title={ getPostTitle( post ) } />
             </CTA>
         </li>
     );

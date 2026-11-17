@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useCurrentPage } from '@/utils/stores/CurrentPage';
 import { TemplateProps } from '@/utils/types/TemplateProps';
-import { getArrayField, getBackgroundField, getNumberField, getStringField, sanitizeTitleWithDashes } from '@/utils/helpers';
+import { getArrayField, getBackgroundField, getNumberField, getPostSlug, getPostType, getStringField, sanitizeTitleWithDashes } from '@/utils/helpers';
 import Hero from '@/components/shared/Hero';
 import Panel from '@/components/shared/Panel';
 import SEOTags from '@/components/shared/SEOTags';
@@ -18,7 +18,7 @@ const LandingPage: React.FC<TemplateProps> = ( {
     const slug = useCurrentPage( ( state ) => state.slug );
     const fields = useMemo( () => post?.fields ?? {}, [ post ] );
     const metaPrefix: string = post?.post_type_details.meta_prefix ?? '';
-    const pageSlug = getStringField( fields, metaPrefix + '_slug', post?.post_name ?? '' );
+    const pageSlug = getStringField( fields, metaPrefix + '_slug', post ? getPostSlug( post ) : '' );
     const pageID: string = sanitizeTitleWithDashes( pageSlug );
     const pageCSS = getStringField( fields, metaPrefix + '_css' );
 
@@ -31,7 +31,7 @@ const LandingPage: React.FC<TemplateProps> = ( {
     useEffect( () => {
         if ( post && Object.keys( fields ).length > 0 ) {
             // Set classes for <main>
-            layoutClasses( [ 'landing-page', post.post_type, pageID ] );
+            layoutClasses( [ 'landing-page', getPostType( post ), pageID ] );
         }
     }, [ fields, layoutClasses, pageID, post, slug ] );
 

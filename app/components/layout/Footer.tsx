@@ -4,6 +4,7 @@
 import React from 'react';
 import CookieConsent from '@/components/layout/CookieConsent';
 import Menu from '@/components/shared/Menu';
+import { siteName } from '@/globalVariables';
 import '@/styles/components/footer.scss';
 
 // Year
@@ -16,7 +17,7 @@ const Footer: React.FC = () => {
             <div className="container">
                 <Menu name="social-nav" />
                 <Menu name="legal-nav" />
-                <p className="footer__year">© { footerYear } { '{DevelopersOnly}' }</p>
+                <p className="footer__year">© { footerYear }{ siteName ? ' ' + siteName : '' }</p>
             </div>
             <CookieConsent />
         </footer>

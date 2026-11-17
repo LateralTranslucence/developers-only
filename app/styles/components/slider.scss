@@ -1,46 +1,40 @@
 @use '../abstracts' as *;
 
-div.panel-slider-wrapper {
+div.panelSliderWrapper {
     position: relative;
 }
-// Arrows
-a.btn-next, a.btn-previous {
-    &::after {
-        @include font(icon);
-        display: inline-block;
-        width: 1.5em;
-        height: 1.5em;
-        text-align: center;
-    }
-}
-a.btn-next::after {
-    content: '\f054';
-}
-a.btn-previous::after {
-    content: '\f053';
-}
 
-// Buttons
-a.slider-buttons {
-    display: inline-block;
+// Previous/next arrows (SliderNav.tsx), drawn as icon glyphs and laid over
+// the slider's edges.
+button.slider-nav__button {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    z-index: 9999;
+    z-index: 1;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+
     &::after {
-        font-size: 1.25em;
-        line-height: 2.4em;
+        @include font(icon);
+        display: inline-block;
         width: 2.4em;
         height: 2.4em;
+        line-height: 2.4em;
         text-align: center;
     }
-    &:focus {
-        color: inherit;
-    }
-    &.btn-previous {
+    &--previous {
         left: 0;
+
+        &::after {
+            content: '\f053';
+        }
     }
-    &.btn-next {
-        right: 0px;
+    &--next {
+        right: 0;
+
+        &::after {
+            content: '\f054';
+        }
     }
 }

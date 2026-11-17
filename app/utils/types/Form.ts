@@ -28,7 +28,7 @@ export interface SearchFormField extends BaseField {
 
 export interface Form {
     autoupdate: boolean;
-    error: Record<string, unknown>;
+    error: boolean;
     // Name of the honeypot input, resolved server-side from the
     // devo_form_honeypot_field filter so client and server always agree.
     honeypot_field?: string;
@@ -40,9 +40,6 @@ export interface Form {
     // rate limit is hit. Null on a normal response.
     notice?: string | null;
     post_id: number;
-    submissions_email_to: string;
-    submissions_email_subject: string;
-    submissions_email_confirmation_copy: string;
     submitted: boolean;
     thank_you_message: string;
     thank_you_redirect: string;

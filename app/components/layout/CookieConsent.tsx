@@ -13,10 +13,12 @@
  * waiting for the next page load. The choice is stored in a cookie rather than
  * localStorage precisely so PHP can read it on subsequent requests.
  *
- * Copy comes from the devo_cookie_consent_text filter, with a neutral fallback.
+ * Copy comes from the devo_cookie_consent_text filter, with a neutral fallback
+ * that links the privacy policy page set under Settings > Privacy, if any.
  */
 import React, { JSX, useState } from 'react';
 import { parse } from '@/utils/helpers';
+import { privacyPolicyURL } from '@/globalVariables';
 import '@/styles/components/cookie-consent.scss';
 
 const CONSENT_COOKIE = 'devo_cookie_consent';
@@ -25,8 +27,12 @@ const CONSENT_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
 type Consent = 'accepted' | 'declined';
 
-const BOILERPLATE = '<p>We use cookies to improve your experience. '
-    + 'Learn more in our <a href="/legal/">Privacy Policy</a>.</p>';
+const Boilerplate: React.FC = () => (
+    <p>
+        We use cookies to improve your experience.
+        { privacyPolicyURL ? <> Learn more in our <a href={ privacyPolicyURL }>Privacy Policy</a>.</> : null }
+    </p>
+);
 
 const getConsent = (): string => {
     const match = document.cookie.match( new RegExp( '(?:^|; )' + CONSENT_COOKIE + '=([^;]*)' ) );
@@ -53,7 +59,7 @@ const CookieConsent: React.FC = (): JSX.Element | null => {
     return (
         <aside className="cookie-consent" role="region" aria-label="Cookie consent">
             <div className="cookie-consent__copy">
-                { parse( window.devoCookieConsentText || BOILERPLATE ) }
+                { window.devoCookieConsentText ? parse( window.devoCookieConsentText ) : <Boilerplate /> }
             </div>
             <p className="cookie-consent__actions">
                 <button type="button" className="solid-button cookie-consent__accept" onClick={ () => choose( 'accepted' ) }>
