@@ -1713,10 +1713,14 @@ abstract class DO_Custom_Post_Type {
                 $this->post_type_details->bonus_fields[ $field_key ] = $field_details;
                 $this->post_type_details->meta_fields[ $field_key ] = $field_details;
             }
-            // Add fields
-            $data->data = devo_api_custom_data( $post, $this->post_type_details );
-            $data->data = devo_array_from_object( $data->data );
-            //devo_var_dump($data);
+            // Add the theme's fields on top of core's response. Core's response
+            // stays: it already handles password-protected content, and the
+            // raw WP_Post that used to replace it included post_password.
+            $request = $context instanceof WP_REST_Request ? $context : NULL;
+            $data->data = array_merge(
+                is_array( $data->data ) ? $data->data : [],
+                devo_rest_theme_fields( $post, $this->post_type_details, $request )
+            );
             return $data;
         }, 10, 3 );
     }

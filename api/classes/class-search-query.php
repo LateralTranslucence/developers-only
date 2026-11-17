@@ -74,10 +74,16 @@ class DO_Search_Query {
      * HELPERS
      */
 
+    // Same shape as /wp/v2/{type}: core's response plus the theme's fields
     private function add_custom_fields( &$wp_query ) {
-        foreach ( $wp_query->posts as $i => $post ) {
-            $wp_query->posts[ $i ] = devo_api_custom_data( $post );
+        $prepared = [];
+        foreach ( $wp_query->posts as $post ) {
+            $prepared_post = devo_rest_prepare_post( $post );
+            if ( $prepared_post ) {
+                $prepared[] = $prepared_post;
+            }
         }
+        $wp_query->posts = $prepared;
     }
 
     private function build_query( $query_fields ) {

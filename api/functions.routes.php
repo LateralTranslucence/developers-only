@@ -233,11 +233,15 @@ function devo_archive_query( $data ) {
     if ( $featured && count( $featured_posts ) ) { 
         $posts = [ ...$featured_posts, ...$posts ];
     }
-    // Get all the data for all the posts
-    foreach ( $posts as $i => $post ) {
-        $posts[ $i ] = devo_api_custom_data( $post );
+    // Same shape as /wp/v2/{type}: core's response plus the theme's fields
+    $prepared = [];
+    foreach ( $posts as $post ) {
+        $prepared_post = devo_rest_prepare_post( $post, $data );
+        if ( $prepared_post ) {
+            $prepared[] = $prepared_post;
+        }
     }
-    return $posts;
+    return $prepared;
 }
 
 /*
@@ -592,10 +596,11 @@ function devo_page_route( $data ) {
     }
     $page = new WP_Query( [ 'pagename' => $slug ] );
     $post = current( $page->posts );
-    if ( ! $post ) {
+    $prepared_post = $post ? devo_rest_prepare_post( $post, $data ) : NULL;
+    if ( ! $prepared_post ) {
         return new WP_Error( 'devo_not_found', __( 'No page found for that slug.', 'developers_only' ), [ 'status' => 404 ] );
     }
-    return $post;
+    return $prepared_post;
 }
 
 /* Media Library Items */
