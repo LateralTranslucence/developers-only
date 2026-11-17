@@ -51,9 +51,8 @@ const convertNumberToWords = ( number: number ): string => {
     if ( number < 0 ) {
         return negative + convertNumberToWords( Math.abs( number ) );
     }
-    let string: string = '';
+    let string: string;
     let fraction: number | undefined = undefined;
-    let remainder: number | undefined = undefined;
     if ( String( number ).indexOf( '.' ) > -1 ) {
         const numberArray: Array<string> = String( number ).split( '.' );
         number = Number( numberArray[0] );
@@ -83,7 +82,7 @@ const convertNumberToWords = ( number: number ): string => {
                 const hundredsArray: Array<string> = String( hundreds ).split( '.' );
                 hundreds = Number( hundredsArray[0] );
             }
-            remainder = number % 100;
+            const remainder: number = number % 100;
             string = dictionary[ hundreds ] + ' ' + dictionary[ 100 ];
             if ( remainder ) {
                 string += conjunction + convertNumberToWords( remainder );
@@ -97,7 +96,7 @@ const convertNumberToWords = ( number: number ): string => {
                 const numBaseUnitsArray = String( numBaseUnits ).split( '.' );
                 numBaseUnits = Number( numBaseUnitsArray[0] );
             }
-            remainder = number % baseUnit;
+            const remainder: number = number % baseUnit;
             string = convertNumberToWords( numBaseUnits ) + ' ' + dictionary[ baseUnit ];
             if ( remainder ) {
                 string += remainder < 100 ? conjunction : separator;
