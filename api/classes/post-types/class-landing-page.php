@@ -61,9 +61,7 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                 'Images' => 'Title is required (for screen reader text). URL is supported only if not a lightbox.',
                 'CTA' => 'For internal links, only include the path (for example <b>blog</b>)',
                 'Media' => 'Supports images or Vimeo videos.',
-                'Search Subject' => 'If a Search Subject is selected, a subject filter will not work.',
                 'Stats' => 'Number Field: can ONLY be a number. No commas, or other text.',
-                'Custom Media' => 'Use to override report image.',
                 'Blocks Per Row' => 'Default is 3.',
                 'Blocks Color' => 'Default is "Multi".',
             ],
@@ -360,10 +358,6 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                 'Search Post Types' => [
                     'type' => 'select_multiple',
                     'options' => 'devo_get_public_post_types',
-                ],
-                'Search Subject' => [
-                    'type' => 'select',
-                    'options' => 'devo_subject',
                 ],
                 'Search Fields' => [
                     'type' => 'multi_array',

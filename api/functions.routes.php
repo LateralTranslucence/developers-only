@@ -133,58 +133,53 @@ add_action( 'rest_api_init', function() {
 } );
 function devo_archive_query( $data ) {
     $query_params = $data->get_params();
-    // Query Args
-    $post_type = isset( $query_params['post_type'] ) && $query_params['post_type'] !== 'any' ? explode( ',', $query_params['post_type'] ) : devo_get_public_post_types( 'indexed_array' );
-    $subjects = isset( $query_params['subject'] ) ? explode( ',', $query_params['subject'] ) : [];
-    $region = isset( $query_params['region'] ) ? $query_params['region'] : FALSE;
-    $posts_per_page = isset( $query_params['posts_per_page'] ) ? (int) $query_params['posts_per_page'] : 15;
-    $orderbys = isset( $query_params['orderby'] ) ? $query_params['orderby'] : FALSE;
-    $post_not_in = isset( $query_params['post__not_in'] ) ? $query_params['post__not_in'] : FALSE;
-    $featured = isset( $query_params['featured'] ) ? (bool) $query_params['featured'] : FALSE;
+    // Only post types the front end may list; a request can narrow the list
+    // but never widen it.
+    $allowed_post_types = devo_get_public_post_types( 'indexed_array' );
+    if ( isset( $query_params['post_type'] ) && $query_params['post_type'] !== 'any' ) {
+        $post_type = devo_filter_public_post_types( $query_params['post_type'] );
+        if ( ! count( $post_type ) ) {
+            return [];
+        }
+    } else {
+        $post_type = $allowed_post_types;
+    }
+    if ( ! count( $post_type ) ) {
+        return [];
+    }
+    $posts_per_page = devo_clamp_posts_per_page( isset( $query_params['posts_per_page'] ) ? $query_params['posts_per_page'] : 15 );
+    $orderbys = isset( $query_params['orderby'] ) && is_string( $query_params['orderby'] ) ? $query_params['orderby'] : '';
+    $post_not_in = isset( $query_params['post__not_in'] ) ? wp_parse_id_list( $query_params['post__not_in'] ) : [];
+    $featured = isset( $query_params['featured'] ) ? rest_sanitize_boolean( $query_params['featured'] ) : FALSE;
     $query_args = [
         'post_type' => $post_type,
+        'post_status' => 'publish',
         'posts_per_page' => $posts_per_page,
         'meta_query' => [ 'relation' => 'AND' ],
     ];
-    // Subject Filter
-    if ( count( $subjects ) ) {
-        $query_args['meta_query']['subject'] = [
-            'relation' => 'OR',
-        ];
-        foreach ( $subjects as $subject ) {
-            $query_args['meta_query']['subject'][] = [
-                'key' => 'subject',
-                'value' => $subject,
-                'compare' => 'LIKE',
-            ];
-        }
-    }
-    // Region Filter
-    if ( $region ) {
-        $query_args['meta_query'][] = [
-            'key' => 'region',
-            'value' => $region,
-            'compare' => 'LIKE',
-        ];
-    }
     // Exclude Posts
-    if ( $post_not_in ) {
-        $query_args['post__not_in']= [ $post_not_in ];
+    if ( count( $post_not_in ) ) {
+        $query_args['post__not_in'] = $post_not_in;
     }
-    // Order By
+    // Order By: field_direction, comma-separated (title_asc,date_desc), or
+    // anything_random
     if ( strlen( $orderbys ) ) {
         $posts_orderbys = explode( ',', $orderbys );
         foreach ( $posts_orderbys as $posts_orderby ) {
             $order_options = explode( '_', $posts_orderby );
-            $order = end( $order_options );
-            $orderby = str_replace( '_' . $order, '', $posts_orderby );
-            if ( in_array( $orderby, devo_default_fields_array() ) ) {
-                $query_args['orderby'][ $orderby ] = $order;
-            }
-            elseif ( $order == 'random' ) {
+            $order = strtolower( end( $order_options ) );
+            $orderby = sanitize_key( substr( $posts_orderby, 0, - ( strlen( $order ) + 1 ) ) );
+            if ( $order === 'random' ) {
                 $query_args['orderby'] = 'rand';
+                break;
+            }
+            if ( count( $order_options ) < 2 || ! in_array( $order, [ 'asc', 'desc' ], TRUE ) || ! strlen( $orderby ) ) {
+                continue;
+            }
+            if ( in_array( $orderby, devo_default_fields_array() ) ) {
+                $query_args['orderby'][ $orderby ] = strtoupper( $order );
             } else {
-                $query_args['orderby'][ $orderby ] = $order;
+                $query_args['orderby'][ $orderby ] = strtoupper( $order );
                 $query_args['meta_query'][ $orderby ] = [
                     'key' => $orderby,
                 ];
@@ -194,7 +189,7 @@ function devo_archive_query( $data ) {
         $query_args['is_modified'] = TRUE;
     }
     // Default orderby
-    else {
+    if ( ! isset( $query_args['orderby'] ) ) {
         $query_args['orderby'] = [ 'date' => 'DESC' ];
     }
     // Hide Post
@@ -213,6 +208,7 @@ function devo_archive_query( $data ) {
     ];
     $query_args['meta_query']['hidden'] = $hidden_field_query;
     // Featured posts
+    $featured_posts = [];
     if ( $featured ) {
         $featured_query = $query_args;
         $featured_query['meta_query']['featured'] = [
@@ -230,7 +226,7 @@ function devo_archive_query( $data ) {
     // Get the posts
     $posts = get_posts( $query_args );
     // Insert Featured posts
-    if ( $featured && count( $featured_posts ) ) { 
+    if ( $featured && count( $featured_posts ) ) {
         $posts = [ ...$featured_posts, ...$posts ];
     }
     // Same shape as /wp/v2/{type}: core's response plus the theme's fields

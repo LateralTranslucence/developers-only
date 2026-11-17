@@ -1769,7 +1769,7 @@ function devo_get_post_types( $specific_site = FALSE ) {
         // From plugins
         'scheduled-action', 'wpforms', 'wpforms-template',
         // Custom, but still no
-        'devo_form_submission', 'devo_email_subscriber', 'devo_admin_page' ];
+        'devo_form_submission', 'devo_admin_page' ];
     if ( $specific_site ) {
         $blog_id = ( $specific_site_id = devo_site_id( $specific_site ) ) ? $specific_site_id : get_current_blog_id();
         switch_to_blog( $blog_id );
@@ -1800,38 +1800,63 @@ function devo_get_post_types( $specific_site = FALSE ) {
     return $custom_post_types;
 }
 
-// Get public-facing custom post types
+/* Post types the front end may list: /archive/, /devo-search, post browser
+ * defaults and the post type pickers.
+ *
+ * An allowlist built from what WordPress itself considers public, minus a
+ * filterable set the theme keeps out of listings (core posts/pages, forms,
+ * icons). Anything non-public - form submissions, admin pages, plugin
+ * internals - can never appear, however the request is crafted. */
 function devo_get_public_post_types( $format = 'assc_array' ) {
+    $excluded = apply_filters( 'devo_public_post_types_exclude', [ 'post', 'page', 'attachment', 'devo_form', 'devo_icon' ] );
+    $excluded = is_array( $excluded ) ? $excluded : [];
     $custom_post_types = [];
-    $not_these_post_types = [
-        // WordPress native
-        'post', 'page', 'product', 'customize_changeset', 'custom_css', 'attachment', 'revision', 'nav_menu_item', 'oembed_cache', 'user_request', 'wp_block', 'wp_template', 'wp_global_styles', 'wp_navigation', 'wp_template_part', 'wp_font_face', 'wp_font_family', 
-        // From plugins
-        'scheduled-action', 'wpforms', 'wpforms-template',
-        // Custom, but still no
-        'devo_form_submission', 'devo_admin_page', 'devo_form', 'devo_icon', ];
-    $all_post_types = get_post_types( [], 'objects' );
-    // Assc Array type => [ label, value ]
-    if ( $format === 'assc_array' ) {
-        foreach ( $all_post_types as $type => $post_type ) {
-            if ( ! in_array( $type, $not_these_post_types ) ) {
-                $custom_post_types[ $type ] = [
-                    'label' => $post_type->label,
-                    'value' => $type,
-                ];
-            }
+    foreach ( get_post_types( [ 'public' => TRUE ], 'objects' ) as $type => $post_type ) {
+        if ( in_array( $type, $excluded, TRUE ) || ! is_post_type_viewable( $post_type ) ) {
+            continue;
         }
-    } 
-    // Indexed Array
-    else {
-        foreach ( $all_post_types as $type => $post_type ) {
-            if ( ! in_array( $type, $not_these_post_types ) ) {
-                $custom_post_types[] = $type;
-            }
+        // Assc Array type => [ label, value ]
+        if ( $format === 'assc_array' ) {
+            $custom_post_types[ $type ] = [
+                'label' => $post_type->label,
+                'value' => $type,
+            ];
+        }
+        // Indexed Array
+        else {
+            $custom_post_types[] = $type;
         }
     }
-    sort( $custom_post_types );
+    if ( $format === 'assc_array' ) {
+        ksort( $custom_post_types );
+    } else {
+        sort( $custom_post_types );
+    }
     return $custom_post_types;
+}
+
+// Keeps only the post types in $requested that the front end may list
+function devo_filter_public_post_types( $requested ) {
+    if ( is_string( $requested ) ) {
+        $requested = explode( ',', $requested );
+    }
+    if ( ! is_array( $requested ) ) {
+        return [];
+    }
+    $requested = array_map( 'trim', array_filter( $requested, 'is_string' ) );
+    return array_values( array_intersect( $requested, devo_get_public_post_types( 'indexed_array' ) ) );
+}
+
+// Most posts one /archive/ or /devo-search request may return
+function devo_max_posts_per_page() {
+    return max( 1, (int) apply_filters( 'devo_max_posts_per_page', 50 ) );
+}
+
+// A requested page size, capped. -1 ("all") and anything out of range become the cap.
+function devo_clamp_posts_per_page( $posts_per_page, $default = 15 ) {
+    $posts_per_page = is_numeric( $posts_per_page ) ? (int) $posts_per_page : (int) $default;
+    $max = devo_max_posts_per_page();
+    return $posts_per_page < 1 || $posts_per_page > $max ? $max : $posts_per_page;
 }
 
 function devo_read_time( $content = '', $wpm = 300 ) {
