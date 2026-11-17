@@ -1,34 +1,18 @@
 import { APIEndpoint } from '@/globalVariables';
-import { APIResult } from '../types/APIResult';
+import { APIResult } from '@/utils/types/APIResult';
 import { Form } from '@/utils/types/Form';
+import fetchJSON from '@/utils/api/fetchJSON';
 
- const submitForm: ( queryString: string ) => Promise<APIResult> = async ( queryString = '' ): Promise<APIResult> => {
-    try {
-        const formSubmitEndpoint: string = `${APIEndpoint}/devo-form-submit/`;
-        if ( window.devoEnv !== 'prod' ) {
-            console.log( 'submitForm ' + formSubmitEndpoint );
-        }
-
-        const response = await fetch( formSubmitEndpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: queryString,
-        } );
-        const json: Form = await response.json();
-        const result: APIResult = {
-            totalPages: response.headers.get( 'x-wp-totalpages' ),
-            totalPosts: response.headers.get( 'x-wp-total' ),
-            allHeaders: response.headers,
-            json,
-        };
-
-        return result;
-
-    } catch ( error ) {
-        console.log( 'Error fetching form submit: ' + error );
-        throw error;
-    }
- };
+// Posts a urlencoded form body; resolves with the form as the server re-renders
+// it (errors, notice, or the submitted state)
+const submitForm = ( queryString: string = '', init: RequestInit = {} ): Promise<APIResult<Form>> => {
+    return fetchJSON<Form>( 'submitForm', `${ APIEndpoint }/devo-form-submit/`, {
+        ...init,
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: queryString,
+    } );
+};
 export default submitForm;

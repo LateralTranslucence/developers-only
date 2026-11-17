@@ -1,14 +1,15 @@
 import React from 'react';
 import { useEffect } from 'react';
 import { useCurrentPage } from '@/utils/stores/CurrentPage';
+import { siteLocale, siteName } from '@/globalVariables';
 import Hero from '@/components/shared/Hero';
 import SEOTags from '@/components/shared/SEOTags';
-import { TemplateLoaderProps } from '@/utils/types/TemplateLoaderProps';
+import { TemplateProps } from '@/utils/types/TemplateProps';
 import { HeroProps } from '@/utils/types/HeroProps';
 import { Post } from '@/utils/types/Post';
 import '@/styles/pages/404.scss';
 
-const Page404: React.FC<TemplateLoaderProps> = ( { layoutClassesFunction } ) => {
+const Page404: React.FC<Partial<TemplateProps>> = ( { layoutClasses } ) => {
     const slug = useCurrentPage( ( state ) => state.slug );
 
     // Settings
@@ -19,10 +20,10 @@ const Page404: React.FC<TemplateLoaderProps> = ( { layoutClassesFunction } ) => 
     };
 
     const seoSettings: Partial<Post> = {
+        // No canonical URL: there's no page here to be canonical
         seo_title: 'Page Not Found',
-        seo_site_name: '{DevelopersOnly}',
-        seo_url: window.homeURL + '/' + slug + '/',
-        seo_locale: 'en_US',
+        seo_site_name: siteName,
+        seo_locale: siteLocale,
         seo_description: '',
         noindex: 'noindex',
     };
@@ -30,10 +31,10 @@ const Page404: React.FC<TemplateLoaderProps> = ( { layoutClassesFunction } ) => 
     // Set classes for <main>
     useEffect( () => {
         // Set classes for <main>
-        if ( layoutClassesFunction ) {
-            layoutClassesFunction( [ 'page-404' ] );
+        if ( layoutClasses ) {
+            layoutClasses( [ 'page-404' ] );
         }
-    }, [ slug, layoutClassesFunction ] );
+    }, [ slug, layoutClasses ] );
 
     return (
         <>
