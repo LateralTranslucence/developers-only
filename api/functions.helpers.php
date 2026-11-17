@@ -439,11 +439,15 @@ function devo_array_median( $raw_array ) {
     if ( ! is_array( $raw_array ) ) {
         $raw_array = [ $raw_array ];
     }
+    $array = [];
     foreach ( $raw_array as $key => $value ) {
         $temp_value = preg_replace( '/[^0-9\,\.\-]/', '', $value );
         if ( strlen( $temp_value ) ) {
             $array[] = floatval( $temp_value );
         }
+    }
+    if ( ! count( $array ) ) {
+        return 0;
     }
     sort( $array );
     $count = count( $array ); //total numbers in array
@@ -557,30 +561,33 @@ function devo_array_x_number( $array, $number ) {
     return $return_array;
 }
 
-// Sorts an associative array
-function devo_assoc_array_sort( $data, $columns ) { // $columns = [ $column_name => $direction ]
-	foreach ( $data as $key => $row ) {
-	    if ( is_array( $columns ) ) {
-	    	foreach ( $columns as $column_name => $direction ) {
-	    		if ( isset( $row[ $column_name ] ) ) {
-	    		    ${ $column_name }[ $key ] = $row[ $column_name ];
-    				$column_names[] = $column_name;
-    				$directions[] = 'SORT_' . $direction;
-                } else {
-                    unset( $data[ $key ] );
-                }
-	    	}
-	    }
-	}
-	switch ( count( $columns ) ) {
-		case 1:
-			array_multisort( ${ $column_names[0] }, constant( strtoupper( $directions[0] ) ), $data );
-			break;
-		case 2:
-			array_multisort( ${ $column_names[0] }, constant( strtoupper( $directions[0] ) ), ${ $column_names[1] }, constant( strtoupper( $directions[1] ) ), $data );
-			break;
-	}
-	return $data;
+// Sorts an array of rows by up to two columns: $columns = [ $column_name => 'ASC'|'DESC' ].
+// Rows missing a sort column are dropped. String keys are kept; numeric keys
+// are renumbered, as array_multisort() did.
+function devo_assoc_array_sort( $data, $columns ) {
+    if ( ! is_array( $data ) || ! is_array( $columns ) || ! count( $columns ) ) {
+        return $data;
+    }
+    $columns = array_slice( $columns, 0, 2, TRUE );
+    foreach ( $data as $key => $row ) {
+        foreach ( $columns as $column_name => $direction ) {
+            if ( ! is_array( $row ) || ! isset( $row[ $column_name ] ) ) {
+                unset( $data[ $key ] );
+                continue 2;
+            }
+        }
+    }
+    uasort( $data, function( $a, $b ) use ( $columns ) {
+        foreach ( $columns as $column_name => $direction ) {
+            $comparison = is_numeric( $a[ $column_name ] ) && is_numeric( $b[ $column_name ] ) ? $a[ $column_name ] <=> $b[ $column_name ] : strnatcasecmp( (string) $a[ $column_name ], (string) $b[ $column_name ] );
+            if ( $comparison !== 0 ) {
+                return strtoupper( (string) $direction ) === 'DESC' ? -$comparison : $comparison;
+            }
+        }
+        return 0;
+    } );
+    $string_keys = array_filter( array_keys( $data ), 'is_string' );
+    return count( $string_keys ) ? $data : array_values( $data );
 }
 
 // Applies do_shortcode to wpautop
@@ -715,27 +722,6 @@ function devo_convert_smart_quotes( $string ) {
                  '"',
                  '-' ];
     return str_replace( $search, $replace, $string );
-}
-
-function devo_curl( $url, $bearer_token ) {
-    $curl = curl_init();
-    curl_setopt_array( $curl, [
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'GET',
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Bearer ' . $bearer_token,
-        ],
-    ] );
-    $response = curl_exec( $curl );
-    curl_close( $curl );
-
-    return json_decode( $response );
 }
 
 // Get the current url
@@ -1560,13 +1546,6 @@ function devo_hex_to_rgb( $hex ) {
     return $rgb;
 }
 
-function devo_hubspot_form_function_name( $post_id = FALSE, $append = FALSE, $modal = FALSE ) {
-    if ( ! $post_id ) {
-        return ;
-    }
-    return 'hubspot_form_' . str_replace( '-', '_', remove_accents( get_post_field( 'post_name', $post_id ) ) ) . ( $modal ? '_modal' : '' ) . ( $append ? '_' . $append : '' );
-}
-
 function devo_array_contains( $needles, $haystack, $all = FALSE, $strict = FALSE ) {
     if ( ! is_array( $needles ) ) {
         $needles = [ $needles ];
@@ -1950,45 +1929,6 @@ function devo_rewrite_generator( $wp_rewrite, $criteria_count, $root, $post_type
 	}
 }
 
-// Show date of last scheduled data import
-/* $data_import_dates = [
- * 		$post_type => [
- *			'option' => $option_name,
- *			'hook' => $hook_name,
- *		],
- * ];
- */
-function devo_show_import_date( $data_import_details ) {
-	global $post, $pagenow, $wp_query;
-	$post_types = array_keys( $data_import_details );
-	if ( isset( $post->post_type ) ) {
-		$this_post_type = $post->post_type;
-	} elseif ( isset( $wp_query->query_vars['post_type'] ) ) {
-		$this_post_type = $wp_query->query_vars['post_type'];
-	} else {
-		$this_post_type = false;
-	}
-	// Abort if not on post or edit pages
-	// Right page?
-	$page = in_array( $pagenow, [ 'post-new.php', 'post.php', 'edit.php', ] );
-	if( ! $page ) {
-		return;
-	}
-	// Right post type?
-	$type = in_array( $this_post_type, $post_types );
-	if ( ! $type ) {
-		return;
-	}
-	// Right capabilities?
-	$capability = is_multisite() ? 'manage_network_options' : 'manage_options';
-    if( ! current_user_can( $capability ) ) {
-    	return;
-	}
-    // Echo the date
-    echo '<p class="footnote"><b>Last import:</b> ' . get_option( $data_import_details[ $this_post_type ]['option'] ) . '<br>';
-	echo '<b>Next Scheduled Import:</b> ' . date( 'Y-m-d h:i A', wp_next_scheduled( $data_import_details[ $this_post_type ]['hook'] ) ) . '</p>';
-}
-
 // Get the site ID from the site path
 function devo_site_id( $name = FALSE ) {
     $sites_raw = get_sites();
@@ -2048,15 +1988,6 @@ function devo_timezone_to_utc( $timestamp = FALSE, $timezone = FALSE ) {
     $date_obj->setTimeZone( $timezone_obj );
 
     return $date_obj->format( 'U' );
-}
-
-// Translate time from eastern to a different php timezone
-function devo_translate_time( $timestamp, $timezone = 'America/New_York' ) {
-    $timezone = $timezone && strlen( $timezone ) ? $timezone : 'America/New_York';
-    $timestamp_string = date( 'Y-m-d g:i a', $timestamp );
-    $time_obj = new DateTime( $timestamp_string, new DateTimeZone( 'America/New_York' ) );
-    $time_obj->setTimezone( new DateTimeZone( $timezone ) );
-    return strtotime( $time_obj->format( 'Y-m-d H:i:s' ) );
 }
 
 // Truncates text at the end of a sentence if possible (or always if threshold == FALSE )
@@ -2209,7 +2140,12 @@ function is_assoc_array( $array = [] ) {
 }
 
 // ...pretty self-explanatory I think
-function is_json( string $string ): bool {
+// Meta values can be arrays (serialized meta), so anything but a string is
+// simply not JSON rather than a TypeError.
+function is_json( $string ): bool {
+    if ( ! is_string( $string ) || $string === '' ) {
+        return FALSE;
+    }
     json_decode( $string );
     return ( json_last_error() === JSON_ERROR_NONE );
 }

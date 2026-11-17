@@ -150,10 +150,10 @@ class DO_Options_Screen {
         $tab_title = $title ? $title : 'Options';
         $this->fields[ $tab_title ] = $fields;
         $this->all_fields = array_merge( $this->all_fields, $fields );
-        // Media upload and enqueue scripts
+        // Media upload. The field script itself (public/js/media-upload-field.js)
+        // is already enqueued on every admin screen by devo_admin_scripts().
         add_action( 'admin_enqueue_scripts', function() {
             wp_enqueue_media();
-            wp_enqueue_script( 'media-upload-field', get_template_directory_uri() . '/admin/js/init-media-upload-field.js', [ 'jquery' ], '07032019', TRUE );
         } );
         // Check for color picker and enqueue scripts
         if ( in_array( 'color', $fields ) ) {

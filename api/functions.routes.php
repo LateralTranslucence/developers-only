@@ -47,8 +47,8 @@ function add_nav_menu_custom_fields_rest_api() {
 }
 add_filter( 'rest_prepare_nav_menu_item', function( $data, $post, $context  ) {
     $data->data['fields'][ '_menu_mega_menu' ] = devo_get_post_meta( $post->ID, '_menu_mega_menu' );
-    return $data;
     $data->data['fields'][ '_menu_icon' ] = devo_get_post_meta( $post->ID, '_menu_icon' );
+    $data->data['fields'][ '_menu_media_icon' ] = devo_get_post_meta( $post->ID, '_menu_media_icon' );
     return $data;
 }, 10, 3 );
 add_action('rest_api_init', 'add_nav_menu_custom_fields_rest_api');
