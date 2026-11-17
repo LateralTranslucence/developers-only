@@ -62,7 +62,9 @@ const parse: ( string: string | JSX.Element ) => React.ReactElement | string = (
                     <><CTA { ...ctaProps } />{ children }</>
                 : <CTA { ...ctaProps }>{ children }</CTA>;
             }
-            if ( domNode.name === 'image' ) {
+            // HTML parsing turns the theme's <image url="..."> into an <img>,
+            // so it's recognised by having a url and no src
+            if ( domNode.name === 'image' || ( domNode.name === 'img' && attribs.url && ! attribs.src ) ) {
                 return (
                     <>
                     <Image

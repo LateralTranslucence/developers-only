@@ -4,6 +4,8 @@
 */
 
 export { default as addCommas } from '@/utils/helpers/addCommas';
+export { default as classifyURL } from '@/utils/helpers/classifyURL';
+export type { ClassifiedURL, URLKind } from '@/utils/helpers/classifyURL';
 export { default as convertNumberToWords } from '@/utils/helpers/convertNumberToWords';
 export { default as decimalFromDivision } from '@/utils/helpers/decimalFromDivision';
 export { default as evenOdd } from '@/utils/helpers/evenOdd';
