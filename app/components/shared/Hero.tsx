@@ -18,15 +18,13 @@ const Hero: React.FC<HeroProps> = ( {
     id = 'hero',
     title = '',
 } ) => {
-    // Add some classes
-    if ( copy ) {
-        classes.push( 'has-copy' );
-    }
     // The hero carries a Background field like a panel does, so it gets the same
     // classes and the same inline colour / --background-image treatment.
-    const heroClasses: Array<string> = background
-        ? [ ...classes, ...getBackgroundClasses( background ) ]
-        : classes;
+    const heroClasses: Array<string> = [
+        ...classes,
+        ...( copy ? [ 'has-copy' ] : [] ),
+        ...( background ? getBackgroundClasses( background ) : [] ),
+    ];
     const headingSettings: HeadingProps = {
         tag: 'h1',
         title: title,
