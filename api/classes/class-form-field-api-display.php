@@ -310,9 +310,14 @@ class DO_Form_Field_API_Display {
         $limit = isset( $this->post_type_details->meta_fields[ $this->field_key ]['settings']['limit'] ) ? $this->post_type_details->meta_fields[ $this->field_key ]['settings']['limit'] : FALSE;
         // Get all the data for all the posts
         foreach ( $post_ids as $post_id ) {
-            if ( strlen( $post_id ) ) {
-                $post = get_post( $post_id );
-                $data[] = devo_api_custom_data( $post );
+            // IDs only: get_post( 0 ) would fall back to the global post
+            if ( is_scalar( $post_id ) && ctype_digit( (string) $post_id ) && (int) $post_id > 0 ) {
+                // Only posts a visitor could see, in the /wp/v2/ shape. A raw
+                // WP_Post would carry post_password and unpublished content.
+                $prepared_post = devo_rest_prepare_post( (int) $post_id );
+                if ( $prepared_post ) {
+                    $data[] = $prepared_post;
+                }
             }
         }
         if ( $limit === 1 ) {

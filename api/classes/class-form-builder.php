@@ -34,7 +34,26 @@ class DO_Form_Builder {
         $form_submission = DO_Form_Submission::get_instance();
     }
 
+    /* Returns the post ID when $form_id names a published devo_form post, and
+     * FALSE otherwise. The public form routes take a post ID from the request,
+     * so everything they read or write is gated on this: without it they would
+     * read form_* meta off any post, and accept submissions to drafts. */
+    public static function published_form_id( $form_id ) {
+        if ( ! is_scalar( $form_id ) || ! ctype_digit( (string) $form_id ) ) {
+            return FALSE;
+        }
+        $post = get_post( (int) $form_id );
+        if ( ! $post || $post->post_type !== 'devo_form' || $post->post_status !== 'publish' || post_password_required( $post ) ) {
+            return FALSE;
+        }
+        return (int) $post->ID;
+    }
+
+    /* The form as the front end needs it to render and submit. Deliberately
+     * leaves out the notification settings (recipients, routing logic, subject,
+     * confirmation copy): this goes to anonymous visitors. */
     public static function display( $form_id = FALSE ) {
+        $form_id = self::published_form_id( $form_id );
         if ( ! $form_id ) {
             return;
         }
@@ -47,10 +66,6 @@ class DO_Form_Builder {
             'autoupdate' => (bool) devo_get_post_meta( $form_id, 'form_autoupdate' ),
             'thank_you_message' => strlen( $thank_you = devo_get_post_meta( $form_id, 'form_thank_you_text' ) ) ? $thank_you : self::default_submitted_message(),
             'thank_you_redirect' => devo_get_post_meta( $form_id, 'form_thank_you_redirect' ),
-            'submissions_email_to' => devo_get_post_meta( $form_id, 'form_email_submissions_to' ),
-            'submissions_email_logic' => devo_get_post_meta( $form_id, 'form_email_submissions_logic' ),
-            'submissions_email_subject' => devo_get_post_meta( $form_id, 'form_email_subject' ),
-            'submissions_email_confirmation_copy' => devo_get_post_meta( $form_id, 'form_email_confirmation' ),
             'missing_fields' => [],
             // Resolved server-side so the rendered input always matches what the
             // submit route checks, even when the devo_form_honeypot_field filter

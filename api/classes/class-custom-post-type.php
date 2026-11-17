@@ -40,6 +40,7 @@ abstract class DO_Custom_Post_Type {
             $post_type_post_title,
             $post_type_display_name,
             $pre_form_callback,
+            $private_fields,
             $public,
             $restrict_users,
             $schema,
@@ -90,6 +91,7 @@ abstract class DO_Custom_Post_Type {
         $this->post_type_display_name = ucfirst( end( $post_type_array ) );
         $this->post_type_slug = strtolower( preg_replace( '/[\s_]/', '-', end( $post_type_array ) ) );
         $this->post_type_rest_slug = $this->post_type_slug;
+        $this->private_fields = [];
         $this->public = TRUE;
         $this->restrict_users = FALSE;
         $this->schema = [];
@@ -165,6 +167,9 @@ abstract class DO_Custom_Post_Type {
         // Admin Scripts
         add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
 
+        // List column binary toggle (public/js/binary-toggle.js)
+        add_action( 'wp_ajax_devo_binary_toggle', [ $this, 'ajax_binary_toggle' ] );
+
         // Execute the child class construct() method, if it exists
         if ( method_exists( $this, 'construct' ) ) {
             $this->construct();
@@ -196,7 +201,9 @@ abstract class DO_Custom_Post_Type {
             // Admin Menu Icon
             case 'icon':
                 add_action( 'admin_head', function() use( $setting_value ) {
-                    echo '<style>#adminmenu li#menu-posts-'. $this->post_type .' div.wp-menu-image:before { content: "' . $setting_value . '"; }</style>' . "\n";
+                    // The icon is a CSS escape like \f175; allow only that shape.
+                    $icon = preg_replace( '/[^\\\\a-fA-F0-9]/', '', (string) $setting_value );
+                    echo '<style>#adminmenu li#menu-posts-' . esc_attr( $this->post_type ) . ' div.wp-menu-image:before { content: "' . $icon . '"; }</style>' . "\n";
                 } );
                 break;
 
@@ -208,7 +215,8 @@ abstract class DO_Custom_Post_Type {
             // Archive redirect
             case 'archive_redirect':
                 $this->archive_redirect = $setting_value;
-            
+                break;
+
             // Archive Slug
             case 'slug':
                 $this->post_type_slug = is_string( $setting_value ) ? trim( strtolower( preg_replace( '/[\s_]/', '-', $setting_value ) ), '/' ) : $setting_value;
@@ -358,6 +366,13 @@ abstract class DO_Custom_Post_Type {
             case 'pre_form_callback':
                 $this->pre_form_callback = $setting_value;
                 break;
+
+            // Private Fields: meta field labels that are never sent to the
+            // front end (REST responses, /archive/, /devo-search). For values
+            // only staff should see, like notification recipients.
+            case 'private_fields':
+                $this->private_fields = is_array( $setting_value ) ? $setting_value : [ $setting_value ];
+                break;
                 
             // Public
             case 'public':
@@ -465,6 +480,9 @@ abstract class DO_Custom_Post_Type {
         $this->post_type_details->post_type = $this->post_type;
         $this->post_type_details->post_type_display_name = $this->post_type_display_name;
         $this->post_type_details->post_type_slug = $this->post_type_slug;
+        $this->post_type_details->private_fields = array_map( function( $field_label ) {
+            return devo_meta_field_key( $field_label, $this->meta_prefix );
+        }, $this->private_fields );
         $this->post_type_details->schema = $this->schema;
         $this->post_type_details->seo_description = $this->seo_description();
         $this->post_type_details->seo_image = $this->seo_image();
@@ -560,16 +578,19 @@ abstract class DO_Custom_Post_Type {
             'supports' => FALSE,
             'menu-icon' => '',
             'exclude_from_search' => ! $this->public,
-            'publicly_queryable' => TRUE,
+            // A non-public post type (form submissions, admin pages) must not be
+            // reachable from the front end at all: no single URLs and no REST
+            // routes. Either can still be switched on in post_type_args().
+            'publicly_queryable' => (bool) $this->public,
             'show_in_nav_menus' => FALSE,
             'delete_with_user' => FALSE,
-            'show_in_rest' => TRUE,
+            'show_in_rest' => (bool) $this->public,
             'rest_base' => $this->post_type_rest_slug,
             'show_in_admin_bar' => $this->show_in_admin_bar,
         ];
         // Set visibility based on $this->current_user_can
         if ( $this->current_user_can ) {
-            $default_args['show_in_nav_menus'] = TRUE;
+            $default_args['show_in_nav_menus'] = (bool) $this->public;
             $default_args['show_ui'] = TRUE;
         } else {
             $default_args['show_in_nav_menus'] = FALSE;
@@ -669,13 +690,13 @@ abstract class DO_Custom_Post_Type {
                 ?>
                 <?php if ( $delete_button ) : ?>
                     <?php /* translators: %s: name of the repeatable meta box, e.g. "Panel". */ ?>
-                    <span class="dynamic-delete-button button"><?php printf( __( 'Delete %s', 'developers_only' ), $dynamic_meta_box_name ) ?></span>
+                    <span class="dynamic-delete-button button"><?php echo esc_html( sprintf( __( 'Delete %s', 'developers_only' ), $dynamic_meta_box_name ) ) ?></span>
                 <?php endif; ?>
                 <?php if ( $box_id == current( array_keys( $this->meta_fields ) ) ) : ?>
-                    <input type="hidden" name="meta_box_title" value="<?php echo $box_title ?>">
-                    <input type="hidden" name="<?php echo $box_id ?>_nonce" value="<?php echo wp_create_nonce( $box_id ) ?>">
+                    <input type="hidden" name="meta_box_title" value="<?php echo esc_attr( $box_title ) ?>">
+                    <input type="hidden" name="<?php echo esc_attr( $box_id ) ?>_nonce" value="<?php echo esc_attr( wp_create_nonce( $box_id ) ) ?>">
                 <?php endif; ?>
-                <div class="<?php echo $this->post_type_slug ? $this->post_type_slug : sanitize_title_with_dashes( $this->post_type_display_name ) ?>-post-meta post-meta-items <?php echo $box_id ?>">
+                <div class="<?php echo esc_attr( $this->post_type_slug ? $this->post_type_slug : sanitize_title_with_dashes( $this->post_type_display_name ) ) ?>-post-meta post-meta-items <?php echo esc_attr( $box_id ) ?>">
                 <?php
                 // Loop through $this->meta_fields
                 foreach ( $this->meta_fields[ $box_id ] as $label => $settings ) :
@@ -719,24 +740,24 @@ abstract class DO_Custom_Post_Type {
                     $title_is_label = $type != 'radio' && $type != 'checkbox';
                     $count_characters = $this->character_count && isset( $this->character_count[ $label ] ) && is_int( $this->character_count[ $label ] ) ? $this->character_count[ $label ] : FALSE;
                     if ( $type !== 'hidden' ) : ?>
-                        <div class="<?php echo $meta_field_key ?> <?php echo sanitize_title_with_dashes( $label ) ?>-label <?php echo is_string( $type ) ? ' ' . $type . '-type' : '' ?><?php echo $count_characters ? ' count-characters' : '' ?>"<?php echo $count_characters ? ' data-character-limit="' . $count_characters . '"' : '' ?>>
+                        <div class="<?php echo esc_attr( $meta_field_key ) ?> <?php echo esc_attr( sanitize_title_with_dashes( $label ) ) ?>-label <?php echo is_string( $type ) ? ' ' . esc_attr( $type ) . '-type' : '' ?><?php echo $count_characters ? ' count-characters' : '' ?>"<?php echo $count_characters ? ' data-character-limit="' . (int) $count_characters . '"' : '' ?>>
                             <div class="post-meta-label">
-                                <?php if ( $title_is_label ): ?><label for="<?php echo $meta_field_key ?>"><?php endif; ?>
+                                <?php if ( $title_is_label ): ?><label for="<?php echo esc_attr( $meta_field_key ) ?>"><?php endif; ?>
                                     <?php // Field labels come from each post type's meta_fields() config, not from
                                     // a fixed string table, so there is nothing for gettext to extract here.
-                                    echo trim( preg_replace( '/<(.*?)>/', '', $label ) ) ?>:
+                                    echo esc_html( trim( preg_replace( '/<(.*?)>/', '', $label ) ) ) ?>:
                                 <?php if ( $title_is_label ): ?></label><?php endif; ?>
                             </div>
                             <div class="post-meta-content">
                                 <?php if ( isset( $this->notes[ $label ] ) ) : ?>
-                                    <span class="red small"><?php echo $this->notes[ $label ] ?></span>
+                                    <span class="red small"><?php echo wp_kses_post( $this->notes[ $label ] ) ?></span>
                                 <?php endif;
 
                                 // Character Count Info
                                 if ( $count_characters ) : ?>
                                     <span class="character-count-info">
-                                        <span class="statement">Maximum <?php echo $count_characters ?> characters</span>
-                                        <span class="status"><span class="number"><?php echo $count_characters ?></span> characters remaining</span>
+                                        <span class="statement">Maximum <?php echo (int) $count_characters ?> characters</span>
+                                        <span class="status"><span class="number"><?php echo (int) $count_characters ?></span> characters remaining</span>
                                     </span>
                                 <?php endif;
 
@@ -771,18 +792,18 @@ abstract class DO_Custom_Post_Type {
                         <span>
                             <input id="dynamic-add-number" type="number" min="1" step="1" value="1">
                             <?php /* translators: %s: name of the repeatable meta box, e.g. "Panel". */ ?>
-                            <span id="dynamic-add-button" class="button"><?php printf( __( 'Add %s', 'developers_only' ), $dynamic_meta_box_name ) ?></span>
+                            <span id="dynamic-add-button" class="button"><?php echo esc_html( sprintf( __( 'Add %s', 'developers_only' ), $dynamic_meta_box_name ) ) ?></span>
                             <span id="dynamic-add-field">
                                 <?php 
                                 $count_field_key = devo_meta_field_key( $dynamic_meta_box_name . ' Count', $this->meta_prefix );
                                 echo $this->meta_fields_display( 'hidden', $count_field_key, FALSE, [ 'value_source' => $post->ID ] ) ?>
-                                <br><span class="footnote"><?php echo $count_field_key ?></span>
+                                <br><span class="footnote"><?php echo esc_html( $count_field_key ) ?></span>
                             </span>
                         </span>
                     </div>
                 <?php endif; ?>
                 </div>
-                <div class="scroll-to" id="<?php echo $box_id ?>_scroll"></div>
+                <div class="scroll-to" id="<?php echo esc_attr( $box_id ) ?>_scroll"></div>
                 <?php
             },
             $this->post_type,
@@ -1070,7 +1091,8 @@ abstract class DO_Custom_Post_Type {
             // A meta field
             else {
                 $meta_field_key = devo_meta_field_key( $admin_field_title, $this->meta_prefix );
-                $new_columns[ $meta_field_key ] = _x( ucwords( $admin_field_title ), 'column name' );
+                // Field labels come from post type config; not translatable.
+                $new_columns[ $meta_field_key ] = esc_html( ucwords( $admin_field_title ) );
             }
         }
         return $new_columns;
@@ -1089,18 +1111,17 @@ abstract class DO_Custom_Post_Type {
                     if ( strtolower( $admin_field_title ) == 'tools' ) {
                         echo '<div class="row-actions visible">';
                         if ( current_user_can( 'edit_post', $post_id ) ) {
-                            echo '<span class="edit"><a href="' . home_url( '/wp-admin/post.php?post=' . $post_id . '&action=edit', 'relative' ) . '">Edit</a> | </span>';
+                            echo '<span class="edit"><a href="' . esc_url( get_edit_post_link( $post_id ) ) . '">' . esc_html__( 'Edit', 'developers_only' ) . '</a> | </span>';
                         }
                         if ( current_user_can( 'delete_post', $post_id ) ) {
-                            echo '<span class="trash"><a class="submitdelete" href="' . wp_nonce_url( '/wp-admin/post.php?post=' . $post_id . '&action=trash', 'trash-post_' . $post_id ) . '">Trash</a> | </span>';
+                            echo '<span class="trash"><a class="submitdelete" href="' . esc_url( get_delete_post_link( $post_id ) ) . '">' . esc_html__( 'Trash', 'developers_only' ) . '</a> | </span>';
                         }
-                        echo '<span class="view"><a href="' . get_permalink( $post_id ) . '">View</a></span>';
+                        echo '<span class="view"><a href="' . esc_url( get_permalink( $post_id ) ) . '">' . esc_html__( 'View', 'developers_only' ) . '</a></span>';
                         echo '</div>';
                     }
                     // Slug
                     elseif ( strtolower( $admin_field_title ) == 'post_name' ) {
-                        $post = get_post( $post_id );
-                        echo $post->post_name;
+                        echo esc_html( get_post_field( 'post_name', $post_id ) );
                     }
                     // Binary
                     elseif ( $this->all_meta_fields[ $admin_field_title ] == 'binary' ) {
@@ -1122,7 +1143,21 @@ abstract class DO_Custom_Post_Type {
                                 $class = 'binary-false';
                                 break;
                         }
-                        echo '<span class="devo-binary"><a href="javascript:void(0);" class="devo-binary-toggle ' . $class . '"><img src="' . get_template_directory_uri() . '/public/images/admin/' . $image . '" border="0"></a></span>';
+                        $is_true = $class === 'binary-true';
+                        $label = $is_true ? __( 'Yes', 'developers_only' ) : __( 'No', 'developers_only' );
+                        if ( current_user_can( 'edit_post', $post_id ) ) {
+                            // Toggled in place by public/js/binary-toggle.js
+                            // through the devo_binary_toggle admin-ajax action.
+                            echo '<span class="devo-binary"><button type="button" class="devo-binary-toggle button-link ' . esc_attr( $class ) . '"'
+                                . ' data-post-id="' . (int) $post_id . '"'
+                                . ' data-meta-key="' . esc_attr( $meta_field_key ) . '"'
+                                . ' data-nonce="' . esc_attr( wp_create_nonce( 'devo_binary_toggle_' . $post_id ) ) . '"'
+                                . ' aria-pressed="' . ( $is_true ? 'true' : 'false' ) . '"'
+                                . ' aria-label="' . esc_attr( $admin_field_title ) . '">'
+                                . '<img src="' . esc_url( get_template_directory_uri() . '/public/images/admin/' . $image ) . '" alt="' . esc_attr( $label ) . '"></button></span>';
+                        } else {
+                            echo '<span class="devo-binary"><img class="' . esc_attr( $class ) . '" src="' . esc_url( get_template_directory_uri() . '/public/images/admin/' . $image ) . '" alt="' . esc_attr( $label ) . '"></span>';
+                        }
                     }
                     // Everything else
                     else if ( ( is_array( $meta_value ) && count( $meta_value ) ) || ( is_string( $meta_value ) && strlen( $meta_value ) ) ) {
@@ -1155,13 +1190,13 @@ abstract class DO_Custom_Post_Type {
                                     } else {
                                         $post_id = $post_browser_value;
                                     }
-                                    $labels[] = get_post_field( 'post_title', $post_id );
+                                    $labels[] = esc_html( get_post_field( 'post_title', $post_id ) );
                                 }
                                 echo implode( '<br>', $labels );
                             }
                             // Something simple, like a checkbox or select field
                             else {
-                                echo is_array( $meta_value ) ? implode( ', ', $meta_value ) : $meta_value;
+                                echo esc_html( is_array( $meta_value ) ? implode( ', ', array_filter( $meta_value, 'is_scalar' ) ) : $meta_value );
                             }
                         }
                         // If using DO_CPT_Form_Field class
@@ -1171,7 +1206,7 @@ abstract class DO_Custom_Post_Type {
                         }
                         // The field type is array
                         elseif ( strpos( $this->all_meta_fields[ $admin_field_title ], '_array' ) !== FALSE ) {
-                            echo implode( '<br>', $meta_value );
+                            echo implode( '<br>', array_map( 'esc_html', array_filter( (array) $meta_value, 'is_scalar' ) ) );
                         }
                         // The field type is a callback function
                         elseif ( strpos( $this->all_meta_fields[ $admin_field_title ], '_callback' ) !== FALSE ) {
@@ -1182,38 +1217,40 @@ abstract class DO_Custom_Post_Type {
                         }
                         // The field value is an image
                         elseif ( is_string( $meta_value ) && preg_match( '/(jpg|png|gif|svg|webp)$/', $meta_value ) ) {
-                            echo '<img src="' . esc_url( $meta_value ) . '" class="media-preview" height="50">';
+                            echo '<img src="' . esc_url( $meta_value ) . '" class="media-preview" height="50" alt="">';
                         }
                         // The field type is number
                         elseif ( $this->all_meta_fields[ $admin_field_title ] == 'number' ) {
                             $decimals = strlen( substr( strrchr( $meta_value, "." ), 1 ) );
-                            echo number_format( $meta_value, $decimals );
+                            echo esc_html( number_format( (float) $meta_value, $decimals ) );
                         }
                         // The field type is dollars
                         elseif ( $this->all_meta_fields[ $admin_field_title ] == 'dollars' ) {
-                            echo devo_format_dollars( $meta_value );
+                            echo esc_html( devo_format_dollars( $meta_value ) );
                         }
                         // The field type is date
                         elseif ( $this->all_meta_fields[ $admin_field_title ] == 'date' || $this->all_meta_fields[ $admin_field_title ] == 'select_date' ) {
-                            echo devo_utc_to_timezone( $meta_value, FALSE, 'F j, Y' );
+                            echo esc_html( devo_utc_to_timezone( $meta_value, FALSE, 'F j, Y' ) );
                         }
                         // The field type is date_time
                         elseif ( $this->all_meta_fields[ $admin_field_title ] == 'date_time' ) {
-                            echo devo_utc_to_timezone( $meta_value, FALSE, 'F j, Y, g:i a' );
+                            echo esc_html( devo_utc_to_timezone( $meta_value, FALSE, 'F j, Y, g:i a' ) );
                         }
                         // The field type is date_time_timezone
                         elseif ( $this->all_meta_fields[ $admin_field_title ] == 'date_time_timezone' ) {
                             $timestamp = isset( $meta_value['date_time'] ) && strlen( $meta_value['date_time'] ) ? $meta_value['date_time'] : FALSE;
                             $timezone = isset( $meta_value['timezone'] ) && strlen( $meta_value['timezone'] ) ? $meta_value['timezone'] : FALSE;
-                            echo devo_utc_to_timezone( $timestamp, $timezone );
+                            echo esc_html( devo_utc_to_timezone( $timestamp, $timezone ) );
                         }
                         // The field type is url
                         elseif ( $this->all_meta_fields[ $admin_field_title ] == 'url' ) {
-                            echo '<a href="' . esc_url( $meta_value ) . '" target="_blank">' . $meta_value . '</a>';
+                            echo '<a href="' . esc_url( $meta_value ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $meta_value ) . '</a>';
                         }
-                        // None of the above, so just echo it
+                        // None of the above, so just echo it. Escaped: list
+                        // values can come from anonymous visitors (form
+                        // submissions).
                         else {
-                            echo $meta_value;
+                            echo esc_html( is_scalar( $meta_value ) ? $meta_value : wp_json_encode( $meta_value ) );
                         }
                     }
                 }
@@ -1221,13 +1258,40 @@ abstract class DO_Custom_Post_Type {
         }
     }
 
+    /* Flips a binary field shown as an admin list column. Answers only for
+     * posts of this post type, and only for fields this post type declares as
+     * binary admin columns - never an arbitrary meta key. */
+    public function ajax_binary_toggle() {
+        $post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
+        if ( ! $post_id || get_post_type( $post_id ) !== $this->post_type ) {
+            // Another post type's instance will handle it
+            return;
+        }
+        check_ajax_referer( 'devo_binary_toggle_' . $post_id, 'nonce' );
+        if ( ! current_user_can( 'edit_post', $post_id ) ) {
+            wp_send_json_error( [ 'message' => __( 'You are not allowed to edit this post.', 'developers_only' ) ], 403 );
+        }
+        $meta_key = isset( $_POST['meta_key'] ) && is_string( $_POST['meta_key'] ) ? sanitize_key( wp_unslash( $_POST['meta_key'] ) ) : '';
+        $allowed_keys = [];
+        foreach ( (array) $this->admin_fields as $admin_field_title ) {
+            if ( isset( $this->all_meta_fields[ $admin_field_title ] ) && $this->all_meta_fields[ $admin_field_title ] === 'binary' ) {
+                $allowed_keys[] = devo_meta_field_key( $admin_field_title, $this->meta_prefix );
+            }
+        }
+        if ( ! in_array( $meta_key, $allowed_keys, TRUE ) ) {
+            wp_send_json_error( [ 'message' => __( 'That field cannot be toggled.', 'developers_only' ) ], 400 );
+        }
+        $value = isset( $_POST['value'] ) && rest_sanitize_boolean( wp_unslash( $_POST['value'] ) ) ? 1 : 0;
+        update_post_meta( $post_id, $meta_key, $value );
+        wp_send_json_success( [ 'value' => $value ] );
+    }
+
     /*
      * Save post
      *
      * */
     public function save_post() {
-        //echo "save_post \n";
-        global $post, $wpdb;
+        global $post;
         // verify this came from the our screen and with proper authorization,
         // because save_post can be triggered at other times
         if ( $post ) {
@@ -1282,19 +1346,14 @@ abstract class DO_Custom_Post_Type {
                     $this->dynamic_interface_setup( $_POST, 'onsave' );
                 }
 
-                // Backup previous backups
-                $backup_backups = $wpdb->query( "UPDATE $wpdb->postmeta SET meta_key = REPLACE(meta_key, 'BAK$this->meta_prefix', '_BAK$this->meta_prefix') WHERE post_id = $post_id and meta_key like 'BAK$this->meta_prefix%';" );
-                foreach ( array_keys( $this->bonus_fields ) as $bonus_key ) {
-                    $backup_backups = $wpdb->query( "UPDATE $wpdb->postmeta SET meta_key = REPLACE(meta_key, 'BAK$bonus_key', '_BAK$bonus_key') WHERE post_id = $post_id and meta_key like 'BAK$bonus_key%';" );
-                }
-
-                // Back up previous values
-                $backup_values = $wpdb->query( "UPDATE $wpdb->postmeta SET meta_key = REPLACE(meta_key, '$this->meta_prefix', 'BAK$this->meta_prefix') WHERE post_id = $post_id and meta_key like '$this->meta_prefix%';" );
-                foreach ( array_keys( $this->bonus_fields ) as $bonus_key ) {
-                    $backup_values = $wpdb->query( "UPDATE $wpdb->postmeta SET meta_key = REPLACE(meta_key, '$bonus_key', 'BAK$bonus_key') WHERE post_id = $post_id and meta_key = '$bonus_key';" );
-                }
-                //devo_var_dump($_POST);exit;
-                //devo_var_dump($this->meta_fields);exit;
+                // Back up the current values of this post type's own fields
+                // (one save deep, as BAK{key}) before they are overwritten.
+                // Only keys this post type defines are touched: matching on
+                // the prefix alone (page%, form%, icon%) also caught other
+                // plugins' meta.
+                $owned_keys = $this->owned_meta_keys_for_post( $post_id );
+                $this->backup_meta( $post_id, $owned_keys );
+                $saved_keys = [];
 
                 // Loop through fields and save new values
                 foreach ( $this->meta_fields as $meta_box_id => $meta_field_box ) {
@@ -1326,14 +1385,11 @@ abstract class DO_Custom_Post_Type {
                             $value = $validate->value;
                         }
                         
-                        // Save the field
-                        //devo_var_dump(
-                        $wpdb->replace( $wpdb->postmeta, [
-                            'post_id' => $post_id,
-                            'meta_key' => $meta_field_key,
-                            'meta_value' => $value,
-                        ] );
-                        //);
+                        // Save the field. wp_slash() because update_post_meta()
+                        // unslashes, and values are stored as validated
+                        // (JSON included) and unslashed again on read.
+                        update_post_meta( $post_id, $meta_field_key, wp_slash( $value ) );
+                        $saved_keys[] = $meta_field_key;
                     }
                 }
 
@@ -1356,11 +1412,8 @@ abstract class DO_Custom_Post_Type {
                         } else {
                             $value = '';
                         }
-                        $wpdb->replace( $wpdb->postmeta, [
-                            'post_id' => $post_id,
-                            'meta_key' => $bonus_field_name,
-                            'meta_value' => $value,
-                        ] );
+                        update_post_meta( $post_id, $bonus_field_name, wp_slash( $value ) );
+                        $saved_keys[] = $bonus_field_name;
                     }
                 }
 
@@ -1422,8 +1475,11 @@ abstract class DO_Custom_Post_Type {
                     }
                 }
 
-                // Delete previous backups
-                $wpdb->query( "DELETE FROM $wpdb->postmeta WHERE post_id = $post_id and meta_key like '_BAK%';" );
+                // Fields this post type no longer has (a removed panel, a
+                // changed panel type) only live on in the backup
+                foreach ( array_diff( $owned_keys, $saved_keys ) as $stale_key ) {
+                    delete_post_meta( $post_id, $stale_key );
+                }
 
                 //exit; // For devo_var_dump in DO_Form_Field_Validate
 
@@ -1490,6 +1546,73 @@ abstract class DO_Custom_Post_Type {
                 }
             }
         }
+    }
+
+    /* TRUE when $meta_key is one of this post type's own fields: a field in
+     * any meta box (with or without a dynamic panel number), a field from the
+     * dynamic interface configuration, or a bonus field. */
+    private function owns_meta_key( $meta_key ) {
+        static $base_keys = [];
+        if ( ! isset( $base_keys[ $this->post_type ] ) ) {
+            $keys = [];
+            $collect = function( $fields ) use ( &$keys, &$collect ) {
+                foreach ( (array) $fields as $label => $settings ) {
+                    if ( is_string( $label ) && strlen( $label ) ) {
+                        $keys[ devo_meta_field_key( $label, $this->meta_prefix ) ] = TRUE;
+                    }
+                }
+            };
+            foreach ( $this->source_meta_fields as $box_fields ) {
+                $collect( $box_fields );
+            }
+            foreach ( $this->dynamic_interface_configs as $config ) {
+                foreach ( $config['field_configuration'] as $by_value ) {
+                    foreach ( (array) $by_value as $fields ) {
+                        $collect( $fields );
+                    }
+                }
+                if ( isset( $config['settings']['dynamic_meta_box'] ) ) {
+                    $keys[ devo_meta_field_key( $config['settings']['dynamic_meta_box'] . ' Count', $this->meta_prefix ) ] = TRUE;
+                }
+            }
+            $base_keys[ $this->post_type ] = $keys;
+        }
+        $bonus_keys = [];
+        foreach ( (array) $this->bonus_fields as $bonus_key => $bonus_value ) {
+            $bonus_keys[ is_int( $bonus_key ) ? $bonus_value : $bonus_key ] = TRUE;
+        }
+        $keys = $base_keys[ $this->post_type ];
+        return isset( $keys[ $meta_key ] ) || isset( $bonus_keys[ $meta_key ] ) || isset( $keys[ preg_replace( '/_\d+$/', '', $meta_key ) ] );
+    }
+
+    // This post type's own meta keys currently stored on $post_id
+    private function owned_meta_keys_for_post( $post_id ) {
+        $all_meta = get_post_meta( $post_id );
+        return array_values( array_filter( array_keys( is_array( $all_meta ) ? $all_meta : [] ), function( $meta_key ) {
+            return is_string( $meta_key ) && $meta_key !== '' && $meta_key[0] !== '_' && strpos( $meta_key, 'BAK' ) !== 0 && $this->owns_meta_key( $meta_key );
+        } ) );
+    }
+
+    /* Keeps one generation of backups: BAK{key} holds each owned field's value
+     * from before the latest save. Nothing reads these; they are there for
+     * recovery by hand. Set-based queries for speed, then the post's meta cache
+     * is cleared so the object cache doesn't serve stale values. */
+    private function backup_meta( $post_id, $owned_keys ) {
+        global $wpdb;
+        $post_id = (int) $post_id;
+        // Leftovers from the old prefix-wide scheme
+        $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key LIKE %s", $post_id, $wpdb->esc_like( '_BAK' ) . '%' ) );
+        if ( ! count( $owned_keys ) ) {
+            wp_cache_delete( $post_id, 'post_meta' );
+            return;
+        }
+        $backup_keys = array_map( function( $meta_key ) {
+            return 'BAK' . $meta_key;
+        }, $owned_keys );
+        $placeholders = implode( ', ', array_fill( 0, count( $owned_keys ), '%s' ) );
+        $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key IN ( $placeholders )", array_merge( [ $post_id ], $backup_keys ) ) );
+        $wpdb->query( $wpdb->prepare( "INSERT INTO {$wpdb->postmeta} ( post_id, meta_key, meta_value ) SELECT post_id, CONCAT( 'BAK', meta_key ), meta_value FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key IN ( $placeholders )", array_merge( [ $post_id ], $owned_keys ) ) );
+        wp_cache_delete( $post_id, 'post_meta' );
     }
 
     /*
@@ -1694,10 +1817,14 @@ abstract class DO_Custom_Post_Type {
                 $this->post_type_details->bonus_fields[ $field_key ] = $field_details;
                 $this->post_type_details->meta_fields[ $field_key ] = $field_details;
             }
-            // Add fields
-            $data->data = devo_api_custom_data( $post, $this->post_type_details );
-            $data->data = devo_array_from_object( $data->data );
-            //devo_var_dump($data);
+            // Add the theme's fields on top of core's response. Core's response
+            // stays: it already handles password-protected content, and the
+            // raw WP_Post that used to replace it included post_password.
+            $request = $context instanceof WP_REST_Request ? $context : NULL;
+            $data->data = array_merge(
+                is_array( $data->data ) ? $data->data : [],
+                devo_rest_theme_fields( $post, $this->post_type_details, $request )
+            );
             return $data;
         }, 10, 3 );
     }
@@ -1728,7 +1855,8 @@ abstract class DO_Custom_Post_Type {
                 if ( isset( $POST[ $field_name ] ) && strlen( $POST[ $field_name ] ) ) {
                     $validate = new DO_Form_Field_Validate( $field_type, $POST[ $field_name ] );
                     $sanitized = $validate->value;
-                    $value = strpos( $field_type, 'date' ) !== FALSE ? date( 'Y-m-d', $sanitized ) : $sanitized;
+                    // A title is plain text (see devo_plain_text())
+                    $value = strpos( $field_type, 'date' ) !== FALSE ? date( 'Y-m-d', $sanitized ) : devo_plain_text( $sanitized );
                     $title_array[] = $value;
                 }
             } else {
@@ -1809,10 +1937,11 @@ abstract class DO_Custom_Post_Type {
         }
         // Echo the post type and custom taxonomies
         $taxonomy_names = implode( ', ', get_object_taxonomies( $this->post_type ) );
-        echo '<p class="footnote post-type-info"><b>Post Type:</b> ' . $this->post_type;
-        echo '<br><b>Archive:</b> <a href="' . home_url( '/' . ( $this->post_type_slug ? $this->post_type_slug . '/' : '' ), 'relative' ) . '" target="_blank">/' . ( $this->post_type_slug ? $this->post_type_slug . '/' : '' ) . '</a>';
+        echo '<p class="footnote post-type-info"><b>Post Type:</b> ' . esc_html( $this->post_type );
+        $archive_path = '/' . ( $this->post_type_slug ? $this->post_type_slug . '/' : '' );
+        echo '<br><b>Archive:</b> <a href="' . esc_url( home_url( $archive_path ) ) . '" target="_blank">' . esc_html( $archive_path ) . '</a>';
         if ( $post ) {
-            echo '<br><b>View Post:</b> <a href="' . get_permalink( $post->ID ) . '" target="_blank">' . get_permalink( $post->ID ) . '</a>';
+            echo '<br><b>View Post:</b> <a href="' . esc_url( get_permalink( $post->ID ) ) . '" target="_blank">' . esc_html( get_permalink( $post->ID ) ) . '</a>';
         }
         echo '</p>';
     }

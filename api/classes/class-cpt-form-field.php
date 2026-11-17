@@ -135,8 +135,8 @@ class DO_CPT_Form_Field {
                     $form_field = new DO_Form_Field_Display( $this->field_type, $meta_field_key, $field_options, [ 'value_source' => $post_id, 'disabled' => $disable ] );
     				$output .= $form_field->output;
 				} else {
-				    echo '<p>There are no ' . devo_pluralize( $this->target->post_type_display_name ) . '... <a href="' . admin_url( '/post-new.php?post_type=' . $this->target->post_type ) . '">Go create some!</a></p>';
-				    echo '<span class="footnote">' . $meta_field_key . '</span>';
+				    echo '<p>There are no ' . esc_html( devo_pluralize( $this->target->post_type_display_name ) ) . '... <a href="' . esc_url( admin_url( 'post-new.php?post_type=' . $this->target->post_type ) ) . '">Go create some!</a></p>';
+				    echo '<span class="footnote">' . esc_html( $meta_field_key ) . '</span>';
                 }
 				echo $output;
 				break;
@@ -162,7 +162,8 @@ class DO_CPT_Form_Field {
                     }
                     if ( count( $value_post ) ) {
                         $single_value_post = is_array( $value_post ) ? $value_post[0] : $value_post;
-                        $output .= $this->is_meta_field( $this->display_field ) ? devo_get_post_meta( $single_value_post->ID, $display_field_key ) . '<br>' : get_post_field( $display_field_key, $single_value_post->ID ) . '<br>';
+                        $display_value = $this->is_meta_field( $this->display_field ) ? devo_get_post_meta( $single_value_post->ID, $display_field_key ) : get_post_field( $display_field_key, $single_value_post->ID );
+                        $output .= esc_html( is_scalar( $display_value ) ? $display_value : '' ) . '<br>';
                     }
                 }
 				echo $output;
@@ -192,7 +193,7 @@ class DO_CPT_Form_Field {
     				$output .= $form_field->output;
 				} else {
 				    $tax_details = get_taxonomy( $this->target_name );
-				    echo '<p>There are no ' . $tax_details->labels->name . '... <a href="' . admin_url( '/edit-tags.php?taxonomy=' . $this->target_name ) . '">Go create some!</a></p>';
+				    echo '<p>There are no ' . esc_html( $tax_details->labels->name ) . '... <a href="' . esc_url( admin_url( 'edit-tags.php?taxonomy=' . $this->target_name ) ) . '">Go create some!</a></p>';
 				}
 				echo $output;
 				break;
@@ -200,8 +201,8 @@ class DO_CPT_Form_Field {
                 $output = '';
                 if ( $this->apply_taxonomy ) {
                     $terms = get_the_terms( $post_id, $this->target_name );
-                    foreach ( $terms as $term ) {
-                        $output .= $term->name . '<br>';
+                    foreach ( is_array( $terms ) ? $terms : [] as $term ) {
+                        $output .= esc_html( $term->name ) . '<br>';
                     }
                 }
 				echo $output;

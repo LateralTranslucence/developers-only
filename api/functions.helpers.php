@@ -27,14 +27,68 @@ function devo_adjust_brightness( $hex, $steps ) {
     return $return;
 }
 
+/* Minimal post type details for post types that weren't registered through
+ * DO_Custom_Post_Type (core post/page, plugin types), so the helpers below can
+ * treat every post the same way without reading undefined indexes. */
+function devo_default_post_type_details( $post_type ) {
+    $post_type_object = get_post_type_object( $post_type );
+    $details = new stdClass();
+    $details->breadcrumbs = [];
+    $details->is_landing_page = FALSE;
+    $details->meta_prefix = '';
+    $details->meta_fields = [];
+    $details->post_content = NULL;
+    $details->post_excerpt = NULL;
+    $details->post_file = NULL;
+    $details->post_name = NULL;
+    $details->post_thumbnail = NULL;
+    $details->post_title = NULL;
+    $details->post_type = $post_type;
+    $details->post_type_display_name = $post_type_object ? $post_type_object->labels->singular_name : '';
+    $details->post_type_slug = $post_type;
+    $details->private_fields = [];
+    $details->schema = [];
+    $details->seo_description = FALSE;
+    $details->seo_image = FALSE;
+    $details->seo_title = 'post_title';
+    return $details;
+}
+
+// Post type details for $post_type, from the theme's registry when it has them
+function devo_get_post_type_details( $post_type ) {
+    global $devo_custom_post_types;
+    return isset( $devo_custom_post_types[ $post_type ] ) ? $devo_custom_post_types[ $post_type ] : devo_default_post_type_details( $post_type );
+}
+
+// Absolute URL for a site-relative path such as a post's `permalink` field.
+// The path already includes any subdirectory WordPress is installed in, so it
+// is joined to the origin only, not to home_url().
+function devo_absolute_url( $relative_path ) {
+    $home = wp_parse_url( home_url() );
+    $origin = ( isset( $home['scheme'] ) ? $home['scheme'] : 'https' ) . '://' . ( isset( $home['host'] ) ? $home['host'] : '' ) . ( isset( $home['port'] ) ? ':' . $home['port'] : '' );
+    return $origin . '/' . ltrim( (string) $relative_path, '/' );
+}
+
+/* Adds the theme's data to a post object: `fields` (typed meta), permalink,
+ * formatted date, thumbnail, seo_* values and schema.
+ *
+ * Mutates and returns the object it is given, so pass a clone when the
+ * original WP_Post (which WordPress caches) must stay untouched. seo_* values
+ * are plain text and NOT escaped: the React side escapes them, and PHP
+ * templates must escape them for their own context. */
 function devo_api_custom_data( $post, $post_type_details = FALSE ) {
     if ( $post ) {
         if ( $post_type_details === FALSE ) {
-            global $devo_custom_post_types;
-            $post_type_details = $devo_custom_post_types[ $post->post_type ];
+            $post_type_details = devo_get_post_type_details( $post->post_type );
         }
         $post->fields = [];
-        foreach ( $post_type_details->meta_fields as $field_key => $field_details ) {
+        $private_fields = isset( $post_type_details->private_fields ) && is_array( $post_type_details->private_fields ) ? $post_type_details->private_fields : [];
+        $meta_fields = isset( $post_type_details->meta_fields ) && is_array( $post_type_details->meta_fields ) ? $post_type_details->meta_fields : [];
+        foreach ( $meta_fields as $field_key => $field_details ) {
+            // Staff-only settings (see the private_fields post type setting)
+            if ( in_array( $field_key, $private_fields, TRUE ) ) {
+                continue;
+            }
             $field_type = devo_get_meta_field_type( $field_details );
             $api_display = new DO_Form_Field_API_Display( $field_type, $field_key, $post->ID, $post_type_details );
             $post->fields[ $field_key ] = $api_display->output;
@@ -44,7 +98,7 @@ function devo_api_custom_data( $post, $post_type_details = FALSE ) {
         $post->post_thumbnail = $post_thumbnail->output;
         $post->permalink = '/' . trim( devo_get_relative_permalink( $post->ID ), '/' ) . '/';
         // If this is the home page, modify permalink
-        if ( $post->permalink == home_url( '/home/', 'relative' ) ) {
+        if ( $post->permalink == home_url( '/home/', 'relative' ) || $post->permalink === '//' ) {
             $post->permalink = home_url( '/', 'relative' );
         }
         // Date
@@ -56,27 +110,155 @@ function devo_api_custom_data( $post, $post_type_details = FALSE ) {
         }
         // Excerpt
         $post->post_excerpt = devo_autop( $post->post_excerpt );
-        // SEO meta fields
-        $post_type_label = isset( $post_type_details->post_type_display_name ) ? $post_type_details->post_type_display_name : '';
-        $seo_title = isset( $post_type_details->seo_title ) ? devo_get_seo_field_value( $post_type_details->seo_title, $post ) : '';
-        $post->seo_title = strlen( $post_type_label ) ? $seo_title . ' - ' . $post_type_label : $seo_title;
-        $og_image = get_template_directory_uri() . '/public/images/og-image.jpg';
-        $image = isset( $post_type_details->seo_image ) && $post_type_details->seo_image ? devo_get_seo_field_value( $post_type_details->seo_image, $post ) : $og_image;
-        $post->seo_image = is_array( $image ) && count( $image ) && isset( $image['cinema_600'] ) ? $image['cinema_600']['url'] : ( is_array( $image ) ? $og_image : $image );
-        $post->seo_url = esc_attr( $post->permalink );
-        $post->seo_description = isset( $post_type_details->seo_description ) ? esc_attr( devo_get_seo_field_value( $post_type_details->seo_description, $post ) ) : '';
-        $post->seo_locale = esc_attr( get_locale() );
-        $post->seo_site_name = esc_attr( get_bloginfo( 'name' ) );
-        $post->noindex = devo_noindex();
-        $post->schema = devo_get_schema( $post_type_details->schema, $post );
-        $post->is_featured = (bool) devo_get_post_meta( $post->ID, 'featured_post', TRUE );
-        // Press release boilerplate
-        if ( $post->post_type == 'devo_press_release' ) {
-            $boilerplate_option = get_option( 'site_settings_press_release_boilerplate' );
-            $post->press_boilerplate = isset( $boilerplate_option[ 'boilerplate' ] ) && $boilerplate_option[ 'boilerplate' ] ? devo_autop( $boilerplate_option[ 'boilerplate' ] ) : '';
+        // SEO meta fields. Raw text; escaped by whatever prints them.
+        foreach ( devo_seo_data( $post, $post_type_details ) as $seo_key => $seo_value ) {
+            $post->{ $seo_key } = $seo_value;
         }
+        $post->is_featured = (bool) devo_get_post_meta( $post->ID, 'featured_post', TRUE );
     }
     return $post;
+}
+
+/* SEO values for a post: title, description, image, absolute URL, locale,
+ * site name, robots and JSON-LD schema. Shared by the REST data and the
+ * server-rendered <head> (header.php), so the two always agree.
+ *
+ * Every value is plain text or a URL, unescaped. `title` is the bare SEO
+ * title; `seo_title` has the post type label appended, as the document title
+ * does. Expects $post->permalink when devo_api_custom_data() has set it. */
+function devo_seo_data( $post, $post_type_details = FALSE ) {
+    if ( $post_type_details === FALSE ) {
+        $post_type_details = devo_get_post_type_details( $post->post_type );
+    }
+    $permalink = isset( $post->permalink ) && is_string( $post->permalink ) ? $post->permalink : '/' . trim( devo_get_relative_permalink( $post->ID ), '/' ) . '/';
+    if ( $permalink === '//' ) {
+        $permalink = home_url( '/', 'relative' );
+    }
+    $post_type_label = isset( $post_type_details->post_type_display_name ) ? $post_type_details->post_type_display_name : '';
+    $title = isset( $post_type_details->seo_title ) && $post_type_details->seo_title ? devo_get_seo_field_value( $post_type_details->seo_title, $post ) : devo_plain_text( $post->post_title );
+    $title = is_string( $title ) ? $title : '';
+    $og_image = get_template_directory_uri() . '/public/images/og-image.png';
+    $image = isset( $post_type_details->seo_image ) && $post_type_details->seo_image ? devo_get_seo_field_value( $post_type_details->seo_image, $post ) : $og_image;
+    $description = isset( $post_type_details->seo_description ) && $post_type_details->seo_description ? devo_get_seo_field_value( $post_type_details->seo_description, $post ) : '';
+    // A password-protected post's fields stay private until it's unlocked:
+    // no description, and schema without field values.
+    $protected = devo_post_content_protected( $post );
+    $schema_fields = isset( $post_type_details->schema ) && is_array( $post_type_details->schema ) ? $post_type_details->schema : [];
+    if ( $protected ) {
+        $schema_fields = array_intersect_key( $schema_fields, [ '@type' => TRUE ] );
+    }
+    return [
+        'seo_title_plain' => $title,
+        'seo_title' => strlen( $post_type_label ) && strlen( $title ) ? $title . ' - ' . $post_type_label : $title,
+        'seo_image' => is_array( $image ) && count( $image ) && isset( $image['cinema_600'] ) ? $image['cinema_600']['url'] : ( is_string( $image ) && strlen( $image ) ? $image : $og_image ),
+        // Absolute, for canonical and og:url
+        'seo_url' => devo_absolute_url( $permalink ),
+        'seo_description' => is_string( $description ) && ! $protected ? $description : '',
+        'seo_locale' => get_locale(),
+        'seo_site_name' => devo_plain_text( get_bloginfo( 'name' ) ),
+        'noindex' => devo_noindex(),
+        'schema' => devo_get_schema( $schema_fields, $post, $post_type_details ),
+    ];
+}
+
+// TRUE when $post has a password the visitor hasn't supplied, either through
+// WordPress's password cookie or a `password` REST parameter (as core allows).
+function devo_post_content_protected( $post, $request = NULL ) {
+    if ( ! $post || ! strlen( (string) $post->post_password ) ) {
+        return FALSE;
+    }
+    if ( $request instanceof WP_REST_Request && is_string( $request['password'] ) && hash_equals( $post->post_password, $request['password'] ) ) {
+        return FALSE;
+    }
+    return post_password_required( $post );
+}
+
+/* The theme's additions to a post's REST data, as an array.
+ *
+ * Includes a few WP_Post-style properties (ID, post_title, post_name, ...) for
+ * the front end, but never the raw object: no post_password, and no content,
+ * excerpt, fields or description for a password-protected post the visitor
+ * hasn't unlocked. */
+function devo_rest_theme_fields( $post, $post_type_details = FALSE, $request = NULL ) {
+    $protected = devo_post_content_protected( $post, $request );
+    // Clone: devo_api_custom_data() mutates the object, and WP_Post objects
+    // are shared through the object cache.
+    $theme_post = devo_api_custom_data( clone $post, $post_type_details );
+    return [
+        'ID' => (int) $post->ID,
+        'post_title' => $post->post_title,
+        'post_name' => $post->post_name,
+        'post_type' => $post->post_type,
+        'post_parent' => (int) $post->post_parent,
+        'menu_order' => (int) $post->menu_order,
+        'post_date' => $theme_post->post_date,
+        'raw_post_date' => isset( $theme_post->raw_post_date ) ? $theme_post->raw_post_date : $post->post_date,
+        'post_modified' => $post->post_modified,
+        'post_content' => $protected ? '' : $post->post_content,
+        'post_excerpt' => $protected ? '' : $theme_post->post_excerpt,
+        'content_protected' => $protected,
+        'fields' => $protected ? [] : $theme_post->fields,
+        'post_type_details' => $theme_post->post_type_details,
+        'post_thumbnail' => $theme_post->post_thumbnail,
+        'permalink' => $theme_post->permalink,
+        'seo_title' => $theme_post->seo_title,
+        'seo_image' => $theme_post->seo_image,
+        'seo_url' => $theme_post->seo_url,
+        'seo_description' => $protected ? '' : $theme_post->seo_description,
+        'seo_locale' => $theme_post->seo_locale,
+        'seo_site_name' => $theme_post->seo_site_name,
+        'noindex' => $theme_post->noindex,
+        'schema' => $theme_post->schema,
+        'is_featured' => $theme_post->is_featured,
+    ];
+}
+
+/* A post in the same shape /wp/v2/{type} returns it: core's REST response
+ * with the theme's fields on top. For the theme's own routes (/archive/,
+ * /page/, /devo-search) and post_browser fields, which used to return raw
+ * WP_Post objects - post_password included.
+ *
+ * Returns NULL for anything an anonymous visitor couldn't view (drafts,
+ * private posts, non-public post types). */
+function devo_rest_prepare_post( $post, $request = NULL ) {
+    static $depth = 0;
+    // get_post( 0 ) / get_post( NULL ) would return the global post
+    if ( ! $post || ( ! is_object( $post ) && ! ( is_numeric( $post ) && (int) $post > 0 ) ) ) {
+        return NULL;
+    }
+    $post = get_post( $post );
+    if ( ! $post || ! is_post_publicly_viewable( $post ) ) {
+        return NULL;
+    }
+    // A post_browser field can point back at the post that contains it
+    if ( $depth > 2 ) {
+        return [ 'ID' => (int) $post->ID, 'post_title' => $post->post_title, 'post_type' => $post->post_type, 'permalink' => '/' . trim( devo_get_relative_permalink( $post->ID ), '/' ) . '/' ];
+    }
+    $depth++;
+    try {
+        $post_type_object = get_post_type_object( $post->post_type );
+        $controller = $post_type_object ? $post_type_object->get_rest_controller() : NULL;
+        if ( $controller instanceof WP_REST_Posts_Controller ) {
+            $rest_base = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post->post_type;
+            $item_request = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $post->ID );
+            $item_request->set_param( 'context', 'view' );
+            if ( $request instanceof WP_REST_Request && is_string( $request['password'] ) ) {
+                $item_request->set_param( 'password', $request['password'] );
+            }
+            $response = $controller->prepare_item_for_response( $post, $item_request );
+            $data = rest_get_server()->response_to_data( $response, FALSE );
+            // Theme post types add their fields in rest_prepare_{post_type};
+            // add them here for any other public type.
+            if ( ! isset( $data['fields'] ) ) {
+                $data = array_merge( $data, devo_rest_theme_fields( $post, FALSE, $item_request ) );
+            }
+            return $data;
+        }
+        // Public, but not in REST: the theme's fields only
+        return devo_rest_theme_fields( $post, FALSE, $request );
+    } finally {
+        $depth--;
+    }
 }
 
 // Returns the average of an array of numbers
@@ -264,11 +446,15 @@ function devo_array_median( $raw_array ) {
     if ( ! is_array( $raw_array ) ) {
         $raw_array = [ $raw_array ];
     }
+    $array = [];
     foreach ( $raw_array as $key => $value ) {
         $temp_value = preg_replace( '/[^0-9\,\.\-]/', '', $value );
         if ( strlen( $temp_value ) ) {
             $array[] = floatval( $temp_value );
         }
+    }
+    if ( ! count( $array ) ) {
+        return 0;
     }
     sort( $array );
     $count = count( $array ); //total numbers in array
@@ -382,30 +568,33 @@ function devo_array_x_number( $array, $number ) {
     return $return_array;
 }
 
-// Sorts an associative array
-function devo_assoc_array_sort( $data, $columns ) { // $columns = [ $column_name => $direction ]
-	foreach ( $data as $key => $row ) {
-	    if ( is_array( $columns ) ) {
-	    	foreach ( $columns as $column_name => $direction ) {
-	    		if ( isset( $row[ $column_name ] ) ) {
-	    		    ${ $column_name }[ $key ] = $row[ $column_name ];
-    				$column_names[] = $column_name;
-    				$directions[] = 'SORT_' . $direction;
-                } else {
-                    unset( $data[ $key ] );
-                }
-	    	}
-	    }
-	}
-	switch ( count( $columns ) ) {
-		case 1:
-			array_multisort( ${ $column_names[0] }, constant( strtoupper( $directions[0] ) ), $data );
-			break;
-		case 2:
-			array_multisort( ${ $column_names[0] }, constant( strtoupper( $directions[0] ) ), ${ $column_names[1] }, constant( strtoupper( $directions[1] ) ), $data );
-			break;
-	}
-	return $data;
+// Sorts an array of rows by up to two columns: $columns = [ $column_name => 'ASC'|'DESC' ].
+// Rows missing a sort column are dropped. String keys are kept; numeric keys
+// are renumbered, as array_multisort() did.
+function devo_assoc_array_sort( $data, $columns ) {
+    if ( ! is_array( $data ) || ! is_array( $columns ) || ! count( $columns ) ) {
+        return $data;
+    }
+    $columns = array_slice( $columns, 0, 2, TRUE );
+    foreach ( $data as $key => $row ) {
+        foreach ( $columns as $column_name => $direction ) {
+            if ( ! is_array( $row ) || ! isset( $row[ $column_name ] ) ) {
+                unset( $data[ $key ] );
+                continue 2;
+            }
+        }
+    }
+    uasort( $data, function( $a, $b ) use ( $columns ) {
+        foreach ( $columns as $column_name => $direction ) {
+            $comparison = is_numeric( $a[ $column_name ] ) && is_numeric( $b[ $column_name ] ) ? $a[ $column_name ] <=> $b[ $column_name ] : strnatcasecmp( (string) $a[ $column_name ], (string) $b[ $column_name ] );
+            if ( $comparison !== 0 ) {
+                return strtoupper( (string) $direction ) === 'DESC' ? -$comparison : $comparison;
+            }
+        }
+        return 0;
+    } );
+    $string_keys = array_filter( array_keys( $data ), 'is_string' );
+    return count( $string_keys ) ? $data : array_values( $data );
 }
 
 // Applies do_shortcode to wpautop
@@ -540,27 +729,6 @@ function devo_convert_smart_quotes( $string ) {
                  '"',
                  '-' ];
     return str_replace( $search, $replace, $string );
-}
-
-function devo_curl( $url, $bearer_token ) {
-    $curl = curl_init();
-    curl_setopt_array( $curl, [
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'GET',
-        CURLOPT_HTTPHEADER => [
-            'Authorization: Bearer ' . $bearer_token,
-        ],
-    ] );
-    $response = curl_exec( $curl );
-    curl_close( $curl );
-
-    return json_decode( $response );
 }
 
 // Get the current url
@@ -1084,9 +1252,13 @@ function devo_get_relative_permalink( $post_id ) {
     return $relative_permalink === '/home/' ? '/' : $relative_permalink;
 }
 
-function devo_get_schema( $schema_fields, $post ) {
-    global $devo_custom_post_types;
-    $post_type_details = $devo_custom_post_types[ $post->post_type ];
+function devo_get_schema( $schema_fields, $post, $post_type_details = FALSE ) {
+    if ( $post_type_details === FALSE ) {
+        $post_type_details = devo_get_post_type_details( $post->post_type );
+    }
+    if ( ! is_array( $schema_fields ) ) {
+        $schema_fields = [];
+    }
     $date = isset( $post->post_date['iso8601'] ) ? $post->post_date['iso8601'] : $post->post_date;
     //$publish_date = date( 'Y-m-d', strtotime( get_post_field( 'post_date', $post->ID ) ) );
     $schema = [
@@ -1097,8 +1269,8 @@ function devo_get_schema( $schema_fields, $post ) {
         $schema['author'] = [
             '@context' => 'https://schema.org',
             '@type' => 'Organization',
-            'name' => '{DevelopersOnly}',
-            'url' => '',
+            'name' => devo_plain_text( get_bloginfo( 'name' ) ),
+            'url' => home_url( '/' ),
         ];
     }
     foreach ( $schema_fields as $key => $values ) {
@@ -1194,23 +1366,41 @@ function devo_schema_formatter( $key, $value, $post ) {
             }
             break;
         default: 
-            $schema = addslashes( wp_strip_all_tags( $value, TRUE ) );
+            $schema = is_scalar( $value ) ? devo_plain_text( $value ) : '';
             break;
     }
     return $schema;
 }
 
+/* Turns stored field HTML into plain text: tags removed and entities decoded.
+ *
+ * Field values are saved through wp_kses_post(), which normalises a bare "&"
+ * to "&amp;". That's right for HTML, but text that ends up somewhere plain -
+ * a <title>, a meta description, JSON-LD, a post title - would show the
+ * entity. Decode it here, at the point of use, rather than when saving: a
+ * decode on save would also turn an escaped "&lt;script&gt;" back into a
+ * live tag. Tags are stripped again after decoding for the same reason. The
+ * result is plain text and must still be escaped for whatever context it is
+ * printed in. */
+function devo_plain_text( $value ) {
+    if ( ! is_scalar( $value ) ) {
+        return '';
+    }
+    $text = html_entity_decode( wp_strip_all_tags( (string) $value ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+    return trim( wp_strip_all_tags( $text ) );
+}
+
 // Retrieves and formats seo field value from options
 function devo_get_seo_field_value( $field_options, $data = new stdClass ) {
-    $has_options = ( is_string( $field_options ) && strpos( $field_options, '||' ) ) || ( is_array( $field_options ) && count( $field_options ) );
-    $fields = [];
-    if ( $has_options ) {
-        if ( is_string( $field_options ) ) {
-            $fields = explode( '||', $field_options );
-        } elseif ( is_array( $field_options ) ) {
-            $fields = $field_options;
-        }
-    } 
+    // One field ('SEO Description'), a fallback chain ('SEO Title||post_title')
+    // or an array of fields to join
+    if ( is_string( $field_options ) && strlen( $field_options ) ) {
+        $fields = explode( '||', $field_options );
+    } elseif ( is_array( $field_options ) ) {
+        $fields = $field_options;
+    } else {
+        $fields = [];
+    }
     foreach ( $fields as $field ) {
         // $field is a string (aka a single field)
         if ( is_string( $field ) ) {
@@ -1222,7 +1412,7 @@ function devo_get_seo_field_value( $field_options, $data = new stdClass ) {
                 } 
                 // String
                 elseif ( is_string( $data->{ $field } ) && strlen( $data->{ $field } ) ) {
-                    return wp_strip_all_tags( $data->{ $field } );
+                    return devo_plain_text( $data->{ $field } );
                 }
             } 
             // Meta field
@@ -1234,7 +1424,7 @@ function devo_get_seo_field_value( $field_options, $data = new stdClass ) {
                 }
                 // String
                 elseif ( is_string( $meta_value ) && strlen( $meta_value ) ) {
-                    return wp_strip_all_tags( $meta_value );
+                    return devo_plain_text( $meta_value );
                 }
             }
         } 
@@ -1249,8 +1439,8 @@ function devo_get_seo_field_value( $field_options, $data = new stdClass ) {
                         return $data->{ $field_part };
                     } 
                     // String
-                    elseif ( is_string( $data->{ $field } ) && strlen( $data->{ $field_part } ) ) {
-                        $return[] = wp_strip_all_tags( $data->{ $field_part } );
+                    elseif ( is_string( $data->{ $field_part } ) && strlen( $data->{ $field_part } ) ) {
+                        $return[] = devo_plain_text( $data->{ $field_part } );
                     }
                 } 
                 // Meta field?
@@ -1264,7 +1454,7 @@ function devo_get_seo_field_value( $field_options, $data = new stdClass ) {
                     }
                     // String
                     elseif ( is_string( $meta_value ) && strlen( $meta_value ) ) {
-                        $return[] = wp_strip_all_tags( $meta_value );
+                        $return[] = devo_plain_text( $meta_value );
                     }
                 }
             }
@@ -1361,13 +1551,6 @@ function devo_hex_to_rgb( $hex ) {
         $rgb[] = ( $first_digit * pow( 16, 1 ) ) + ( $second_digit * pow( 16, 0 ) );
     }
     return $rgb;
-}
-
-function devo_hubspot_form_function_name( $post_id = FALSE, $append = FALSE, $modal = FALSE ) {
-    if ( ! $post_id ) {
-        return ;
-    }
-    return 'hubspot_form_' . str_replace( '-', '_', remove_accents( get_post_field( 'post_name', $post_id ) ) ) . ( $modal ? '_modal' : '' ) . ( $append ? '_' . $append : '' );
 }
 
 function devo_array_contains( $needles, $haystack, $all = FALSE, $strict = FALSE ) {
@@ -1595,7 +1778,7 @@ function devo_get_post_types( $specific_site = FALSE ) {
         // From plugins
         'scheduled-action', 'wpforms', 'wpforms-template',
         // Custom, but still no
-        'devo_form_submission', 'devo_email_subscriber', 'devo_admin_page' ];
+        'devo_form_submission', 'devo_admin_page' ];
     if ( $specific_site ) {
         $blog_id = ( $specific_site_id = devo_site_id( $specific_site ) ) ? $specific_site_id : get_current_blog_id();
         switch_to_blog( $blog_id );
@@ -1626,38 +1809,63 @@ function devo_get_post_types( $specific_site = FALSE ) {
     return $custom_post_types;
 }
 
-// Get public-facing custom post types
+/* Post types the front end may list: /archive/, /devo-search, post browser
+ * defaults and the post type pickers.
+ *
+ * An allowlist built from what WordPress itself considers public, minus a
+ * filterable set the theme keeps out of listings (core posts/pages, forms,
+ * icons). Anything non-public - form submissions, admin pages, plugin
+ * internals - can never appear, however the request is crafted. */
 function devo_get_public_post_types( $format = 'assc_array' ) {
+    $excluded = apply_filters( 'devo_public_post_types_exclude', [ 'post', 'page', 'attachment', 'devo_form', 'devo_icon' ] );
+    $excluded = is_array( $excluded ) ? $excluded : [];
     $custom_post_types = [];
-    $not_these_post_types = [
-        // WordPress native
-        'post', 'page', 'product', 'customize_changeset', 'custom_css', 'attachment', 'revision', 'nav_menu_item', 'oembed_cache', 'user_request', 'wp_block', 'wp_template', 'wp_global_styles', 'wp_navigation', 'wp_template_part', 'wp_font_face', 'wp_font_family', 
-        // From plugins
-        'scheduled-action', 'wpforms', 'wpforms-template',
-        // Custom, but still no
-        'devo_form_submission', 'devo_admin_page', 'devo_form', 'devo_icon', ];
-    $all_post_types = get_post_types( [], 'objects' );
-    // Assc Array type => [ label, value ]
-    if ( $format === 'assc_array' ) {
-        foreach ( $all_post_types as $type => $post_type ) {
-            if ( ! in_array( $type, $not_these_post_types ) ) {
-                $custom_post_types[ $type ] = [
-                    'label' => $post_type->label,
-                    'value' => $type,
-                ];
-            }
+    foreach ( get_post_types( [ 'public' => TRUE ], 'objects' ) as $type => $post_type ) {
+        if ( in_array( $type, $excluded, TRUE ) || ! is_post_type_viewable( $post_type ) ) {
+            continue;
         }
-    } 
-    // Indexed Array
-    else {
-        foreach ( $all_post_types as $type => $post_type ) {
-            if ( ! in_array( $type, $not_these_post_types ) ) {
-                $custom_post_types[] = $type;
-            }
+        // Assc Array type => [ label, value ]
+        if ( $format === 'assc_array' ) {
+            $custom_post_types[ $type ] = [
+                'label' => $post_type->label,
+                'value' => $type,
+            ];
+        }
+        // Indexed Array
+        else {
+            $custom_post_types[] = $type;
         }
     }
-    sort( $custom_post_types );
+    if ( $format === 'assc_array' ) {
+        ksort( $custom_post_types );
+    } else {
+        sort( $custom_post_types );
+    }
     return $custom_post_types;
+}
+
+// Keeps only the post types in $requested that the front end may list
+function devo_filter_public_post_types( $requested ) {
+    if ( is_string( $requested ) ) {
+        $requested = explode( ',', $requested );
+    }
+    if ( ! is_array( $requested ) ) {
+        return [];
+    }
+    $requested = array_map( 'trim', array_filter( $requested, 'is_string' ) );
+    return array_values( array_intersect( $requested, devo_get_public_post_types( 'indexed_array' ) ) );
+}
+
+// Most posts one /archive/ or /devo-search request may return
+function devo_max_posts_per_page() {
+    return max( 1, (int) apply_filters( 'devo_max_posts_per_page', 50 ) );
+}
+
+// A requested page size, capped. -1 ("all") and anything out of range become the cap.
+function devo_clamp_posts_per_page( $posts_per_page, $default = 15 ) {
+    $posts_per_page = is_numeric( $posts_per_page ) ? (int) $posts_per_page : (int) $default;
+    $max = devo_max_posts_per_page();
+    return $posts_per_page < 1 || $posts_per_page > $max ? $max : $posts_per_page;
 }
 
 function devo_read_time( $content = '', $wpm = 300 ) {
@@ -1728,45 +1936,6 @@ function devo_rewrite_generator( $wp_rewrite, $criteria_count, $root, $post_type
 	}
 }
 
-// Show date of last scheduled data import
-/* $data_import_dates = [
- * 		$post_type => [
- *			'option' => $option_name,
- *			'hook' => $hook_name,
- *		],
- * ];
- */
-function devo_show_import_date( $data_import_details ) {
-	global $post, $pagenow, $wp_query;
-	$post_types = array_keys( $data_import_details );
-	if ( isset( $post->post_type ) ) {
-		$this_post_type = $post->post_type;
-	} elseif ( isset( $wp_query->query_vars['post_type'] ) ) {
-		$this_post_type = $wp_query->query_vars['post_type'];
-	} else {
-		$this_post_type = false;
-	}
-	// Abort if not on post or edit pages
-	// Right page?
-	$page = in_array( $pagenow, [ 'post-new.php', 'post.php', 'edit.php', ] );
-	if( ! $page ) {
-		return;
-	}
-	// Right post type?
-	$type = in_array( $this_post_type, $post_types );
-	if ( ! $type ) {
-		return;
-	}
-	// Right capabilities?
-	$capability = is_multisite() ? 'manage_network_options' : 'manage_options';
-    if( ! current_user_can( $capability ) ) {
-    	return;
-	}
-    // Echo the date
-    echo '<p class="footnote"><b>Last import:</b> ' . get_option( $data_import_details[ $this_post_type ]['option'] ) . '<br>';
-	echo '<b>Next Scheduled Import:</b> ' . date( 'Y-m-d h:i A', wp_next_scheduled( $data_import_details[ $this_post_type ]['hook'] ) ) . '</p>';
-}
-
 // Get the site ID from the site path
 function devo_site_id( $name = FALSE ) {
     $sites_raw = get_sites();
@@ -1826,15 +1995,6 @@ function devo_timezone_to_utc( $timestamp = FALSE, $timezone = FALSE ) {
     $date_obj->setTimeZone( $timezone_obj );
 
     return $date_obj->format( 'U' );
-}
-
-// Translate time from eastern to a different php timezone
-function devo_translate_time( $timestamp, $timezone = 'America/New_York' ) {
-    $timezone = $timezone && strlen( $timezone ) ? $timezone : 'America/New_York';
-    $timestamp_string = date( 'Y-m-d g:i a', $timestamp );
-    $time_obj = new DateTime( $timestamp_string, new DateTimeZone( 'America/New_York' ) );
-    $time_obj->setTimezone( new DateTimeZone( $timezone ) );
-    return strtotime( $time_obj->format( 'Y-m-d H:i:s' ) );
 }
 
 // Truncates text at the end of a sentence if possible (or always if threshold == FALSE )
@@ -1987,7 +2147,12 @@ function is_assoc_array( $array = [] ) {
 }
 
 // ...pretty self-explanatory I think
-function is_json( string $string ): bool {
+// Meta values can be arrays (serialized meta), so anything but a string is
+// simply not JSON rather than a TypeError.
+function is_json( $string ): bool {
+    if ( ! is_string( $string ) || $string === '' ) {
+        return FALSE;
+    }
     json_decode( $string );
     return ( json_last_error() === JSON_ERROR_NONE );
 }

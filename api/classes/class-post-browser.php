@@ -83,11 +83,17 @@ class DO_Post_Browser {
         $post_ids = get_posts( $args );
         $posts = [];
         foreach ( $post_ids as $post_id ) {
-            $post_type_details = $devo_custom_post_types[ get_post_field( 'post_type', $post_id ) ];
+            $post_type = get_post_field( 'post_type', $post_id );
+            if ( isset( $devo_custom_post_types[ $post_type ] ) ) {
+                $post_type_label = $devo_custom_post_types[ $post_type ]->post_type_display_name;
+            } else {
+                $post_type_object = get_post_type_object( $post_type );
+                $post_type_label = $post_type_object ? $post_type_object->labels->singular_name : $post_type;
+            }
             $posts[] = [
                 'label' => get_post_field( 'post_title', $post_id ),
                 'value' => get_post_field( $this->value_field, $post_id ),
-                'post_type' => $post_type_details->post_type_display_name,
+                'post_type' => $post_type_label,
                 'date' => get_post_field( 'post_date', $post_id ),
             ];
         }
@@ -99,12 +105,12 @@ class DO_Post_Browser {
 
     private function build_interface( $browse_posts ) {
         $form_field = new DO_Form_Field_Display( 'text_array', $this->field_name, FALSE, [ 'value_source' => $this->post_id, 'brackets' => $this->brackets, 'force_value' => $this->force_value ? $this->force_value : FALSE ] );
-        $output = $this->limit ? '<span class="red small">Limit ' . $this->limit . '</span><br>' : '';
+        $output = $this->limit ? '<span class="red small">Limit ' . (int) $this->limit . '</span><br>' : '';
         $output .= '<div class="post-browser">';
-        $output .= $this->limit ? '<style>.' . $this->field_name . ' div.post-browser .array-field-wrapper:nth-child(n+' . ( $this->limit + 1 ) . ') {opacity: .4;}</style>' :''; // +1 because 'new-array-field'
+        $output .= $this->limit ? '<style>.' . sanitize_html_class( $this->field_name ) . ' div.post-browser .array-field-wrapper:nth-child(n+' . ( (int) $this->limit + 1 ) . ') {opacity: .4;}</style>' :''; // +1 because 'new-array-field'
         $output .= $form_field->output;
         $output .= '<span class="post-browser-search-wrapper"><label for="post-browser-search-' . esc_attr( $this->field_name ) . '">Search:</label> <input type="search" class="search post-browser-search" id="post-browser-search-' . esc_attr( $this->field_name ) . '"></span>';
-        $output .= '<span class="post-browser-count-wrapper">' . count( $browse_posts ) . ' posts</span>';
+        $output .= '<span class="post-browser-count-wrapper">' . (int) count( $browse_posts ) . ' posts</span>';
         $output .= '<div class="browser-wrapper">';
         $output .= '<table width="100%" cell-padding="0" cell-margin="0" class="post-browser-table">';
         $output .= '    <thead>';
@@ -119,10 +125,10 @@ class DO_Post_Browser {
         $i = 1;
         foreach ( $browse_posts as $browse_post_slug => $browse_post ) {
             $output .= '<tr class="devo-add-post" data-title="' . esc_attr( $browse_post['label'] ) . '" data-value="' . esc_attr( $browse_post['value'] ) . '" data-post-type="' . esc_attr( $browse_post['post_type'] ) . '" data-date="' . esc_attr( $browse_post['date'] ) . '">';
-            $output .= '    <td class="row-number">' . $i . '</td>';
-            $output .= '    <td class="title">' . $browse_post['label'] . '</td>';
-            $output .= '    <td class="post-type">' . $browse_post['post_type'] . '</td>';
-            $output .= '    <td class="date">' . $browse_post['date'] . '</td>';
+            $output .= '    <td class="row-number">' . (int) $i . '</td>';
+            $output .= '    <td class="title">' . esc_html( $browse_post['label'] ) . '</td>';
+            $output .= '    <td class="post-type">' . esc_html( $browse_post['post_type'] ) . '</td>';
+            $output .= '    <td class="date">' . esc_html( $browse_post['date'] ) . '</td>';
             $output .= '</tr>';
             $i++;
         }

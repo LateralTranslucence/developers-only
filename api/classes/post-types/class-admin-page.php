@@ -18,6 +18,9 @@ class DO_Admin_Page extends DO_Custom_Post_Type {
             'display_name' => 'Admin Pages',
             'restrict_users' => [ 'administrator' ],
             'has_archive' => FALSE,
+            // Admin pages are wp-admin screens; their content is not for the
+            // front end or the REST API.
+            'public' => FALSE,
         ];
     }
     protected function meta_fields(): array {

@@ -1,6 +1,33 @@
 <?php
 // Define constants
-define( 'DO_VER', DO_ENVIRONMENT == 'local' ? time() : 'DEPLOY_TIMESTAMP' );
+
+/* DO_ENVIRONMENT is one of local, dev, stg or prod. A site can pin it in
+ * wp-config.php ( define( 'DO_ENVIRONMENT', 'prod' ); ); when it doesn't, it is
+ * derived from WordPress's own environment type so the theme activates on any
+ * install. */
+if ( ! defined( 'DO_ENVIRONMENT' ) ) {
+    $devo_environment_map = [
+        'local' => 'local',
+        'development' => 'dev',
+        'staging' => 'stg',
+        'production' => 'prod',
+    ];
+    $devo_environment_type = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
+    define( 'DO_ENVIRONMENT', isset( $devo_environment_map[ $devo_environment_type ] ) ? $devo_environment_map[ $devo_environment_type ] : 'prod' );
+    unset( $devo_environment_map, $devo_environment_type );
+}
+
+// Cache-busting version for enqueued assets: the theme version from style.css,
+// or the current time on local so edits always show up.
+define( 'DO_VER', DO_ENVIRONMENT === 'local' ? (string) time() : (string) wp_get_theme( get_template() )->get( 'Version' ) );
+
+/* Version for a file in public/dist. Those files keep the same name between
+ * builds, so the theme version alone wouldn't bust the cache after a rebuild;
+ * the file's modification time does. */
+function devo_asset_ver( $relative_path ) {
+    $file = __DIR__ . '/' . ltrim( $relative_path, '/' );
+    return file_exists( $file ) ? DO_VER . '.' . filemtime( $file ) : DO_VER;
+}
 
 // Include Helper Functions
 include_once( __DIR__ . '/api/functions.helpers.php' );
@@ -53,7 +80,7 @@ function devo_scripts() {
             // silently inverting.
 
             // Load global styles
-            wp_enqueue_style( 'devo-global', get_template_directory_uri() . '/public/dist/devo-global.css', [], DO_VER );
+            wp_enqueue_style( 'devo-global', get_template_directory_uri() . '/public/dist/devo-global.css', [], devo_asset_ver( 'public/dist/devo-global.css' ) );
 
             // Component CSS Vite extracted from the React entry. Still framework
             // CSS, so it belongs alongside devo-global rather than after the
@@ -65,7 +92,7 @@ function devo_scripts() {
             }
 
             // Load extension global styles (extensions/app/styles/extensions-global.scss)
-            wp_enqueue_style( 'extensions-global', get_template_directory_uri() . '/public/dist/extensions-global.css', $devo_style_deps, DO_VER );
+            wp_enqueue_style( 'extensions-global', get_template_directory_uri() . '/public/dist/extensions-global.css', $devo_style_deps, devo_asset_ver( 'public/dist/extensions-global.css' ) );
         }
     }
 }
@@ -92,14 +119,14 @@ function devo_admin_scripts() {
     wp_register_script( 'list', get_template_directory_uri() . '/public/js/libs/list.js', [], '12232019' );
     // AF Admin
     wp_enqueue_script( 'devo-admin', get_template_directory_uri() . '/public/js/admin.js', [ 'jquery', 'list' ], DO_VER, TRUE );
-    wp_enqueue_style( 'devo-admin', get_template_directory_uri() . '/public/dist/admin.css', [ 'dashicons' ], DO_VER, 'all' );
+    wp_enqueue_style( 'devo-admin', get_template_directory_uri() . '/public/dist/admin.css', [ 'dashicons' ], devo_asset_ver( 'public/dist/admin.css' ), 'all' );
     // Image upload
     wp_enqueue_media();
     wp_enqueue_script( 'devo-media-upload-field', get_template_directory_uri() . '/public/js/media-upload-field.js', [ 'jquery', 'jquery-ui-core', 'jquery-ui-sortable' ], '08062024', TRUE );
     // Icon Library
     wp_enqueue_script( 'devo-media-library-tabs', get_template_directory_uri() . '/public/js/media-library-tabs.js', array( 'jquery', 'media-upload', 'media-views' ), DO_VER, TRUE );
     // Binary checkbox in admin column
-    wp_enqueue_script( 'devobinary-toggle', get_template_directory_uri() . '/public/js/binary-toggle.js', [ 'jquery' ], '08062024', TRUE );
+    wp_enqueue_script( 'devo-binary-toggle', get_template_directory_uri() . '/public/js/binary-toggle.js', [ 'jquery' ], DO_VER, TRUE );
     // Color picker
     wp_enqueue_style( 'wp-color-picker' );
     wp_enqueue_script( 'wp-color-picker' );
@@ -169,21 +196,11 @@ function devo_load_extension_classes() {
 add_action( 'after_setup_theme', 'devo_load_extension_classes', 0 );
 
 function devo_create_objects() {
-    // Site Settings
-    global $site_settings;
-    include( locate_template( 'api/fields/colors.php' ) );
-    $site_settings = new DO_Options_Screen( 'site_settings' );
-    $site_settings->settings( [
-        'submenu' => 'themes.php',
-        'page_title' => 'Site Settings',
-        'notes' => [
-        ],
-    ] );
-    $site_settings->fields( [
-        'Cookie Consent Text' => 'html',
-        'Header Script' => 'code',
-        'Footer Script' => 'code',
-    ], 'Misc' );
+    // There is no Site Settings screen: its fields (cookie consent text, header
+    // and footer scripts) were never read. Banner copy comes from the
+    // devo_cookie_consent_text filter, and third-party scripts are added from
+    // extensions/api/*.php on wp_head / wp_footer (see below). An extension that
+    // wants its own settings screen can create one with DO_Options_Screen.
 
     // Custom Image Sizes
     add_image_size( 'cinema_1000', 1000, 673, [ 'center', 'top' ] );
@@ -366,6 +383,36 @@ function devo_set_noindex( $noindex ) {
 }
 add_filter( 'devo_noindex', 'devo_set_noindex' );
 
+/* Flushes rewrite rules only when the theme's own rules may have changed: on
+ * activation, after a theme update, or when a post type is added, removed or
+ * re-slugged (an extension post type, say). Rules used to be flushed on every
+ * landing page save, which is slow and unnecessary - they match any slug.
+ *
+ * A rule added in code without any of those changing (a new DO_Redirect, for
+ * instance) still needs a manual flush: Settings > Permalinks > Save, or the
+ * Refresh button on the View Permalinks screen. */
+function devo_rewrite_signature() {
+    global $devo_custom_post_types;
+    $slugs = [];
+    foreach ( (array) $devo_custom_post_types as $post_type => $details ) {
+        $slugs[ $post_type ] = isset( $details->post_type_slug ) ? $details->post_type_slug : '';
+    }
+    ksort( $slugs );
+    return md5( wp_json_encode( [ wp_get_theme( get_template() )->get( 'Version' ), $slugs ] ) );
+}
+function devo_maybe_flush_rewrite_rules() {
+    $signature = devo_rewrite_signature();
+    if ( get_option( 'devo_rewrite_signature' ) !== $signature ) {
+        flush_rewrite_rules( FALSE );
+        update_option( 'devo_rewrite_signature', $signature, TRUE );
+    }
+}
+add_action( 'wp_loaded', 'devo_maybe_flush_rewrite_rules' );
+// Activating the theme always flushes
+add_action( 'after_switch_theme', function() {
+    delete_option( 'devo_rewrite_signature' );
+} );
+
 // Clean up rewrite rules
 function devo_clean_up_rewrite_rules( $rules ) {
     foreach ( $rules as $rule => $rewrite ) {
@@ -453,7 +500,8 @@ if ( ! function_exists( 'devo_login_url_title' ) ) {
 add_filter( 'login_headertext', 'devo_login_url_title' );
 // CSS
 function devo_login_stylesheet() {
-    wp_enqueue_style( 'devo-login', get_template_directory_uri() . '/public/dist/devo-login.css', [ 'login' ], DO_VER );
+    // Vite emits the login entry as login.css (see vite.config.ts).
+    wp_enqueue_style( 'devo-login', get_template_directory_uri() . '/public/dist/login.css', [ 'login' ], devo_asset_ver( 'public/dist/login.css' ) );
 }
 add_action( 'login_enqueue_scripts', 'devo_login_stylesheet' );
 
@@ -510,39 +558,49 @@ if ( is_admin() ) {
 }
 
 // Allow specified file types in media uploads
-function devo_add_file_types_to_uploads( $file_types ) {
+function devo_add_file_types_to_uploads( $file_types, $user = NULL ) {
 	$new_filetypes = [];
-	$new_filetypes['svg'] = 'image/svg+xml';
 	$new_filetypes['webp'] = 'image/webp';
     $new_filetypes['vtt'] = 'text/vtt';
+    // An SVG is a document that can carry script, so only users who may
+    // already publish unfiltered HTML can upload one.
+    $user = $user ? $user : wp_get_current_user();
+    if ( $user && user_can( $user, 'unfiltered_html' ) ) {
+        $new_filetypes['svg'] = 'image/svg+xml';
+    }
 	$file_types = array_merge( $file_types, $new_filetypes );
 	return $file_types;
 }
-add_action( 'upload_mimes', 'devo_add_file_types_to_uploads' );
+add_filter( 'upload_mimes', 'devo_add_file_types_to_uploads', 10, 2 );
 
-// Allow script & iframe tag within posts
-function devo_allow_tags( $allowed_post_tags ){
-    $allowed_post_tags['span'] = [
+/* Extra tags for post content and the theme's HTML fields (both are filtered
+ * with wp_kses_post()). <cta> is the theme's own link/button tag. <iframe>
+ * is only allowed for users who can post unfiltered HTML anyway; <script>
+ * never is. */
+function devo_allow_tags( $allowed_post_tags, $context = 'post' ) {
+    if ( $context !== 'post' ) {
+        return $allowed_post_tags;
+    }
+    $allowed_post_tags['span'] = array_merge( isset( $allowed_post_tags['span'] ) && is_array( $allowed_post_tags['span'] ) ? $allowed_post_tags['span'] : [], [
         'class' => TRUE,
         'id' => TRUE,
         'style' => TRUE,
-    ];
-    $allowed_post_tags['script'] = [
-        'type' => TRUE,
-        'src' => TRUE,
-        'height' => TRUE,
-        'width' => TRUE,
-    ];
-    $allowed_post_tags['iframe'] = [
-        'src' => TRUE,
-        'width' => TRUE,
-        'height' => TRUE,
-        'class' => TRUE,
-        'frameborder' => TRUE,
-        'webkitAllowFullScreen' => TRUE,
-        'mozallowfullscreen' => TRUE,
-        'allowFullScreen' => TRUE
-    ];
+    ] );
+    if ( current_user_can( 'unfiltered_html' ) ) {
+        $allowed_post_tags['iframe'] = [
+            'src' => TRUE,
+            'width' => TRUE,
+            'height' => TRUE,
+            'class' => TRUE,
+            'title' => TRUE,
+            'loading' => TRUE,
+            'allow' => TRUE,
+            'frameborder' => TRUE,
+            'webkitallowfullscreen' => TRUE,
+            'mozallowfullscreen' => TRUE,
+            'allowfullscreen' => TRUE,
+        ];
+    }
     $allowed_post_tags['cta'] = [
         'url' => TRUE,
         'text' => TRUE,
@@ -553,7 +611,7 @@ function devo_allow_tags( $allowed_post_tags ){
     ];
     return $allowed_post_tags;
 }
-add_filter( 'wp_kses_allowed_html', 'devo_allow_tags', 1 );
+add_filter( 'wp_kses_allowed_html', 'devo_allow_tags', 1, 2 );
 
 // Changing excerpt more
 function devo_excerpt_more( $more ) {
@@ -562,12 +620,14 @@ function devo_excerpt_more( $more ) {
 add_filter( 'excerpt_more', 'devo_excerpt_more' );
 
 function devo_case_insensitive_urls() {
-    $request_uri = isset( $_SERVER['REQUEST_URI'] ) && strlen( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : FALSE;
-    $query_string = isset( $_SERVER['QUERY_STRING'] ) && strlen( $_SERVER['QUERY_STRING'] ) ? '?' . $_SERVER['QUERY_STRING'] : '';
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) && is_string( $_SERVER['REQUEST_URI'] ) && strlen( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : FALSE;
+    $query_string = isset( $_SERVER['QUERY_STRING'] ) && is_string( $_SERVER['QUERY_STRING'] ) && strlen( $_SERVER['QUERY_STRING'] ) ? '?' . $_SERVER['QUERY_STRING'] : '';
     $path = $query_string && $request_uri ? str_replace( $query_string, '', $request_uri ) : ( $request_uri ? $request_uri : FALSE );
     if ( $path && preg_match( '/[A-Z]/', $path ) ) {
-        $lowercase_url = strtolower( $path ) . $query_string;
-        wp_redirect( $lowercase_url );
+        // Collapse leading slashes: //Evil.com must stay a path on this
+        // site, not become a protocol-relative URL to another one.
+        $lowercase_path = '/' . ltrim( strtolower( $path ), '/' );
+        wp_safe_redirect( devo_absolute_url( $lowercase_path ) . $query_string );
         exit;
     }
 }
@@ -639,8 +699,3 @@ function devo_set_block_image( $block_image, $post_id = FALSE ) {
     return $block_image ? $block_image : $fallback_image;
 }
 add_filter( 'devo_block_image', 'devo_set_block_image', 10, 2 );
-
-
-if ( $ext_functions = locate_template( '/extensions/api/functions.php' ) ) {
-    require_once( $ext_functions );
-}

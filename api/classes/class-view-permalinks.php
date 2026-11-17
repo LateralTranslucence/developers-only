@@ -14,10 +14,19 @@ class DO_View_Permalinks {
         $permalinks->fields( [ 'Nothing' => 'hidden', ] );
 	}
 
+    // Lists the current rewrite rules, including DO_Redirect and DO_Rewrite ones
     public function view_permalinks() {
         global $wp_rewrite;
-        $wp_rewrite->rewrite_rules();
-        devo_var_dump( $wp_rewrite->rules );
+        $rules = $wp_rewrite->rewrite_rules();
+        if ( ! is_array( $rules ) || ! count( $rules ) ) {
+            echo '<p>' . esc_html__( 'No rewrite rules found. Pretty permalinks may be turned off.', 'developers_only' ) . '</p>';
+            return;
+        }
+        echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Pattern', 'developers_only' ) . '</th><th>' . esc_html__( 'Rewrites to', 'developers_only' ) . '</th></tr></thead><tbody>';
+        foreach ( $rules as $pattern => $rewrite ) {
+            echo '<tr><td><code>' . esc_html( $pattern ) . '</code></td><td><code>' . esc_html( $rewrite ) . '</code></td></tr>';
+        }
+        echo '</tbody></table>';
     }
 
 	public function refresh_permalinks() {

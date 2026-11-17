@@ -61,9 +61,7 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                 'Images' => 'Title is required (for screen reader text). URL is supported only if not a lightbox.',
                 'CTA' => 'For internal links, only include the path (for example <b>blog</b>)',
                 'Media' => 'Supports images or Vimeo videos.',
-                'Search Subject' => 'If a Search Subject is selected, a subject filter will not work.',
                 'Stats' => 'Number Field: can ONLY be a number. No commas, or other text.',
-                'Custom Media' => 'Use to override report image.',
                 'Blocks Per Row' => 'Default is 3.',
                 'Blocks Color' => 'Default is "Multi".',
             ],
@@ -361,10 +359,6 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                     'type' => 'select_multiple',
                     'options' => 'devo_get_public_post_types',
                 ],
-                'Search Subject' => [
-                    'type' => 'select',
-                    'options' => 'devo_subject',
-                ],
                 'Search Fields' => [
                     'type' => 'multi_array',
                     'fields' => [
@@ -612,8 +606,11 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
         // $wp_rewrite->rules = [ '[^/]+/([^/]+)/(feed|rdf|rss|rss2|atom)/?$' => 'index.php?attachment=$matches[1]&feed=$matches[2]' ] + $wp_rewrite->rules;
         // $wp_rewrite->rules = [ '[^/]+/([^/]+)/comment-page-([0-9]{1,})/?$' => 'index.php?attachment=$matches[1]&cpage=$matches[2]' ] + $wp_rewrite->rules;
         // $wp_rewrite->rules = [ '[^/]+/([^/]+)/embed/?$' => 'index.php?attachment=$matches[1]&embed=true' ] + $wp_rewrite->rules;
-        $wp_rewrite->rules = $wp_rewrite->rules + [ '[^/]+/?$' => 'index.php?' . $this->post_type() . '=$matches[1]' ];
-        $wp_rewrite->rules = $wp_rewrite->rules + [ 'iframe/[^/]+/?$' => 'index.php?' . $this->post_type() . '=$matches[1]&iframe=1' ];
+        // Landing pages live at the site root (/{slug}/). Appended, so every
+        // more specific rule wins first. The patterns need a capture group for
+        // $matches[1] to hold the slug.
+        $wp_rewrite->rules = $wp_rewrite->rules + [ '([^/]+)/?$' => 'index.php?' . $this->post_type() . '=$matches[1]' ];
+        $wp_rewrite->rules = $wp_rewrite->rules + [ 'iframe/([^/]+)/?$' => 'index.php?' . $this->post_type() . '=$matches[1]&iframe=1' ];
     }
 
     public function aftersave( $post_id ): void {
@@ -623,9 +620,11 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
             $post_type_details = $devo_custom_post_types[ $post_type ];
             // Manually set the guid
             $guid = home_url( ( $post_type_details->post_type_slug ? $post_type_details->post_type_slug . '/' : '' ) . get_post_field( 'post_name', $post_id ) . '/' );
-            $wpdb->query( "UPDATE $wpdb->posts SET guid = '$guid' WHERE ID = $post_id;" );
-            // Flush rewrite rules
-            flush_rewrite_rules();
+            $wpdb->update( $wpdb->posts, [ 'guid' => esc_url_raw( $guid ) ], [ 'ID' => (int) $post_id ] );
+            clean_post_cache( $post_id );
+            // No rewrite flush: the rules match any slug, so a new or renamed
+            // page doesn't need new rules. They are flushed when the theme's
+            // rules change instead (devo_maybe_flush_rewrite_rules()).
         }
     }
 

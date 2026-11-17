@@ -24,7 +24,6 @@ class DO_Search_Query {
     }
 
     private function get_posts( $settings ) {
-        //devo_var_dump($settings);exit;
         // Clean up the query, removing empty values
         $new_query = [];
         foreach ( $settings['query'] as $key => $value ) {
@@ -60,12 +59,15 @@ class DO_Search_Query {
         global $wpdb;
         $alpha_title = $wp_query->get( 'alpha_title' );
         if ( devo_has_value( $alpha_title ) ) {
-            $value = is_array( $alpha_title ) ? implode( ',', $alpha_title ) : $alpha_title;
-            $where .= ' AND (' . $wpdb->posts . '.post_title LIKE \'' . esc_sql( like_escape( $value ) ) . '%\'';
-            $where .= ' OR ' . $wpdb->posts . '.post_title LIKE \'The ' . esc_sql( like_escape( $value ) ) . '%\'';
-            $where .= ' OR ' . $wpdb->posts . '.post_title LIKE \'the ' . esc_sql( like_escape( $value ) ) . '%\'';
-            $where .= ' OR ' . $wpdb->posts . '.post_title LIKE \'A ' . esc_sql( like_escape( $value ) ) . '%\'';
-            $where .= ' OR ' . $wpdb->posts . '.post_title LIKE \'a ' . esc_sql( like_escape( $value ) ) . '%\')';
+            $value = $wpdb->esc_like( is_array( $alpha_title ) ? implode( ',', $alpha_title ) : (string) $alpha_title );
+            $where .= $wpdb->prepare(
+                " AND ( {$wpdb->posts}.post_title LIKE %s OR {$wpdb->posts}.post_title LIKE %s OR {$wpdb->posts}.post_title LIKE %s OR {$wpdb->posts}.post_title LIKE %s OR {$wpdb->posts}.post_title LIKE %s )",
+                $value . '%',
+                'The ' . $value . '%',
+                'the ' . $value . '%',
+                'A ' . $value . '%',
+                'a ' . $value . '%'
+            );
         }
         return $where;
     }
@@ -74,10 +76,16 @@ class DO_Search_Query {
      * HELPERS
      */
 
+    // Same shape as /wp/v2/{type}: core's response plus the theme's fields
     private function add_custom_fields( &$wp_query ) {
-        foreach ( $wp_query->posts as $i => $post ) {
-            $wp_query->posts[ $i ] = devo_api_custom_data( $post );
+        $prepared = [];
+        foreach ( $wp_query->posts as $post ) {
+            $prepared_post = devo_rest_prepare_post( $post );
+            if ( $prepared_post ) {
+                $prepared[] = $prepared_post;
+            }
         }
+        $wp_query->posts = $prepared;
     }
 
     private function build_query( $query_fields ) {
@@ -89,10 +97,6 @@ class DO_Search_Query {
                 // Don't include paged or sort in query string
                 if ( ! in_array( $search_param_key, [ 'paged', 'posts_per_page', 'sort' ] ) ) {
                     $query_string .= $search_param_key . '=' . ( is_array( $search_param_value ) ? implode( ',', $search_param_value ) : $search_param_value ) . '&';
-                }
-                // If a keyword search is happening, use relevanssi
-                if ( function_exists( 'relevanssi_init' ) && $search_param_key === 's' && strlen( $search_param_value ) ) {
-                    $query_args['relevanssi'] = TRUE;
                 }
                 // If it's a default parameter, just add it
                 if ( $this->is_default_parameter( $search_param_key ) ) {
@@ -128,9 +132,16 @@ class DO_Search_Query {
                 }
                 // If it is sort, make it an orderby
                 elseif ( $search_param_key === 'sort' ) {
-                    $search_param_value = devo_str_lreplace( '_', '#', $search_param_value );
-                    [ $orderby, $order ] = explode( '#', $search_param_value );
-                    $query_args['orderby'][ $orderby ] = strtoupper( $order );
+                    // field_direction, e.g. date_desc or post_title_asc
+                    $sort_value = is_string( $search_param_value ) ? $search_param_value : '';
+                    $separator = strrpos( $sort_value, '_' );
+                    $orderby = $separator ? sanitize_key( substr( $sort_value, 0, $separator ) ) : '';
+                    $order = $separator ? strtoupper( substr( $sort_value, $separator + 1 ) ) : '';
+                    if ( ! strlen( $orderby ) || ! in_array( $order, [ 'ASC', 'DESC' ], TRUE ) ) {
+                        $orderby = 'date';
+                        $order = 'DESC';
+                    }
+                    $query_args['orderby'][ $orderby ] = $order;
                     // If the orderby is not a default field, add it to the meta_query
                     if ( ! $this->is_default_parameter( $orderby ) ) {
                         $query_args['meta_query'][ $orderby ] = [
@@ -155,7 +166,7 @@ class DO_Search_Query {
             ],
         ];
         $query_args['meta_query']['hidden'] = $hidden_field_query;
-        //devo_var_dump($query_args);exit;
+        $query_args['post_status'] = 'publish';
         return [ $query_args, $query_string ];
     }
 

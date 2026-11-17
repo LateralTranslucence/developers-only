@@ -155,7 +155,11 @@ class DO_Search_UI {
         // Set the query_var
         $field_details['query_var'] = 'post_type';
         // Set up the options
-        $options = isset( $this->settings['post_id'] ) ? devo_get_post_meta( $this->settings['post_id'], $this->settings['meta_prefix'] . '_search_post_types' . $this->settings['meta_suffix'] ) : devo_get_public_post_types();
+        $options = isset( $this->settings['post_id'] ) ? devo_get_post_meta( $this->settings['post_id'], $this->settings['meta_prefix'] . '_search_post_types' . $this->settings['meta_suffix'] ) : [];
+        $options = devo_filter_public_post_types( is_array( $options ) ? $options : ( is_string( $options ) && strlen( $options ) ? [ $options ] : [] ) );
+        if ( ! count( $options ) ) {
+            $options = devo_get_public_post_types( 'indexed_array' );
+        }
         $field_details['options']['all'] = [
             'label' => 'All',
             'value' => 'all',
@@ -391,10 +395,15 @@ class DO_Search_UI {
     }
 
     private function get_field_options_from_post_type( $field_details ) {
-        $options_posts = get_posts( [
-            'post_type' => $field_details['options_post_type'],
+        // Option lists come from a post type an editor picked in the panel
+        // settings; never from one that is off-limits to the front end.
+        $allowed_types = array_column( devo_get_post_types(), 'value' );
+        $options_post_type = is_string( $field_details['options_post_type'] ) ? $field_details['options_post_type'] : '';
+        $options_posts = in_array( $options_post_type, $allowed_types, TRUE ) ? get_posts( [
+            'post_type' => $options_post_type,
+            'post_status' => 'publish',
             'nopaging' => TRUE,
-        ] );
+        ] ) : [];
         $options = [];
         $options['all'] = [
             'label' => 'All',
