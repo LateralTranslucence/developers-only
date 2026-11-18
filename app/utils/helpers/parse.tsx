@@ -22,8 +22,9 @@ const classList = ( value: string | undefined ): Array<string> => {
  *
  * The theme's own tags become components: <cta> (CTA), <image> (Image) and
  * <socialmenu>. Every element is filtered on the way through (see
- * utils/helpers/sanitize.ts): script, object, embed, base and frame elements
- * are dropped, as are SVG animations that target an href; inline event
+ * utils/helpers/sanitize.ts): script, object, embed, frame, base, meta and
+ * link elements are dropped (React 19 would hoist the last three into
+ * <head>), as are SVG animations that target an href; inline event
  * handlers, srcdoc, and javascript:/vbscript:/data: URLs are stripped. React
  * 19 will load a <script async src> it renders, so this matters. It is a
  * blocklist and defence in depth, not a full sanitizer: the server is

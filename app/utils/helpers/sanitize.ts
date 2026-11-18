@@ -4,11 +4,15 @@
  * Defence in depth only: the server is responsible for what it stores and
  * returns. These remove the things that would run script if a bad value got
  * through anyway - script elements, inline event handlers, srcdoc,
- * javascript:/data: URLs, and SVG animations that rewrite an href.
+ * javascript:/data: URLs, and SVG animations that rewrite an href - or that
+ * would change the page's <head> (meta, link, base).
  */
 
-// Elements dropped outright, with their content
-const BLOCKED_ELEMENTS: ReadonlySet<string> = new Set( [ 'script', 'object', 'embed', 'base', 'frame', 'frameset' ] );
+// Elements dropped outright, with their content. React 19 hoists a rendered
+// <meta> or <link> into <head>, wherever it appears, so <meta http-equiv=
+// "refresh"> in post content would redirect the page; <base> would re-root
+// every relative URL.
+const BLOCKED_ELEMENTS: ReadonlySet<string> = new Set( [ 'script', 'object', 'embed', 'base', 'frame', 'frameset', 'meta', 'link' ] );
 
 // Attributes that take a URL
 const URL_ATTRIBUTES: ReadonlySet<string> = new Set( [
@@ -145,7 +149,17 @@ const isAllowedSVGElement = ( element: Element ): boolean => {
  *   <img>, <table> and others. So only known SVG elements are kept (see
  *   SVG_ALLOWED_ELEMENTS); <style> is among those dropped.
  */
-export const sanitizeSVG = ( svg: string ): string => {
+/*
+ * `decorative` is for an SVG hidden from assistive technology (Icon renders
+ * inside aria-hidden="true"). A link or tabindex in it would still take
+ * keyboard focus, landing on something a screen reader can't describe. So
+ * <a> elements are unwrapped (their graphics kept) and tabindex is removed.
+ */
+export interface SanitizeSVGOptions {
+    decorative?: boolean;
+}
+
+export const sanitizeSVG = ( svg: string, { decorative = false }: SanitizeSVGOptions = {} ): string => {
     if ( ! svg || typeof DOMParser === 'undefined' ) {
         return '';
     }
@@ -178,6 +192,20 @@ export const sanitizeSVG = ( svg: string ): string => {
         if ( ! isAllowedSVGElement( element ) || isUnsafeSVGAnimation( element ) ) {
             element.remove();
             continue;
+        }
+        if ( decorative && name === 'a' && element !== root ) {
+            // Its children are already in `nodes`, so they're still checked
+            element.replaceWith( ...Array.from( element.childNodes ) );
+            continue;
+        }
+        if ( decorative ) {
+            // Any case: the XML lookup is case-sensitive, but the HTML parser
+            // lower-cases TABINDEX on injection
+            for ( const attribute of Array.from( element.attributes ) ) {
+                if ( attribute.localName.toLowerCase() === 'tabindex' ) {
+                    element.removeAttribute( attribute.name );
+                }
+            }
         }
         for ( const attribute of Array.from( element.attributes ) ) {
             // localName as well as name, so a link under any prefix bound to
