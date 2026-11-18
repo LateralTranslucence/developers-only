@@ -571,9 +571,12 @@ function devo_add_file_types_to_uploads( $file_types, $user = NULL ) {
 	$new_filetypes['webp'] = 'image/webp';
     $new_filetypes['vtt'] = 'text/vtt';
     // An SVG is a document that can carry script, so only users who may
-    // already publish unfiltered HTML can upload one.
-    $user = $user ? $user : wp_get_current_user();
-    if ( $user && user_can( $user, 'unfiltered_html' ) ) {
+    // already publish unfiltered HTML can upload one. On multisite, or with
+    // DISALLOW_UNFILTERED_HTML, that leaves site admins unable to upload
+    // icons; the devo_allow_svg_uploads filter can grant it (see README).
+    // upload_mimes passes a user ID, a WP_User, or nothing
+    $user = $user ? ( $user instanceof WP_User ? $user : get_userdata( (int) $user ) ) : wp_get_current_user();
+    if ( $user instanceof WP_User && $user->exists() && apply_filters( 'devo_allow_svg_uploads', user_can( $user, 'unfiltered_html' ), $user ) ) {
         $new_filetypes['svg'] = 'image/svg+xml';
     }
 	$file_types = array_merge( $file_types, $new_filetypes );
@@ -594,7 +597,8 @@ function devo_allow_tags( $allowed_post_tags, $context = 'post' ) {
         'id' => TRUE,
         'style' => TRUE,
     ] );
-    if ( current_user_can( 'unfiltered_html' ) ) {
+    // Filterable for the same reason as devo_allow_svg_uploads
+    if ( apply_filters( 'devo_allow_iframes', current_user_can( 'unfiltered_html' ) ) ) {
         $allowed_post_tags['iframe'] = [
             'src' => TRUE,
             'width' => TRUE,

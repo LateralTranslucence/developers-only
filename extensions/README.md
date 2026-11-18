@@ -7,6 +7,12 @@ core theme (`api/`, `app/`) so core files never need to be touched to add one.
 Everything in here is **auto-discovered**. Drop a correctly-named/located file
 in and it's picked up automatically; nothing needs to be registered elsewhere.
 
+This folder is part of the theme, so updating the theme from a zip replaces it
+along with everything else. Keep it under your own version control (a fork of
+the theme repository is simplest), and build TSX/SCSS changes from a git
+checkout: the release zip has no build setup. See "Customising" in the main
+README.
+
 ## Structure
 
 ```
