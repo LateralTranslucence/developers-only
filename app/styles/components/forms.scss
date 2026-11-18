@@ -20,3 +20,17 @@ div.form__hp {
 p.form__notice {
     margin-bottom: 1rem;
 }
+
+/* A checkbox group's fieldset (Checkbox.tsx) only groups and names the boxes
+   for assistive tech; drop the UA border, padding and min-width so it lays
+   out like the plain wrapper it replaced. */
+fieldset.form-field__group {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+
+    > legend {
+        padding: 0;
+    }
+}
