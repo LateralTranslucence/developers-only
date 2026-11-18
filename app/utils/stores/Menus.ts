@@ -5,6 +5,8 @@ import { Menus } from '@/utils/types/Menu';
 interface MenusStore {
     fetchMenus: () => Promise<Menus>;
     menus: Menus;
+    // The response has arrived, even if it held no menus
+    menusLoaded: boolean;
     mobileMenuOpen: boolean;
     setMobileMenuOpen: ( open: boolean ) => void;
     pendingRequest: Promise<Menus> | null;
@@ -13,6 +15,7 @@ interface MenusStore {
 
 export const useMenus = create<MenusStore>( ( set, get ) => ( {
     menus: {},
+    menusLoaded: false,
     mobileMenuOpen: false,
     pendingRequest: null,
     // A new object every time: Zustand only notifies subscribers when the
@@ -20,9 +23,11 @@ export const useMenus = create<MenusStore>( ( set, get ) => ( {
     setMenus: ( menus ) => set( ( state ) => ( { menus: { ...state.menus, ...menus } } ) ),
     setMobileMenuOpen: ( open ) => set( { mobileMenuOpen: open } ),
     fetchMenus: async () => {
-        const { menus, pendingRequest, setMenus } = get();
+        const { menus, menusLoaded, pendingRequest, setMenus } = get();
 
-        if ( Object.keys( menus ).length > 0 ) {
+        // A site with no menus assigned gets an empty result; checking for
+        // one or more menus instead re-requested /menu/ on every navigation
+        if ( menusLoaded ) {
             return menus;
         }
 
@@ -38,6 +43,7 @@ export const useMenus = create<MenusStore>( ( set, get ) => ( {
 
                 const data = await response.json() as Menus;
                 setMenus( data );
+                set( { menusLoaded: true } );
                 return get().menus;
             } )
             .finally( () => {
