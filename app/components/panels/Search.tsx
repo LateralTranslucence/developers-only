@@ -139,6 +139,14 @@ const Search: React.FC<PanelProps> = ( {
     // failed first request left no form (its fields come from the response),
     // so only a reload could retry.
     const [ attempt, setAttempt ] = useState( 0 );
+    // Counts failed requests. Keys the error alert, so a request that fails
+    // again replaces it and it is announced again, rather than staying put
+    // and saying nothing.
+    const [ failures, setFailures ] = useState( 0 );
+    // Set by Try Again, so the results take focus when they arrive: the
+    // button that had it is gone by then, and focus would drop to <body>
+    const focusResultsRef = useRef<boolean>( false );
+    const resultsRef = useRef<HTMLDivElement | null>( null );
 
     // Layout keys the page by pathname, so a link from /search/?s=foo to
     // /search/?s=bar keeps this panel mounted. Start a new query from the
@@ -171,11 +179,23 @@ const Search: React.FC<PanelProps> = ( {
             .catch( ( error: unknown ) => {
                 if ( ! isAbortError( error ) ) {
                     setFailed( true );
+                    setFailures( ( n ) => n + 1 );
                     setHasFetched( true );
                 }
             } );
         return () => controller.abort();
     }, [ query, postID, panelPrefix, panelSuffix, attempt ] );
+
+    // After a retry that worked, focus the results (or the "nothing matched"
+    // message) where the Try Again button was. A retry that fails leaves the
+    // button, and focus, in place.
+    useEffect( () => {
+        if ( ! focusResultsRef.current || failed || ! hasFetched ) {
+            return;
+        }
+        focusResultsRef.current = false;
+        resultsRef.current?.focus();
+    }, [ results, failed, hasFetched ] );
 
     // Reads the form into the query. Any change but paging starts again at
     // page 1.
@@ -231,11 +251,11 @@ const Search: React.FC<PanelProps> = ( {
                 <p className="screenReader" role="status">{ failed ? '' : resultsAnnouncement }</p>
                 { failed ?
                     <div id="search-results-wrapper">
-                        <p className="search__error" role="alert">Sorry, the search couldn't be completed.</p>
-                        <button type="button" className="search__retry search-action" onClick={ () => setAttempt( ( n ) => n + 1 ) }>Try again</button>
+                        <p key={ failures } className="search__error" role="alert">Sorry, the search couldn't be completed.</p>
+                        <button type="button" className="search__retry search-action" onClick={ () => { focusResultsRef.current = true; setAttempt( ( n ) => n + 1 ); } }>Try again</button>
                     </div>
                 : results.posts.length > 0 ?
-                    <div id="search-results-wrapper">
+                    <div id="search-results-wrapper" ref={ resultsRef } tabIndex={ -1 }>
                         <ul className={ 'search__results blocks ' + ( templateType !== 'list' ? 'blocks--post blocks--' + convertNumberToWords( panelPerRow ) : '' ) + ( panelPostsModal ? ' blocks--modals' : '' ) + ' blocks--' + templateType }>
                             { results.posts.map( ( resultPost: Post, index: number ) => (
                                 <PartialTemplateLoader key={ index } index={ index } type={ templateType } post={ resultPost } />
@@ -243,7 +263,7 @@ const Search: React.FC<PanelProps> = ( {
                         </ul>
                         <PagingNav results={ results } updateCriteria={ updateCriteria } />
                     </div>
-                : <div id="search-results-wrapper"><p className="search__no-results">Sorry, but nothing matched your search criteria. Please try again</p></div> }
+                : <div id="search-results-wrapper" ref={ resultsRef } tabIndex={ -1 }><p className="search__no-results">Sorry, but nothing matched your search criteria. Please try again</p></div> }
             </div>
         );
     } else {
