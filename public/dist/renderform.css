@@ -1,1 +1,1 @@
-@layer framework{input.disabled,button.disabled{cursor:default}div.form__hp{width:1px;height:1px;position:absolute;left:-9999px;overflow:hidden}p.form__notice{margin-bottom:1rem}}
+@layer framework{input.disabled,button.disabled{cursor:default}div.form__hp{width:1px;height:1px;position:absolute;left:-9999px;overflow:hidden}p.form__notice{margin-bottom:1rem}fieldset.form-field__group{border:0;min-width:0;margin:0;padding:0}fieldset.form-field__group>legend{padding:0}}

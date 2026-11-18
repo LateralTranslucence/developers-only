@@ -26,6 +26,25 @@ const redirectURL = ( redirect: string ): string => {
     return `${ window.homeURL }/${ redirect.replace( /^\/+|\/+$/g, '' ) }/`;
 };
 
+// Every field's label by name, fieldsets included, for the error summary
+const fieldLabels = ( items: Record<string, FormField> ): Record<string, string> => {
+    const labels: Record<string, string> = {};
+    Object.entries( items ).forEach( ( [ key, item ] ) => {
+        if ( item.item_type === 'fieldset' ) {
+            Object.assign( labels, fieldLabels( item.fields ?? {} ) );
+        } else {
+            labels[ key ] = item.label;
+        }
+    } );
+    return labels;
+};
+
+// The first input of a field, found by name: a checkbox group's inputs have
+// their own ids, but all share the field's name
+const fieldInput = ( form: HTMLFormElement | null, name: string ): HTMLElement | null => {
+    return form?.querySelector<HTMLElement>( `[name="${ CSS.escape( name ) }"]` ) ?? null;
+};
+
 const RenderForm: React.FC<{ formID: number; panelID: string }> = ( { formID, panelID = '' } ): JSX.Element | null => {
     // Keyed by form ID, so a form loaded for a previous ID is never shown
     const [ loaded, setLoaded ] = useState<{ formID: number; form: Form } | null>( null );
@@ -34,6 +53,11 @@ const RenderForm: React.FC<{ formID: number; panelID: string }> = ( { formID, pa
     const [ loadFailedFor, setLoadFailedFor ] = useState<number | null>( null );
     const submittingRef = useRef<boolean>( false );
     const submitControllerRef = useRef<AbortController | null>( null );
+    // Set when a submission's response arrives, so the render that shows it
+    // can move focus: to the first invalid field, or to the thank-you message
+    const focusResponseRef = useRef<boolean>( false );
+    const formRef = useRef<HTMLFormElement | null>( null );
+    const thankYouRef = useRef<HTMLSpanElement | null>( null );
     const form: Form | undefined = loaded?.formID === formID ? loaded.form : undefined;
 
     useEffect( () => {
@@ -63,6 +87,20 @@ const RenderForm: React.FC<{ formID: number; panelID: string }> = ( { formID, pa
         }
     }, [ redirect ] );
 
+    // After a submission, focus would otherwise stay on the submit button, or
+    // drop to <body> when the thank-you message replaces the form
+    useEffect( () => {
+        if ( ! focusResponseRef.current || ! form ) {
+            return;
+        }
+        focusResponseRef.current = false;
+        if ( form.submitted && ! form.error ) {
+            thankYouRef.current?.focus();
+        } else {
+            formRef.current?.querySelector<HTMLElement>( '[aria-invalid="true"]' )?.focus();
+        }
+    }, [ form ] );
+
     // Handle form submit
     const formSubmit = async ( e: React.FormEvent<HTMLFormElement> ): Promise<void> => {
         e.preventDefault();
@@ -89,6 +127,7 @@ const RenderForm: React.FC<{ formID: number; panelID: string }> = ( { formID, pa
         panel?.classList.add( 'loading' );
         try {
             const data = await submitForm( formValuesString, { signal: controller.signal } );
+            focusResponseRef.current = true;
             setLoaded( { formID, form: data.json } );
         } catch ( error ) {
             if ( ! isAbortError( error ) ) {
@@ -116,19 +155,40 @@ const RenderForm: React.FC<{ formID: number; panelID: string }> = ( { formID, pa
         if ( form.thank_you_redirect ) {
             return null;
         }
-        // or show the thank-you message
-        else if ( form.thank_you_message ) {
-            return <span>{ parse( form.thank_you_message ) }</span>;
-        }
-        else {
-            return null;
-        }
+        // or show the thank-you message. It replaces the form, submit button
+        // and all, so it takes focus (see the effect above), and is a status
+        // so it's announced. A plain message when the form has none, rather
+        // than nothing: an empty gap would leave the visitor wondering.
+        return (
+            <span className="form__thank-you" role="status" tabIndex={ -1 } ref={ thankYouRef }>
+                { form.thank_you_message ? parse( form.thank_you_message ) : 'Thank you. Your form has been sent.' }
+            </span>
+        );
     }
+
+    // On a submission with required fields left empty, a summary naming
+    // them. Focus moves to the first of them; each link here goes to its field.
+    const labels: Record<string, string> = missingFields.length ? fieldLabels( form.items ?? {} ) : {};
+    const errorSummary: JSX.Element | null = missingFields.length ? (
+        <div className="form__error-summary" role="alert">
+            <p className="form__notice">{ form.notice || 'Some required fields are empty. Please fill them in and send the form again.' }</p>
+            <ul>
+                { missingFields.map( ( name ) => (
+                    <li key={ name }>
+                        <a href={ '#' + name } onClick={ ( e ) => {
+                            e.preventDefault();
+                            fieldInput( formRef.current, name )?.focus();
+                        } }>{ labels[ name ] || name }</a>
+                    </li>
+                ) ) }
+            </ul>
+        </div>
+    ) : null;
 
     // Otherwise show the form
     return(
-        <form id={ form.id } className={ 'form' + ( autoupdate ? ' autoupdate' : '' ) } method="post" onSubmit={ formSubmit }>
-        { form.notice ? <p className="form__notice" role="alert">{ form.notice }</p> : null }
+        <form id={ form.id } className={ 'form' + ( autoupdate ? ' autoupdate' : '' ) } method="post" onSubmit={ formSubmit } ref={ formRef }>
+        { errorSummary ?? ( form.notice ? <p className="form__notice" role="alert">{ form.notice }</p> : null ) }
         { submitError ? <p className="form__notice" role="alert">Sorry, the form couldn't be sent. Please try again.</p> : null }
         { /* Honeypot. Named to look like a real field so bots fill it in;
              hidden from sight and from assistive tech, and skipped by the

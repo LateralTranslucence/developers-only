@@ -253,16 +253,70 @@ add_action( 'after_setup_theme', 'devo_create_objects', 1 );
  * ("O\'Brien") and unslashed on every read, which also stripped backslashes
  * from anything stored correctly. Values are now stored as typed and read as
  * stored, so the slashed ones are rewritten once, to what they displayed as.
- * See DO_Custom_Post_Type::unslash_legacy_meta(). */
+ * See DO_Custom_Post_Type::unslash_legacy_meta_batch().
+ *
+ * Runs in wp-admin for an administrator, never for a visitor, in batches for
+ * a few seconds per request, and picks up where it stopped on the next admin
+ * request. Unslashing is not idempotent, so no row may be done twice: a lock
+ * keeps two requests from running at once, and the cursor is saved before
+ * each rewrite (a request that dies mid-row leaves that row slashed, not
+ * stripped twice). Only rows that existed when the upgrade started are looked
+ * at: anything written later was stored as typed. The done-flag is set once
+ * nothing is left. */
 function devo_upgrade_unslash_meta() {
-    if ( get_option( 'devo_meta_unslashed' ) ) {
+    global $wpdb;
+    if ( get_option( 'devo_meta_unslashed' ) || ! current_user_can( 'manage_options' ) || is_customize_preview() ) {
         return;
     }
-    // Set first, so a slow or failed run isn't retried on every request
-    update_option( 'devo_meta_unslashed', 1, TRUE );
-    DO_Custom_Post_Type::unslash_legacy_meta();
+    $lock = 'devo_meta_unslash_lock';
+    $lock_ttl = 5 * MINUTE_IN_SECONDS;
+    $now = time();
+    // An atomic lock, as WP_Upgrader::create_lock() does it: add_option()
+    // isn't one (it upserts), so two first requests could both run a batch,
+    // and the second would strip a legitimate backslash before a quote
+    $locked = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} ( option_name, option_value, autoload ) VALUES ( %s, %s, 'no' )", $lock, $now ) );
+    if ( ! $locked ) {
+        $locked_at = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $lock ) );
+        if ( $locked_at === NULL || (int) $locked_at > $now - $lock_ttl ) {
+            return;
+        }
+        // A stale lock from a request that died: take it over, unless another
+        // request just did
+        $locked = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", $now, $lock, $locked_at ) );
+        if ( ! $locked ) {
+            return;
+        }
+    }
+    try {
+        // Read past any cached copy: another request may have moved it on
+        wp_cache_delete( 'devo_meta_unslash_progress', 'options' );
+        $progress = get_option( 'devo_meta_unslash_progress' );
+        if ( ! is_array( $progress ) || ! isset( $progress['after'], $progress['ceiling'] ) ) {
+            $progress = [
+                'after' => 0,
+                'ceiling' => (int) $wpdb->get_var( "SELECT MAX(meta_id) FROM {$wpdb->postmeta}" ),
+            ];
+        }
+        $save_progress = function( $meta_id ) use ( &$progress ) {
+            $progress['after'] = $meta_id;
+            update_option( 'devo_meta_unslash_progress', $progress, FALSE );
+        };
+        $deadline = microtime( TRUE ) + 5;
+        do {
+            $batch = DO_Custom_Post_Type::unslash_legacy_meta_batch( (int) $progress['after'], (int) $progress['ceiling'], 100, $save_progress );
+            $progress['after'] = $batch['last_meta_id'];
+            if ( $batch['done'] ) {
+                update_option( 'devo_meta_unslashed', 1, TRUE );
+                delete_option( 'devo_meta_unslash_progress' );
+                return;
+            }
+            update_option( 'devo_meta_unslash_progress', $progress, FALSE );
+        } while ( microtime( TRUE ) < $deadline );
+    } finally {
+        $wpdb->delete( $wpdb->options, [ 'option_name' => $lock ] );
+    }
 }
-add_action( 'init', 'devo_upgrade_unslash_meta', 99 );
+add_action( 'admin_init', 'devo_upgrade_unslash_meta' );
 
 /*
  *

@@ -517,8 +517,10 @@ function devo_form_submit_query( $data ) {
     $form['alert_status'] = NULL;
     $form['confirmation_status'] = NULL;
     $form['notice'] = NULL;
-    // If there is an error, return the form
+    // If there is an error, return the form, with a notice for the error
+    // summary above it (missing_fields says which ones)
     if ( $form['error'] ) {
+        $form['notice'] = __( 'Some required fields are empty. Please fill them in and send the form again.', 'developers_only' );
         return $form;
     }
 

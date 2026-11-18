@@ -1,20 +1,23 @@
 import React from 'react';
 import FieldError from '@/components/forms/FieldError';
+import { fieldAriaProps } from '@/components/forms/fieldAria';
 import { getFieldOptionsArray, getFieldStringValue } from '@/utils/types/Form';
 import { FormFieldProps } from '@/utils/types/FormFieldProps';
 
+// A group of checkboxes, named by a fieldset legend: there is no single input
+// for a <label htmlFor> to point at, so a label left the group unnamed
 const Checkbox: React.FC<FormFieldProps> = ( { field, error = false } ) => {
     const currentValue: string = getFieldStringValue( field.current_value );
     const required: boolean = field.required;
     return (
-        <>
-            <label htmlFor={ field.name }>
+        <fieldset className="form-field__group">
+            <legend>
                 { field.label }
                 { required ?
                     <span className="form-field__required">*</span>
                 : null }
-            </label>
-            <FieldError error={ error } label={ field.label } />
+            </legend>
+            <FieldError error={ error } label={ field.label } name={ field.name } />
             <ul className="field-list">
             { getFieldOptionsArray( field.options ).map( ( option, index: number ) => {
                 const optionValue = option.value ?? option.name ?? '';
@@ -26,6 +29,9 @@ const Checkbox: React.FC<FormFieldProps> = ( { field, error = false } ) => {
                     value: optionValue,
                     className: 'form-field__checkbox',
                     defaultChecked: undefined,
+                    // Not aria-required: the group needs one box checked,
+                    // not each of them
+                    ...fieldAriaProps( field, error, false ),
                 };
                 if ( currentValue === optionValue ) {
                     optionAttrs.defaultChecked = true;
@@ -33,14 +39,14 @@ const Checkbox: React.FC<FormFieldProps> = ( { field, error = false } ) => {
                 return (
                     <li key={ index } className="form-field__multi-field">
                         <label htmlFor={ id } className="form-field__checkbox-label">
-                            <input { ...optionAttrs } /> 
+                            <input { ...optionAttrs } />
                             <span>{ option.label }</span>
                         </label>
                     </li>
                 );
             } ) }
             </ul>
-        </>
+        </fieldset>
     );
 };
 export default Checkbox;

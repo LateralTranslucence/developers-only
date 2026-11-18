@@ -1,5 +1,6 @@
 import React from 'react';
 import FieldError from '@/components/forms/FieldError';
+import { fieldAriaProps } from '@/components/forms/fieldAria';
 import { FormFieldProps } from '@/utils/types/FormFieldProps';
 
 const Binary: React.FC<FormFieldProps> = ( { field, error = false } ) => {
@@ -11,6 +12,7 @@ const Binary: React.FC<FormFieldProps> = ( { field, error = false } ) => {
         value: 1,
         className: 'form-field__checkbox',
         defaultChecked: Boolean( currentValue ),
+        ...fieldAriaProps( field, error ),
     };
     return (
         <ul className="field-list">
@@ -19,7 +21,7 @@ const Binary: React.FC<FormFieldProps> = ( { field, error = false } ) => {
                     <input { ...optionAttrs } /> 
                     <span>{ field.label }</span>
                 </label>
-                <FieldError error={ error } label={ field.label } />
+                <FieldError error={ error } label={ field.label } name={ field.name } />
             </li>
         </ul>
     );

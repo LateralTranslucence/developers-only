@@ -1,5 +1,6 @@
 import React from 'react';
 import FieldError from '@/components/forms/FieldError';
+import { fieldAriaProps } from '@/components/forms/fieldAria';
 import { getFieldStringValue } from '@/utils/types/Form';
 import { FormFieldProps } from '@/utils/types/FormFieldProps';
 
@@ -14,8 +15,8 @@ const Email: React.FC<FormFieldProps> = ( { field, error = false } ) => {
                     <span className="form-field__required">*</span>
                 : null }
             </label>
-            <FieldError error={ error } label={ field.label } />
-            <input type="email" name={ field.name } id={ field.name } className={ field.name } autoComplete="off" defaultValue={ currentValue } />
+            <FieldError error={ error } label={ field.label } name={ field.name } />
+            <input type="email" name={ field.name } id={ field.name } className={ field.name } autoComplete="email" defaultValue={ currentValue } { ...fieldAriaProps( field, error ) } />
         </>
     );
 };
