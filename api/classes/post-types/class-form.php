@@ -17,7 +17,7 @@ class DO_Form extends DO_Custom_Post_Type {
             'has_archive' => FALSE,
             'menu_position' => 40,
             'notes' => [
-                'Email Submissions To' => 'Comma-separated list of email addresses.',
+                'Email Submissions To' => 'Comma-separated list of email addresses. Also used when Email Submissions Logic matches no value.',
                 'Field IDs' => 'Comma-separated list of field IDs.',
                 'Thank You Redirect' => 'Can only be an internal URL.'
             ],

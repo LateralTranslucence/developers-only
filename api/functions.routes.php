@@ -567,8 +567,10 @@ function devo_form_submit_query( $data ) {
             $email_submissions_to = $options[ $form_values_array[ $logic_field_id ]['current_value'] ];
         }
     }
-    // Simple send
-    else {
+    // Simple send: no routing logic, or none of its options matched (the
+    // field was left empty, or holds a value with no mapping). Without this
+    // fallback an unmatched submission sent no alert at all.
+    if ( ! $email_submissions_to ) {
         $simple_to = devo_get_post_meta( $form_post_id, 'form_email_submissions_to' );
         $email_submissions_to = is_string( $simple_to ) && strlen( $simple_to ) ? $simple_to : FALSE;
     }
