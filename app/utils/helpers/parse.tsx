@@ -3,7 +3,7 @@ import htmlReactParser, { DOMNode, Element, domToReact, HTMLReactParserOptions }
 import CTA from '@/components/shared/CTA';
 import Image from '@/components/shared/Image';
 import Menu from '@/components/shared/Menu';
-import { isBlockedElement, sanitizeAttributes } from '@/utils/helpers/sanitize';
+import { isBlockedElement, isUnsafeAnimation, sanitizeAttributes } from '@/utils/helpers/sanitize';
 
 // HTML attribute strings for a boolean flag ("true", "1", "modal", or bare)
 const attributeFlag = ( value: string | undefined ): boolean => {
@@ -21,9 +21,13 @@ const classList = ( value: string | undefined ): Array<string> => {
  * Renders an HTML string from the REST API as React elements.
  *
  * The theme's own tags become components: <cta> (CTA), <image> (Image) and
- * <socialmenu>. Everything is filtered on the way through - see
- * utils/helpers/sanitize.ts - so a bad value from the server can't add script
- * to the page: React 19 will load an <script async src> it renders.
+ * <socialmenu>. Every element is filtered on the way through (see
+ * utils/helpers/sanitize.ts): script, object, embed, base and frame elements
+ * are dropped, as are SVG animations that target an href; inline event
+ * handlers, srcdoc, and javascript:/vbscript:/data: URLs are stripped. React
+ * 19 will load a <script async src> it renders, so this matters. It is a
+ * blocklist and defence in depth, not a full sanitizer: the server is
+ * responsible for what it stores.
  */
 const parse: ( string: string | JSX.Element ) => React.ReactElement | string = ( string ): React.ReactElement | string => {
     if ( string === null || string === undefined || string === '' ) {
@@ -35,6 +39,12 @@ const parse: ( string: string | JSX.Element ) => React.ReactElement | string = (
                 return undefined;
             }
             if ( isBlockedElement( domNode.name ) ) {
+                return <></>;
+            }
+            // The attribute is attributeName in a browser-parsed DOM and
+            // attributename from htmlparser2, so match it case-insensitively
+            const animationTarget: string | undefined = Object.keys( domNode.attribs ).find( ( name ) => name.toLowerCase() === 'attributename' );
+            if ( isUnsafeAnimation( domNode.name, animationTarget ? domNode.attribs[ animationTarget ] : undefined ) ) {
                 return <></>;
             }
             // Mutating is safe: the DOM was parsed for this call alone

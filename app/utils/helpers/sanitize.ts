@@ -3,8 +3,8 @@
  *
  * Defence in depth only: the server is responsible for what it stores and
  * returns. These remove the things that would run script if a bad value got
- * through anyway - script elements, inline event handlers, srcdoc, and
- * javascript:/data: URLs.
+ * through anyway - script elements, inline event handlers, srcdoc,
+ * javascript:/data: URLs, and SVG animations that rewrite an href.
  */
 
 // Elements dropped outright, with their content
@@ -72,12 +72,27 @@ export const sanitizeAttributes = ( tagName: string, attributes: Record<string, 
 
 // SVG elements that can run script or pull in other documents
 const SVG_BLOCKED_ELEMENTS: ReadonlySet<string> = new Set( [ 'script', 'foreignobject', 'iframe', 'object', 'embed' ] );
-// SVG animation elements, which can rewrite an href to javascript: after load
+// SVG animation elements. Their to/from/values aren't URL attributes, so
+// <set attributeName="href" to="javascript:..."> would rewrite a link after
+// load without tripping isUnsafeAttribute().
 const SVG_ANIMATION_ELEMENTS: ReadonlySet<string> = new Set( [ 'animate', 'set', 'animatemotion', 'animatetransform' ] );
+
+// Whether an element is an SVG animation that targets an href (or xlink:href)
+export const isUnsafeAnimation = ( tagName: string, attributeName: string | undefined ): boolean => {
+    return SVG_ANIMATION_ELEMENTS.has( tagName.toLowerCase() ) && /href/i.test( attributeName ?? '' );
+};
 
 /*
  * Sanitizes an SVG document for injection with dangerouslySetInnerHTML.
  * Returns '' if the string isn't a well-formed SVG.
+ *
+ * The SVG is parsed as XML but injected as HTML, and the two parsers disagree
+ * about anything that isn't an element or text. "<!--><img onerror=...>-->" is
+ * one comment to the XML parser, but the HTML parser ends it at "<!-->" and
+ * builds the <img>; a processing instruction ("<?x ><img ...>?>") breaks out
+ * the same way. So every node is visited, not just elements, and only
+ * elements and text are kept. CDATA becomes plain text, which the serializer
+ * escapes (Illustrator wraps <style> rules in it).
  */
 export const sanitizeSVG = ( svg: string ): string => {
     if ( ! svg || typeof DOMParser === 'undefined' ) {
@@ -88,19 +103,35 @@ export const sanitizeSVG = ( svg: string ): string => {
     if ( ! root || root.nodeName.toLowerCase() !== 'svg' || doc.getElementsByTagName( 'parsererror' ).length > 0 ) {
         return '';
     }
-    const elements: Array<Element> = [ root, ...Array.from( root.getElementsByTagName( '*' ) ) ];
-    for ( const element of elements ) {
-        const name: string = element.nodeName.toLowerCase();
-        if ( SVG_BLOCKED_ELEMENTS.has( name ) ) {
-            element.remove();
+    // Collect first: removing nodes mid-walk would cut the walk short
+    const walker: TreeWalker = doc.createTreeWalker( root, NodeFilter.SHOW_ALL );
+    const nodes: Array<Node> = [];
+    for ( let node: Node | null = walker.currentNode; node; node = walker.nextNode() ) {
+        nodes.push( node );
+    }
+    for ( const node of nodes ) {
+        if ( node.nodeType === Node.TEXT_NODE ) {
             continue;
         }
-        if ( SVG_ANIMATION_ELEMENTS.has( name ) && /href/i.test( element.getAttribute( 'attributeName' ) ?? '' ) ) {
+        if ( node.nodeType === Node.CDATA_SECTION_NODE ) {
+            node.parentNode?.replaceChild( doc.createTextNode( node.nodeValue ?? '' ), node );
+            continue;
+        }
+        if ( node.nodeType !== Node.ELEMENT_NODE ) {
+            // Comments, processing instructions, and anything else
+            node.parentNode?.removeChild( node );
+            continue;
+        }
+        const element: Element = node as Element;
+        const name: string = element.nodeName.toLowerCase();
+        if ( SVG_BLOCKED_ELEMENTS.has( name ) || isUnsafeAnimation( name, element.getAttribute( 'attributeName' ) ?? undefined ) ) {
             element.remove();
             continue;
         }
         for ( const attribute of Array.from( element.attributes ) ) {
-            if ( isUnsafeAttribute( name, attribute.name, attribute.value ) ) {
+            // localName as well as name, so a link under any prefix bound to
+            // the XLink namespace (x:href) is checked like xlink:href
+            if ( isUnsafeAttribute( name, attribute.name, attribute.value ) || isUnsafeAttribute( name, attribute.localName, attribute.value ) ) {
                 element.removeAttribute( attribute.name );
             }
         }
