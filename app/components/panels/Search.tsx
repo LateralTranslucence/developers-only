@@ -134,6 +134,24 @@ const Search: React.FC<PanelProps> = ( {
     const [ results, setResults ] = useState<SearchResponse>( emptySearchResponse );
     const [ hasFetched, setHasFetched ] = useState( false );
 
+    // Layout keys the page by pathname, so a link from /search/?s=foo to
+    // /search/?s=bar keeps this panel mounted. Start a new query from the
+    // URL's keyword when it changes (adjusting state during render, as React
+    // recommends, rather than in an effect).
+    const [ urlKeyword, setURLKeyword ] = useState( searchKeyword );
+    if ( searchKeyword !== urlKeyword ) {
+        setURLKeyword( searchKeyword );
+        setQuery( searchKeyword ? { s: searchKeyword } : {} );
+    }
+    // The keyword field (forms/Search.tsx) is uncontrolled, so its
+    // defaultValue won't follow; set it directly
+    useEffect( () => {
+        const keywordField = formRef.current?.querySelector<HTMLInputElement>( 'input[type="search"]' );
+        if ( keywordField ) {
+            keywordField.value = searchKeyword;
+        }
+    }, [ searchKeyword ] );
+
     useEffect( () => {
         // A newer query aborts the request for the previous one, so results
         // can't arrive out of order
