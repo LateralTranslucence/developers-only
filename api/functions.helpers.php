@@ -1542,8 +1542,18 @@ function devo_plain_text( $value ) {
     if ( ! is_scalar( $value ) ) {
         return '';
     }
-    $text = html_entity_decode( wp_strip_all_tags( (string) $value ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-    return trim( wp_strip_all_tags( $text ) );
+    $text = html_entity_decode( devo_strip_tags( (string) $value ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+    return trim( devo_strip_tags( $text ) );
+}
+
+// Like wp_strip_all_tags(), but only removes things shaped like markup.
+// strip_tags() treats any "<" as the start of a tag and drops everything after
+// it, so a plain-text label "x<y" came back as "x". Here a "<" only opens a tag
+// when a letter, "/", "!" or "?" follows it.
+function devo_strip_tags( $text ) {
+    $text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1\s*>@si', '', (string) $text );
+    $text = preg_replace( '@<!--.*?-->|<[/!?]?[a-zA-Z][^>]*>@s', '', (string) $text );
+    return (string) $text;
 }
 
 // Retrieves and formats seo field value from options
