@@ -144,7 +144,9 @@ const Search: React.FC<PanelProps> = ( {
     // and saying nothing.
     const [ failures, setFailures ] = useState( 0 );
     // Set by Try Again, so the results take focus when they arrive: the
-    // button that had it is gone by then, and focus would drop to <body>
+    // button that had it is gone by then, and focus would drop to <body>.
+    // Only for that retry: it is cleared if the retry fails, and when any
+    // other search starts (the form, sorting, paging or a new URL keyword).
     const focusResultsRef = useRef<boolean>( false );
     const resultsRef = useRef<HTMLDivElement | null>( null );
 
@@ -164,6 +166,7 @@ const Search: React.FC<PanelProps> = ( {
         if ( keywordField ) {
             keywordField.value = searchKeyword;
         }
+        focusResultsRef.current = false;
     }, [ searchKeyword ] );
 
     useEffect( () => {
@@ -178,6 +181,7 @@ const Search: React.FC<PanelProps> = ( {
             } )
             .catch( ( error: unknown ) => {
                 if ( ! isAbortError( error ) ) {
+                    focusResultsRef.current = false;
                     setFailed( true );
                     setFailures( ( n ) => n + 1 );
                     setHasFetched( true );
@@ -188,7 +192,7 @@ const Search: React.FC<PanelProps> = ( {
 
     // After a retry that worked, focus the results (or the "nothing matched"
     // message) where the Try Again button was. A retry that fails leaves the
-    // button, and focus, in place.
+    // button, and focus, in place, and clears the flag.
     useEffect( () => {
         if ( ! focusResultsRef.current || failed || ! hasFetched ) {
             return;
@@ -202,6 +206,7 @@ const Search: React.FC<PanelProps> = ( {
     const searchSubmit = ( keepPage: boolean = false ): void => {
         const form = formRef.current;
         if ( ! form ) return;
+        focusResultsRef.current = false;
 
         const formData = new FormData( form );
         if ( ! keepPage ) {
