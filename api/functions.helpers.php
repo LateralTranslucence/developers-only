@@ -1366,22 +1366,19 @@ function devo_unslash_legacy_meta_value( $value ) {
     if ( ! is_string( $value ) || strpos( $value, '\\' ) === FALSE ) {
         return NULL;
     }
-    $slashed_shape = function( $string ) {
-        return (bool) preg_match( '/^(?:[^\\\\]|\\\\[\'"\\\\0])*$/s', $string );
-    };
     $decoded = devo_decode_meta_value( $value );
     if ( $decoded === $value ) {
-        return $slashed_shape( $value ) ? stripslashes( $value ) : NULL;
+        return devo_is_slashed_shape( $value ) ? stripslashes( $value ) : NULL;
     }
     // JSON: unslash the strings inside it, if every one of them is slashed
     $shaped = TRUE;
     $changed = FALSE;
-    $unslash = function( $node ) use ( &$unslash, &$shaped, &$changed, $slashed_shape ) {
+    $unslash = function( $node ) use ( &$unslash, &$shaped, &$changed ) {
         if ( is_string( $node ) ) {
             if ( strpos( $node, '\\' ) === FALSE ) {
                 return $node;
             }
-            $shaped = $shaped && $slashed_shape( $node );
+            $shaped = $shaped && devo_is_slashed_shape( $node );
             $changed = TRUE;
             return stripslashes( $node );
         }
@@ -1406,6 +1403,24 @@ function devo_unslash_legacy_meta_value( $value ) {
     }
     $encoded = wp_json_encode( $unslashed );
     return is_string( $encoded ) ? $encoded : NULL;
+}
+
+/* Whether every backslash in $string starts one of the pairs addslashes()
+ * writes: \', \", \\ or \0. A single linear scan, not a regex: a pattern that
+ * repeats an alternation once per character runs out of PCRE stack on long
+ * values (preg_match() returns false at about 9,000 characters on PHP 8.4
+ * with JIT), which read as "not slashed" and left long fields slashed. */
+function devo_is_slashed_shape( $string ) {
+    $length = strlen( $string );
+    $offset = 0;
+    while ( ( $position = strpos( $string, '\\', $offset ) ) !== FALSE ) {
+        $next = $position + 1 < $length ? $string[ $position + 1 ] : '';
+        if ( $next !== '\'' && $next !== '"' && $next !== '\\' && $next !== '0' ) {
+            return FALSE;
+        }
+        $offset = $position + 2;
+    }
+    return TRUE;
 }
 
 // Decodes a stored meta value that is a JSON array, object or string
