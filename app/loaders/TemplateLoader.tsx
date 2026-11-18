@@ -7,6 +7,7 @@ import { TemplateLoaderProps } from '@/utils/types/TemplateLoaderProps';
 import { TemplateProps } from '@/utils/types/TemplateProps';
 import { Post } from '@/utils/types/Post';
 import { pascalToKebab } from '@/utils/helpers';
+import { restBases } from '@/globalVariables';
 import ErrorFallback from '@/components/shared/ErrorFallback';
 // Single Templates
 const Form = lazy( () => import( '@/components/templates/single/Form' ) );
@@ -22,9 +23,9 @@ const templates: ComponentLoaderMap = {
 
 // Auto-discover extension single-post templates
 // (extensions/app/components/templates/single/*.tsx) - see extensions/README.md.
-// A file's PascalCase name becomes its kebab-case post type key (e.g.
-// CaseStudy.tsx -> 'case-study'), matched against the post type slug returned
-// by the REST API. Core templates above always win on a name collision.
+// A file's PascalCase name becomes its kebab-case key (e.g. CaseStudy.tsx ->
+// 'case-study'), matched against the post type's REST base, like the core
+// keys above. Core templates always win on a name collision.
 const extensionTemplates = import.meta.glob<{ default: React.ComponentType<TemplateProps> }>( '/extensions/app/components/templates/single/*.tsx' );
 for ( const path in extensionTemplates ) {
     const name = path.replace( /^.*\//, '' ).replace( /\.tsx$/, '' );
@@ -34,10 +35,22 @@ for ( const path in extensionTemplates ) {
     }
 }
 
-// URL post type segments whose REST base differs
+// URL post type segments whose REST base differs, when PHP hasn't said
+// (restBases covers every post type it registers)
 const postTypeAliases: Record<string, string> = {
     'media': 'media-library',
     'page': 'simple-page',
+};
+
+// A map's own entry for a URL segment. Own properties only, so a segment
+// such as "constructor" can't pick up Object.prototype.
+const ownEntry = <T,>( map: Readonly<Record<string, T>>, key: string ): T | undefined => {
+    return Object.prototype.hasOwnProperty.call( map, key ) ? map[ key ] : undefined;
+};
+
+// The REST base, and template key, for a URL's post type segment
+const restBaseFor = ( urlSegment: string ): string => {
+    return ownEntry( restBases, urlSegment ) ?? ownEntry( postTypeAliases, urlSegment ) ?? urlSegment;
 };
 
 const ContentReady: React.FC<{ onLoad?: () => void; children: React.ReactNode }> = ( { onLoad, children } ) => {
@@ -58,8 +71,10 @@ const TemplateLoader: React.FC<TemplateLoaderProps> = ( {
     onLoad,
 } ) => {
     const setSlug = useCurrentPage( ( state ) => state.setSlug );
-    const finalPostType: string = postTypeAliases[ postType ] ?? postType;
-    const Template: React.ComponentType<TemplateProps> | undefined = notFound ? undefined : templates[ finalPostType ];
+    const finalPostType: string = restBaseFor( postType );
+    // Own entries only (see ownEntry), indexed directly so the linter can see
+    // the component comes from the module-level map
+    const Template: React.ComponentType<TemplateProps> | undefined = notFound || ! Object.prototype.hasOwnProperty.call( templates, finalPostType ) ? undefined : templates[ finalPostType ];
     // Identifies the request; empty when there's nothing to fetch, i.e. no
     // template could render the result anyway
     const requestKey: string = Template && slug ? finalPostType + '/' + slug : '';
