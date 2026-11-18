@@ -1,0 +1,1 @@
+import"./rolldown-runtime-B0Z9INg1.js";import{k as e,m as t}from"./helpers-DZTz3Jyq.js";var n=(e,t,n=``)=>{let r=e[t];return typeof r==`string`?r:n};e();var r=t(),i=({post:e})=>e&&e.schema?(0,r.jsx)(`script`,{type:`application/ld+json`,children:JSON.stringify(e.schema)}):null;export{n,i as t};
