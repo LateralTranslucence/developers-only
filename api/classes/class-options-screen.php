@@ -137,9 +137,29 @@ class DO_Options_Screen {
         return $this->user_capability;
     }
 
-    /* Generate a tab ID based on the tab name */
+    /* Generate a tab ID based on the tab name. Key-safe, because it travels
+     * through the tab links and the settings form: "SEO & Social" kept its
+     * "&" here but lost it to sanitize_key() on the way back, so that tab
+     * could never be selected or saved. */
     private function tab_id( $tab_name ) {
-        return str_replace( ' ', '_', strtolower( $tab_name ) );
+        return sanitize_key( str_replace( ' ', '_', strtolower( $tab_name ) ) );
+    }
+
+    /* The settings group (and, with several tabs, option name) for a tab */
+    private function group_id( $tab_name ) {
+        return $this->name . '_' . $this->tab_id( $tab_name );
+    }
+
+    /* A tab's group ID from a request value, or '' if it names no tab. Matched
+     * exactly against the known IDs, so it needs no further sanitising. */
+    private function requested_group_id( $value ) {
+        $value = is_string( $value ) ? wp_unslash( $value ) : '';
+        foreach ( array_keys( $this->fields ) as $tab_name ) {
+            if ( $this->group_id( $tab_name ) === $value ) {
+                return $value;
+            }
+        }
+        return '';
     }
 
     /* Initial setup of screen fields */
@@ -167,7 +187,7 @@ class DO_Options_Screen {
         }
         // Capability
         foreach ( $this->fields as $tab_name => $fields ) {
-            add_filter( 'option_page_capability_' . $this->name . '_' . $this->tab_id( $tab_name ), [ $this, 'option_capability' ] );
+            add_filter( 'option_page_capability_' . $this->group_id( $tab_name ), [ $this, 'option_capability' ] );
         }
     }
 
@@ -201,11 +221,11 @@ class DO_Options_Screen {
     function options_init() {
         //register_setting( $option_group, $option_name, $sanitize_callback )
         foreach ( $this->fields as $tab_name => $fields ) {
-            $option_name = count( $this->fields ) > 1 ? $this->name . '_' . $this->tab_id( $tab_name ) : $this->name;
+            $option_name = count( $this->fields ) > 1 ? $this->group_id( $tab_name ) : $this->name;
             // register_setting( $option_group, $option_name, $sanitize_callback )
-            register_setting( $this->name . '_' . $this->tab_id( $tab_name ), $option_name, [ $this, 'options_validate' ] );
+            register_setting( $this->group_id( $tab_name ), $option_name, [ $this, 'options_validate' ] );
             // add_settings_section( $id, $title, $callback, $page )
-            add_settings_section( $this->name . '_' . $this->tab_id( $tab_name ) . '_section', '', '', $this->name . '_' . $this->tab_id( $tab_name ) );
+            add_settings_section( $this->group_id( $tab_name ) . '_section', '', '', $this->group_id( $tab_name ) );
             foreach ( $fields as $field_title => $settings ) {
                 $field_name = $this->field_name( $field_title );
                 $field_id = $option_name . $field_name;
@@ -297,7 +317,7 @@ class DO_Options_Screen {
                             echo '</div>';
                         }
                     }
-                }, $this->name . '_' . $this->tab_id( $tab_name ), $this->name . '_' . $this->tab_id( $tab_name ) . '_section', [ 'class' => implode( ' ', [ str_replace( '_', '-', $field_name ), $type_class . '-label', $type_class . '-type' ] ) ] );
+                }, $this->group_id( $tab_name ), $this->group_id( $tab_name ) . '_section', [ 'class' => implode( ' ', [ str_replace( '_', '-', $field_name ), $type_class . '-label', $type_class . '-type' ] ) ] );
             }
         }
     }
@@ -311,10 +331,10 @@ class DO_Options_Screen {
         // Only accept a tab this screen actually has
         $tab_ids = [];
         foreach ( $tab_names as $tab_name ) {
-            $tab_ids[] = $this->name . '_' . $this->tab_id( $tab_name );
+            $tab_ids[] = $this->group_id( $tab_name );
         }
-        $requested_tab = isset( $_GET['tab'] ) && is_string( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
-        $active_tab = in_array( $requested_tab, $tab_ids, TRUE ) ? $requested_tab : $tab_ids[0];
+        $requested_tab = $this->requested_group_id( isset( $_GET['tab'] ) ? $_GET['tab'] : '' );
+        $active_tab = $requested_tab ? $requested_tab : $tab_ids[0];
         $option_name = $tabs ? $active_tab : $this->name; ?>
         <?php if ( $show_meta_field_name ) : ?><p class="footnote small"><b>Option Name:</b> <?php echo esc_html( $option_name ) ?></p><?php endif; ?>
         <h1><?php echo esc_html( $this->page_title ) ?></h1>
@@ -323,8 +343,8 @@ class DO_Options_Screen {
         <?php if ( $tabs ) : ?>
             <h2 class="nav-tab-wrapper">
             <?php foreach ( $this->fields as $tab_name => $fields ) :
-                $tab_url = add_query_arg( [ 'page' => $this->name, 'tab' => $this->name . '_' . $this->tab_id( $tab_name ) ] ); ?>
-                <a href="<?php echo esc_url( $tab_url ) ?>" class="nav-tab<?php echo $active_tab == $this->name . '_' . $this->tab_id( $tab_name ) ? ' nav-tab-active' : ''; ?>"><?php echo esc_html( $tab_name ) ?></a>
+                $tab_url = add_query_arg( [ 'page' => $this->name, 'tab' => $this->group_id( $tab_name ) ] ); ?>
+                <a href="<?php echo esc_url( $tab_url ) ?>" class="nav-tab<?php echo $active_tab == $this->group_id( $tab_name ) ? ' nav-tab-active' : ''; ?>"><?php echo esc_html( $tab_name ) ?></a>
             <?php endforeach; ?>
             </h2>
         <?php endif; ?>
@@ -334,7 +354,7 @@ class DO_Options_Screen {
             $button_text = is_array( $this->button_text ) ? ( isset( $this->button_text[ $tab_name ] ) ? $this->button_text[ $tab_name ] : 'Submit' ) : $this->button_text;
             // Show the fields
             foreach ( $this->fields as $tab_name => $fields ) {
-                if ( ! $tabs || ( $tabs && $active_tab && $active_tab == $this->name . '_' . $this->tab_id( $tab_name ) ) ) {
+                if ( ! $tabs || ( $tabs && $active_tab && $active_tab == $this->group_id( $tab_name ) ) ) {
                     $text = is_array( $this->text ) ? ( isset( $this->text[ $tab_name ] ) ? $this->text[ $tab_name ] : '' ) : $this->text;
                     $pre_form_callback = is_array( $this->pre_form_callback ) && ! is_object( current( $this->pre_form_callback ) ) ? ( isset( $this->pre_form_callback[ $tab_name ] ) ? $this->pre_form_callback[ $tab_name ] : FALSE ) : $this->pre_form_callback;
                     // Pre-Form Callback
@@ -361,12 +381,12 @@ class DO_Options_Screen {
                         echo devo_autop( $text );
                     }
                     // settings_fields( $option_group )
-                    settings_fields( $this->name . '_' . $this->tab_id( $tab_name ) );
+                    settings_fields( $this->group_id( $tab_name ) );
                     // do_settings_sections( $page )
                     echo '<div class="' . esc_attr( str_replace( '_', '-', $this->name . '-' . $this->tab_id( $tab_name ) ) ) . '-fields">';
-                        do_settings_sections( $this->name . '_' . $this->tab_id( $tab_name ) );
+                        do_settings_sections( $this->group_id( $tab_name ) );
                     echo '</div>';
-                    ?><input type="hidden" value="<?php echo esc_attr( $this->name . '_' . $this->tab_id( $tab_name ) ) ?>" name="tab"><?php
+                    ?><input type="hidden" value="<?php echo esc_attr( $this->group_id( $tab_name ) ) ?>" name="tab"><?php
                 }
             }
             // Submit button
@@ -400,10 +420,9 @@ class DO_Options_Screen {
     public function options_validate( $input ) {
         $validated_input = [];
         $validated_input_temp = [];
-        $current_tab_id = isset( $_POST['tab'] ) && is_string( $_POST['tab'] ) ? $this->tab_id( sanitize_key( wp_unslash( $_POST['tab'] ) ) ) : '';
+        $current_tab_id = $this->requested_group_id( isset( $_POST['tab'] ) ? $_POST['tab'] : '' );
         foreach ( $this->fields as $tab_name => $fields ) {
-            $tab_id = $this->tab_id( $this->name . ' ' . $tab_name );
-            if ( $tab_id == $current_tab_id ) {
+            if ( $current_tab_id !== '' && $this->group_id( $tab_name ) === $current_tab_id ) {
                 foreach ( $fields as $field_title => $settings ) {
                     $field_name = $this->field_name( $field_title );
                     $type = $this->get_field_type( $settings );
@@ -471,12 +490,8 @@ class DO_Options_Screen {
             wp_die( esc_html__( 'Sorry, you are not allowed to manage options for this network.', 'developers_only' ), 403 );
         }
         // The tab names the settings group, and so the nonce settings_fields() printed
-        $tab_ids = [];
-        foreach ( array_keys( $this->fields ) as $tab_name ) {
-            $tab_ids[] = $this->name . '_' . $this->tab_id( $tab_name );
-        }
-        $tab = isset( $_POST['tab'] ) && is_string( $_POST['tab'] ) ? sanitize_key( wp_unslash( $_POST['tab'] ) ) : '';
-        if ( ! in_array( $tab, $tab_ids, TRUE ) ) {
+        $tab = $this->requested_group_id( isset( $_POST['tab'] ) ? $_POST['tab'] : '' );
+        if ( $tab === '' ) {
             wp_die( esc_html__( 'Unknown settings section.', 'developers_only' ), 400 );
         }
         check_admin_referer( $tab . '-options' );
