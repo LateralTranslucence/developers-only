@@ -76,6 +76,15 @@ add_filter( 'devo_allow_iframes', function ( $allowed ) {
 
 Only grant them to people you'd trust with unfiltered HTML. An uploaded SVG is served as-is from `uploads/`, and the front end's sanitising doesn't apply when someone opens the file directly.
 
+### SVG icons
+
+Icons are inlined into the page so they can take `currentColor`, and the front end sanitises each one first. That keeps only SVG elements, so an icon file needs:
+
+- `xmlns="http://www.w3.org/2000/svg"` on the root `<svg>`, and no namespace prefix (`<svg:svg>`). A file without it isn't shown.
+- Presentation attributes (`fill="..."`) or `style="..."` attributes, not a `<style>` element. `<style>` is removed, because an inline SVG's rules apply to the whole page (and its `@import` would load). In Illustrator, export with **Styling: Presentation Attributes**.
+
+Scripts, `<foreignObject>`, comments, event handlers, `javascript:` links, and HTML elements inside the SVG are removed as well.
+
 ### Forms: spam limits and proxies
 
 Form submissions are throttled per client (5 per 10 minutes by default; `devo_form_rate_limit_max` and `devo_form_rate_limit_window` change that). The client is identified by `REMOTE_ADDR`.

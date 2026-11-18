@@ -70,8 +70,28 @@ export const sanitizeAttributes = ( tagName: string, attributes: Record<string, 
     return attributes;
 };
 
-// SVG elements that can run script or pull in other documents
-const SVG_BLOCKED_ELEMENTS: ReadonlySet<string> = new Set( [ 'script', 'foreignobject', 'iframe', 'object', 'embed' ] );
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+/*
+ * The SVG elements an icon may contain (lower-cased local names); everything
+ * else is dropped with its content. An allowlist, because the HTML parser
+ * that handles the injected markup leaves the SVG for a long list of HTML tag
+ * names (meta, p, img, table, ...) whatever namespace they had in the XML.
+ * Not included: script, foreignObject, and style, whose rules would apply to
+ * the whole page and whose @import would load.
+ */
+const SVG_ALLOWED_ELEMENTS: ReadonlySet<string> = new Set( [
+    'a', 'circle', 'clippath', 'defs', 'desc', 'ellipse', 'g', 'image', 'line', 'lineargradient', 'marker', 'mask',
+    'metadata', 'path', 'pattern', 'polygon', 'polyline', 'radialgradient', 'rect', 'stop', 'svg', 'switch', 'symbol',
+    'text', 'textpath', 'title', 'tspan', 'use', 'view',
+    'animate', 'animatemotion', 'animatetransform', 'mpath', 'set',
+    'filter', 'feblend', 'fecolormatrix', 'fecomponenttransfer', 'fecomposite', 'feconvolvematrix',
+    'fediffuselighting', 'fedisplacementmap', 'fedistantlight', 'fedropshadow', 'feflood', 'fefunca', 'fefuncb',
+    'fefuncg', 'fefuncr', 'fegaussianblur', 'feimage', 'femerge', 'femergenode', 'femorphology', 'feoffset',
+    'fepointlight', 'fespecularlighting', 'fespotlight', 'fetile', 'feturbulence',
+] );
+// SVG elements whose content the HTML parser reads as HTML, not SVG. Only
+// text may go in them.
+const SVG_TEXT_ONLY_ELEMENTS: ReadonlySet<string> = new Set( [ 'desc', 'title' ] );
 // SVG animation elements. Their to/from/values aren't URL attributes, so
 // <set attributeName="href" to="javascript:..."> would rewrite a link after
 // load without tripping isUnsafeAttribute().
@@ -96,16 +116,34 @@ const isUnsafeSVGAnimation = ( element: Element ): boolean => {
 };
 
 /*
+ * Whether an element may stay in a sanitized SVG: an allowed SVG element, in
+ * the SVG namespace and unprefixed (so the serialized tag is the one the HTML
+ * parser sees), and not inside a <title> or <desc>.
+ */
+const isAllowedSVGElement = ( element: Element ): boolean => {
+    if ( element.namespaceURI !== SVG_NAMESPACE || element.prefix || ! SVG_ALLOWED_ELEMENTS.has( element.localName.toLowerCase() ) ) {
+        return false;
+    }
+    const parent: Element | null = element.parentElement;
+    return ! parent || ! SVG_TEXT_ONLY_ELEMENTS.has( parent.localName.toLowerCase() );
+};
+
+/*
  * Sanitizes an SVG document for injection with dangerouslySetInnerHTML.
- * Returns '' if the string isn't a well-formed SVG.
+ * Returns '' if the string isn't a well-formed SVG (which includes an <svg>
+ * root without xmlns="http://www.w3.org/2000/svg").
  *
- * The SVG is parsed as XML but injected as HTML, and the two parsers disagree
- * about anything that isn't an element or text. "<!--><img onerror=...>-->" is
- * one comment to the XML parser, but the HTML parser ends it at "<!-->" and
- * builds the <img>; a processing instruction ("<?x ><img ...>?>") breaks out
- * the same way. So every node is visited, not just elements, and only
- * elements and text are kept. CDATA becomes plain text, which the serializer
- * escapes (Illustrator wraps <style> rules in it).
+ * The SVG is parsed as XML but injected as HTML, and the two parsers disagree:
+ * - About anything that isn't an element or text. "<!--><img onerror=...>-->"
+ *   is one comment to the XML parser, but the HTML parser ends it at "<!-->"
+ *   and builds the <img>; a processing instruction ("<?x ><img ...>?>") breaks
+ *   out the same way. So every node is visited, not just elements, and only
+ *   elements and text are kept. CDATA becomes plain text, which the
+ *   serializer escapes.
+ * - About elements. <meta http-equiv="refresh"> is an SVG-namespace element
+ *   to the XML parser, but a real HTML <meta> once injected, as are <p>,
+ *   <img>, <table> and others. So only known SVG elements are kept (see
+ *   SVG_ALLOWED_ELEMENTS); <style> is among those dropped.
  */
 export const sanitizeSVG = ( svg: string ): string => {
     if ( ! svg || typeof DOMParser === 'undefined' ) {
@@ -113,7 +151,7 @@ export const sanitizeSVG = ( svg: string ): string => {
     }
     const doc: Document = new DOMParser().parseFromString( svg, 'image/svg+xml' );
     const root: Element = doc.documentElement;
-    if ( ! root || root.nodeName.toLowerCase() !== 'svg' || doc.getElementsByTagName( 'parsererror' ).length > 0 ) {
+    if ( ! root || root.localName !== 'svg' || ! isAllowedSVGElement( root ) || doc.getElementsByTagName( 'parsererror' ).length > 0 ) {
         return '';
     }
     // Collect first: removing nodes mid-walk would cut the walk short
@@ -136,8 +174,8 @@ export const sanitizeSVG = ( svg: string ): string => {
             continue;
         }
         const element: Element = node as Element;
-        const name: string = element.nodeName.toLowerCase();
-        if ( SVG_BLOCKED_ELEMENTS.has( name ) || isUnsafeSVGAnimation( element ) ) {
+        const name: string = element.localName.toLowerCase();
+        if ( ! isAllowedSVGElement( element ) || isUnsafeSVGAnimation( element ) ) {
             element.remove();
             continue;
         }
