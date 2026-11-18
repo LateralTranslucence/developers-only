@@ -386,7 +386,7 @@ class DO_Landing_Page extends DO_Custom_Post_Type {
                         ],
                         'Options Post Type' => [
                             'type' => 'select',
-                            'options' => 'devo_get_post_types',
+                            'options' => 'devo_get_public_post_types',
                         ],
                         'Meta Field' => 'varchar',
                     ],

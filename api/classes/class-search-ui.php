@@ -396,8 +396,10 @@ class DO_Search_UI {
 
     private function get_field_options_from_post_type( $field_details ) {
         // Option lists come from a post type an editor picked in the panel
-        // settings; never from one that is off-limits to the front end.
-        $allowed_types = array_column( devo_get_post_types(), 'value' );
+        // settings; never from one that is off-limits to the front end. The
+        // same allowlist as /archive/ and /devo-search: devo_get_post_types()
+        // is a denylist, and lets through non-public plugin types.
+        $allowed_types = devo_get_public_post_types( 'indexed_array' );
         $options_post_type = is_string( $field_details['options_post_type'] ) ? $field_details['options_post_type'] : '';
         $options_posts = in_array( $options_post_type, $allowed_types, TRUE ) ? get_posts( [
             'post_type' => $options_post_type,
