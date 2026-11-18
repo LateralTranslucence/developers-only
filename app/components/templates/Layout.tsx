@@ -14,6 +14,22 @@ const MIN_LOAD_MS = 1000;
 // every later one is a client-side navigation (see PageView).
 let initialPageLoaded = false;
 
+// The element a URL #fragment points at: by id, else a named anchor, as the
+// browser itself looks them up
+const fragmentTarget = ( hash: string ): HTMLElement | null => {
+    let id: string = hash.replace( /^#/, '' );
+    try {
+        id = decodeURIComponent( id );
+    } catch {
+        // Not percent-encoded; use it as it is
+    }
+    if ( ! id ) {
+        return null;
+    }
+    const element: Element | null = document.getElementById( id ) ?? document.querySelector( `a[name="${ CSS.escape( id ) }"]` );
+    return element instanceof HTMLElement ? element : null;
+};
+
 interface LayoutProps {
     // Render the page alone, without header and footer, for display inside a
     // modal's <iframe> (the /iframe/... routes)
@@ -61,18 +77,34 @@ const PageView: React.FC<Required<Pick<LayoutProps, 'iframe' | 'notFound'>> & { 
     // A client-side navigation swaps <main> without a page load, so a screen
     // reader says nothing and keyboard focus stays on the link that was
     // followed (or drops to <body> once it's gone). Move focus to the new
-    // page's <h1>, which is read out, or to <main> when there isn't one. Not
-    // when the URL has a #fragment: that target gets the visitor's attention.
+    // page's <h1>, which is read out, or to <main> when there isn't one.
+    //
+    // When the URL has a #fragment, scroll to its target and focus that
+    // instead, on the first page too: the page renders after the browser
+    // has looked for the target and not found it, and ScrollToTop has put
+    // the page back at the top.
     useEffect( () => {
         if ( ! contentLoaded || iframe ) {
             return;
         }
-        if ( ! initialPageLoaded ) {
-            initialPageLoaded = true;
+        const firstPage: boolean = ! initialPageLoaded;
+        initialPageLoaded = true;
+        const main = mainRef.current;
+        if ( ! main ) {
             return;
         }
-        const main = mainRef.current;
-        if ( ! main || window.location.hash ) {
+        if ( window.location.hash ) {
+            const fragment: HTMLElement | null = fragmentTarget( window.location.hash );
+            if ( fragment ) {
+                if ( fragment.tabIndex < 0 && ! fragment.hasAttribute( 'tabindex' ) ) {
+                    fragment.setAttribute( 'tabindex', '-1' );
+                }
+                fragment.focus( { preventScroll: true } );
+                fragment.scrollIntoView();
+            }
+            return;
+        }
+        if ( firstPage ) {
             return;
         }
         const heading: HTMLElement | null = main.querySelector( 'h1' );
