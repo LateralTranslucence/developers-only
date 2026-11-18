@@ -15,6 +15,10 @@ Node `^20.19.0 || >=22.12.0` is required (Vite 8 and ESLint 10); `.nvmrc` pins
 24 LTS, so run `nvm use` first. On older Node, `npm install` fails with
 EBADENGINE (`.npmrc` sets `engine-strict`).
 
+The theme itself needs WordPress 6.4+ and PHP 8.1+ (the `Requires` headers in
+`style.css`). The PHP uses 8.1 features such as `new` in parameter defaults and
+`array_is_list()`, so don't lower that floor without removing them.
+
 There are no test commands. The static checks are TypeScript (`tsc -b`, run by
 `npm run build`) and ESLint (`npm run lint`).
 

@@ -7,7 +7,7 @@ A hybrid-headless WordPress theme. PHP handles the CMS and a custom REST API; a 
 ### Requirements
 
 - WordPress 6.4 or later (tested up to 7.0.3)
-- PHP 8.0 or later
+- PHP 8.1 or later
 - Pretty permalinks (any setting except "Plain"). Landing pages are served at `/{slug}/` and the SPA routes on the path.
 - Node.js `^20.19.0 || >=22.12.0`, only if you build the front end yourself. `.nvmrc` pins Node 24 LTS.
 
