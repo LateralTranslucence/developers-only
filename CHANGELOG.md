@@ -65,6 +65,12 @@ selectors:
   `div.form-field > label` no longer styles it. Radio Buttons and Button
   Select (below) use the same structure. The framework removes the fieldset's
   browser border, padding and min-width.
+- **The required asterisk is hidden from screen readers.**
+  `span.form-field__required` now has `aria-hidden="true"`, and the field's
+  input carries `aria-required` instead. A required checkbox group's legend
+  also gets a visually hidden `span.screenReader` reading "required" after the
+  asterisk, because a fieldset can't carry `aria-required`. A rule like
+  `legend span` or `legend > span:last-child` now matches that span too.
 - **The thank-you message is a focusable status container.** After a
   successful submission the form is replaced by
   `span.form__thank-you[role="status"][tabindex="-1"]`, which takes focus so
@@ -115,6 +121,32 @@ New settings on each form field:
   (`name`, `given-name`, `organization`, `postal-code` and so on), for WCAG
   1.3.5. It is sent as `settings.autocomplete`. Email and Phone fields keep
   their built-in `email` and `tel`.
+
+### Form submissions: alert routing and a reserved field ID
+
+- **Unrouted submissions now send an alert.** With Email Submissions Logic
+  set, a submission whose routing field was empty, or held a value with no
+  mapping, used to send no alert email at all. It now goes to the form's
+  Email Submissions To addresses. If a form has routing logic and an
+  Email Submissions To left over from before, check that address still
+  wants the mail. Leave it empty to keep the old behaviour.
+- **A form field can't use the honeypot's ID.** The spam honeypot input is
+  named `devo-form-website` (or whatever the `devo_form_honeypot_field`
+  filter returns). A real field given that ID shared the honeypot's name, so
+  every submission that filled it in was answered with a fake success and
+  discarded. Such a field is now renamed `devo-form-website-2`, as
+  `devo-privacy-policy` and `devo-form-submit` already were. If anything
+  refers to the old ID (a routing logic Field ID, or a `devo_form_submit`
+  callback reading `$form_values[ 'devo-form-website' ]`), change it, or
+  better, give the field another ID.
+
+### Post content: `<title>` is removed
+
+HTML from the REST API is rendered through `parse()`, which already drops
+`script`, `object`, `embed`, `base`, `frame`, `frameset`, `meta` and `link`.
+It now drops `<title>` too, because React 19 moves a rendered `<title>` into
+`<head>`, where it replaced the page's title. A `<title>` inside an inline
+`<svg>` is kept, as the graphic's accessible name.
 
 ### Sorting is limited in `/archive/` and search
 
