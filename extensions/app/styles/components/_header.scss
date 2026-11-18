@@ -46,6 +46,17 @@ header#header {
             }
         }
 
+        // The submenu disclosure chevron. Left alone it takes the UA's
+        // black buttontext, which disappears against the header.
+        li.hasChildren > button.dropdownToggle {
+            color: var(--devo-text-dim);
+
+            &:hover,
+            &[aria-expanded='true'] {
+                color: var(--devo-text);
+            }
+        }
+
         // Give a nav item the "button" class in wp-admin to render it as
         // the header CTA ("Get the theme" in the design).
         > li.button > a,
