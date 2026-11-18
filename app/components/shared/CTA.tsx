@@ -18,6 +18,11 @@ const toClassList = ( classes: CTASettings['classes'] ): Array<string> => {
     return typeof classes === 'string' ? classes.split( /\s+/ ).filter( Boolean ) : [];
 };
 
+// A modal CTA's dialog is named by the link text; a link with none (an icon,
+// an image) gets one from what the dialog shows. Anything else falls back to
+// Modal's own generic name.
+const MODAL_FALLBACK_LABELS: Readonly<Record<string, string>> = { image: 'Image', video: 'Video' };
+
 // What a modal CTA shows: its own content (a video, an image, or a page in an
 // iframe), or a Modal that already exists on the page (an #id link)
 const ModalContent: React.FC<{ link: ClassifiedURL; text: string; type: string }> = ( { link, text, type } ) => {
@@ -132,7 +137,7 @@ const CTA: React.FC<CTASettings> = ( {
         return (
             <>
                 { trigger }
-                <Modal className={ [ type, modal_class ].filter( Boolean ).join( ' ' ) } id={ modalID } label={ label || undefined } renderWhenOpen>
+                <Modal className={ [ type, modal_class ].filter( Boolean ).join( ' ' ) } id={ modalID } label={ label || MODAL_FALLBACK_LABELS[ type ] } renderWhenOpen>
                     <ModalContent link={ link } text={ label } type={ type } />
                 </Modal>
             </>
