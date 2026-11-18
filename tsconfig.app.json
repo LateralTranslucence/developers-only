@@ -27,6 +27,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["./app/**/*", "./app/global.d.ts", "./app/declaration.d.ts"],
+  "include": ["./app/**/*", "./extensions/app/**/*", "./app/global.d.ts", "./app/declaration.d.ts"],
   "exclude": ["./node_modules", "./app/dist"] 
 }

@@ -29,6 +29,6 @@
       /* No Emitting Files */
       "noEmit": true
     },
-    "include": ["./app/**/*", "./vite.config.ts" /*, "app/js/MLSSearch.ts"*/],
+    "include": ["./app/**/*", "./extensions/app/**/*", "./vite.config.ts" /*, "app/js/MLSSearch.ts"*/],
     "exclude": ["./node_modules", "./public/dist"]
   }
