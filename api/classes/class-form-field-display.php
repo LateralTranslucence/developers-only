@@ -762,6 +762,12 @@ class DO_Form_Field_Display {
         if ( count( (array) $value ) ) {
             $output .= '<table class="read-only-json" cellpadding="0" cellspacing="0" border="0">';
             foreach ( (array) $value as $data_label => $data_value ) {
+                // A form submission stores { field ID: { label, value } };
+                // older ones stored { label: value }.
+                if ( is_object( $data_value ) && property_exists( $data_value, 'label' ) && property_exists( $data_value, 'value' ) && count( get_object_vars( $data_value ) ) === 2 ) {
+                    $data_label = is_scalar( $data_value->label ) && strlen( (string) $data_value->label ) ? (string) $data_value->label : $data_label;
+                    $data_value = $data_value->value;
+                }
                 // Submitted by anonymous visitors: escape both columns.
                 $data_value = is_scalar( $data_value ) ? (string) $data_value : wp_json_encode( $data_value );
                 $output .= '<tr>';

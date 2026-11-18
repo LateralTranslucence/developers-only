@@ -160,6 +160,15 @@ class DO_Form_Builder {
                     ];
                     break;
             }
+            // Two fields with the same label and no ID would get the same
+            // name, and the second replaced the first. Number the repeat
+            // instead (name-2), so the first keeps the name it always had.
+            if ( isset( $fields[ $field_name ] ) ) {
+                $base_name = $field_name;
+                for ( $n = 2; isset( $fields[ $field_name ] ); $n++ ) {
+                    $field_name = $base_name . '-' . $n;
+                }
+            }
             $fields[ $field_name ] = [
                 'hidden' => $field_hidden,
                 'field_type' => $field_type,
