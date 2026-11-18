@@ -15,7 +15,9 @@ class DO_Send_Simple_Email {
             return null;
         }
         $default_from_address = get_option( 'admin_email' );
-        $default_from_name = get_bloginfo( 'name' );
+        // get_bloginfo() returns the name HTML-escaped ("Tom&#039;s"); a mail
+        // header wants the plain text.
+        $default_from_name = wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES );
 
         // Recipients arrive either as a comma-separated string (the "simple send"
         // path reads one meta field) or as an array (the routing-logic path maps

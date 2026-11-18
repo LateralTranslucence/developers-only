@@ -39,7 +39,8 @@ const Icon: React.FC<IconProps> = ( props ): JSX.Element | null => {
             }
             const response = await fetch( svgUrl, { signal: controller.signal } );
             if ( response.ok ) {
-                setIcon( { source, svg: sanitizeSVG( await response.text() ) } );
+                // Decorative (aria-hidden below), so nothing in it may take focus
+                setIcon( { source, svg: sanitizeSVG( await response.text(), { decorative: true } ) } );
             }
         } )().catch( () => {} );
         return () => controller.abort();

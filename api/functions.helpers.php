@@ -85,7 +85,8 @@ function devo_rest_prepare_depth( $change = 0 ) {
  * Keyed by the nesting level as well as the post, because a post's nested
  * post_browser data is cut short past three levels, so the same post prepared
  * at different depths differs. devo_rest_memo_flush() empties it when any
- * post or its meta changes. */
+ * post or its meta changes, and devo_rest_memo_store() caps its size for
+ * long-running processes. */
 function &devo_rest_memo() {
     static $memo = [ 'custom_data' => [], 'prepared' => [] ];
     return $memo;
@@ -93,6 +94,23 @@ function &devo_rest_memo() {
 function devo_rest_memo_flush() {
     $memo = &devo_rest_memo();
     $memo = [ 'custom_data' => [], 'prepared' => [] ];
+}
+/* Stores one entry in a memo bucket ('custom_data' or 'prepared'). A web
+ * request is short-lived, but a WP-CLI command or cron job that prepares
+ * thousands of posts in one process would otherwise keep every one in memory,
+ * so each bucket holds at most devo_rest_memo_limit entries (filterable,
+ * default 500) and drops the oldest first. */
+function devo_rest_memo_store( $bucket, $key, $value ) {
+    static $limit = NULL;
+    if ( $limit === NULL ) {
+        $limit = max( 1, (int) apply_filters( 'devo_rest_memo_limit', 500 ) );
+    }
+    $memo = &devo_rest_memo();
+    unset( $memo[ $bucket ][ $key ] );
+    $memo[ $bucket ][ $key ] = $value;
+    while ( count( $memo[ $bucket ] ) > $limit ) {
+        unset( $memo[ $bucket ][ array_key_first( $memo[ $bucket ] ) ] );
+    }
 }
 foreach ( [ 'added_post_meta', 'updated_post_meta', 'deleted_post_meta', 'clean_post_cache' ] as $devo_memo_hook ) {
     add_action( $devo_memo_hook, 'devo_rest_memo_flush', 10, 0 );
@@ -162,7 +180,7 @@ function devo_api_custom_data( $post, $post_type_details = FALSE ) {
         // through here already had its date and excerpt formatted. A hit
         // copies these back, so the excerpt is never autop'd twice.
         if ( $memo_key && is_string( $original_post_date ) ) {
-            $memo['custom_data'][ $memo_key ] = get_object_vars( $post );
+            devo_rest_memo_store( 'custom_data', $memo_key, get_object_vars( $post ) );
         }
     }
     return $post;
@@ -320,7 +338,7 @@ function devo_rest_prepare_post( $post, $request = NULL ) {
             $data = devo_rest_theme_fields( $post, FALSE, $request );
         }
         if ( $memo_key ) {
-            $memo['prepared'][ $memo_key ] = $data;
+            devo_rest_memo_store( 'prepared', $memo_key, $data );
         }
         return $data;
     } finally {
@@ -1542,8 +1560,18 @@ function devo_plain_text( $value ) {
     if ( ! is_scalar( $value ) ) {
         return '';
     }
-    $text = html_entity_decode( wp_strip_all_tags( (string) $value ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-    return trim( wp_strip_all_tags( $text ) );
+    $text = html_entity_decode( devo_strip_tags( (string) $value ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+    return trim( devo_strip_tags( $text ) );
+}
+
+// Like wp_strip_all_tags(), but only removes things shaped like markup.
+// strip_tags() treats any "<" as the start of a tag and drops everything after
+// it, so a plain-text label "x<y" came back as "x". Here a "<" only opens a tag
+// when a letter, "/", "!" or "?" follows it.
+function devo_strip_tags( $text ) {
+    $text = preg_replace( '@<(script|style)[^>]*?>.*?</\\1\s*>@si', '', (string) $text );
+    $text = preg_replace( '@<!--.*?-->|<[/!?]?[a-zA-Z][^>]*>@s', '', (string) $text );
+    return (string) $text;
 }
 
 // Retrieves and formats seo field value from options

@@ -36,7 +36,7 @@ This is a **hybrid-headless WordPress theme**. PHP handles the CMS and a custom 
 
 `functions.php` reads the Vite manifest at `public/dist/.vite/manifest.json` and enqueues the compiled bundle into every WordPress page (with `$ver = null` — a `?ver=` query on the module script would double-evaluate the entry and mount a second React root). `header.php` opens the document (including `<body>`, `body_class()` and `wp_body_open()`) and `index.php` renders the `<div id="root">`; `devo_js_globals()` injects PHP globals (`window.devoEnv`, `window.homeURL`, `window.relativeHomeURL`, `window.devoCookieConsentText`, `window.devoSiteName`, `window.devoLocale`, `window.devoPrivacyPolicyURL`, `window.devoRestBases`). React mounts into `#root` and takes over all routing.
 
-The theme ships no analytics. `CookieConsent.tsx` records the visitor's choice in the `devo_cookie_consent` cookie and dispatches a `devo:cookie-consent` DOM event, so an extension can gate its own tags either server-side (read the cookie on `wp_head`) or client-side (listen for the event). Copy for the banner comes from the `devo_cookie_consent_text` filter.
+The theme ships no analytics. `CookieConsent.tsx` records the visitor's choice in the `devo_cookie_consent` cookie and dispatches a `devo:cookie-consent` DOM event, so an extension can gate its own tags either server-side (read the cookie on `wp_head`) or client-side (listen for the event). Copy for the banner comes from the `devo_cookie_consent_text` filter. Visitors reopen the banner to change their choice through any link ending in `#cookie-consent`, an element with `data-cookie-consent-open`, or a `devo:cookie-consent-open` event on `document`.
 
 Vite entry points:
 - `app/index.tsx` — React app

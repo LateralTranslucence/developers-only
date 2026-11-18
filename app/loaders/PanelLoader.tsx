@@ -46,13 +46,15 @@ const extensionPanels = import.meta.glob<{ default: React.ComponentType<PanelPro
 for ( const path in extensionPanels ) {
     const name = path.replace( /^.*\//, '' ).replace( /\.tsx$/, '' );
     const key = pascalToKebab( name );
-    if ( ! ( key in components ) ) {
+    if ( ! Object.prototype.hasOwnProperty.call( components, key ) ) {
         components[ key ] = lazy( extensionPanels[ path ] );
     }
 }
 
 const PanelLoader: React.FC<PanelProps> = ( props ) => {
-    const ComponentName = props.name ? components[ props.name ] : null;
+    // Own entries only: a panel type such as "constructor" or "toString"
+    // would otherwise pick up Object.prototype and try to render it
+    const ComponentName = props.name && Object.prototype.hasOwnProperty.call( components, props.name ) ? components[ props.name ] : null;
 
     if ( ComponentName ) {
         return (

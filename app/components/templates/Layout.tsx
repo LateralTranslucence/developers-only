@@ -9,6 +9,11 @@ import '@/styles/components/to-top.scss';
 
 const MIN_LOAD_MS = 1000;
 
+// Whether a page has finished loading since the app started. The first page
+// is a normal browser page load, so focus is left where the browser puts it;
+// every later one is a client-side navigation (see PageView).
+let initialPageLoaded = false;
+
 interface LayoutProps {
     // Render the page alone, without header and footer, for display inside a
     // modal's <iframe> (the /iframe/... routes)
@@ -29,6 +34,7 @@ const PageView: React.FC<Required<Pick<LayoutProps, 'iframe' | 'notFound'>> & { 
     const [ contentLoaded, setContentLoaded ] = useState<boolean>( false );
     const loadStartRef = useRef<number>( 0 );
     const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>( null );
+    const mainRef = useRef<HTMLElement | null>( null );
 
     // A layout effect runs before any child's passive effect, so the start
     // time is set before TemplateLoader can report the content loaded
@@ -51,6 +57,31 @@ const PageView: React.FC<Required<Pick<LayoutProps, 'iframe' | 'notFound'>> & { 
         const remaining = Math.max( 0, MIN_LOAD_MS - ( Date.now() - loadStartRef.current ) );
         loadTimerRef.current = setTimeout( () => setContentLoaded( true ), remaining );
     }, [] );
+
+    // A client-side navigation swaps <main> without a page load, so a screen
+    // reader says nothing and keyboard focus stays on the link that was
+    // followed (or drops to <body> once it's gone). Move focus to the new
+    // page's <h1>, which is read out, or to <main> when there isn't one. Not
+    // when the URL has a #fragment: that target gets the visitor's attention.
+    useEffect( () => {
+        if ( ! contentLoaded || iframe ) {
+            return;
+        }
+        if ( ! initialPageLoaded ) {
+            initialPageLoaded = true;
+            return;
+        }
+        const main = mainRef.current;
+        if ( ! main || window.location.hash ) {
+            return;
+        }
+        const heading: HTMLElement | null = main.querySelector( 'h1' );
+        const target: HTMLElement = heading ?? main;
+        if ( ! target.hasAttribute( 'tabindex' ) ) {
+            target.setAttribute( 'tabindex', '-1' );
+        }
+        target.focus( { preventScroll: true } );
+    }, [ contentLoaded, iframe ] );
 
     const content = (
         <ErrorBoundary onError={ iframe ? undefined : handleLoad }>
@@ -75,7 +106,7 @@ const PageView: React.FC<Required<Pick<LayoutProps, 'iframe' | 'notFound'>> & { 
     return (
         <>
             { ! contentLoaded && <Loading /> }
-            <main id="content" className={ [ ...mainElementClasses, contentLoaded ? 'content-loaded' : '' ].filter( Boolean ).join( ' ' ) }>
+            <main id="content" ref={ mainRef } className={ [ ...mainElementClasses, contentLoaded ? 'content-loaded' : '' ].filter( Boolean ).join( ' ' ) }>
                 { content }
             </main>
             <BackToTopButton />

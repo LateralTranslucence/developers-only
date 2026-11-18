@@ -81,11 +81,15 @@ class DO_Search {
         $current_query['posts_per_page'] = devo_clamp_posts_per_page( is_scalar( $query_per_page ) && strlen( (string) $query_per_page ) ? $query_per_page : 16, 16 );
         $current_query['paged']          = isset( $query_params['paged'] ) && is_scalar( $query_params['paged'] ) ? max( 1, absint( $query_params['paged'] ) ) : 1;
         $current_query['s']              = isset( $query_params['s'] ) && is_string( $query_params['s'] ) ? sanitize_text_field( $query_params['s'] ) : '';
-        if ( isset( $query_params['sort'] ) && is_string( $query_params['sort'] ) ) {
+        // Only the sort options the panel offers (its Custom Sort By rows, or
+        // the defaults). Any other value would let a request order results by
+        // an arbitrary meta key, which reveals the ordering of private values.
+        // Anything else falls back to the panel's first option.
+        $sort_options = array_map( 'strval', array_keys( $this->organize_sort_settings( $this->custom_sort_rows( $post_id, $meta_prefix, $meta_suffix ) ) ) );
+        if ( isset( $query_params['sort'] ) && is_string( $query_params['sort'] ) && in_array( $query_params['sort'], $sort_options, TRUE ) ) {
             $current_query['sort'] = $query_params['sort'];
-        } elseif ( strlen( $default_sort = $this->sort_row_part( current( $this->custom_sort_rows( $post_id, $meta_prefix, $meta_suffix ) ), 'value' ) ) ) {
-            // The panel's first Custom Sort By option
-            $current_query['sort'] = $default_sort;
+        } elseif ( count( $sort_options ) ) {
+            $current_query['sort'] = $sort_options[0];
         } else {
             $current_query['sort'] = 'date_desc';
         }

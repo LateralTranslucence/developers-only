@@ -5,7 +5,9 @@ components, single-post templates, and styles - that's kept separate from the
 core theme (`api/`, `app/`) so core files never need to be touched to add one.
 
 Everything in here is **auto-discovered**. Drop a correctly-named/located file
-in and it's picked up automatically; nothing needs to be registered elsewhere.
+in and it's picked up automatically, with one exception: a new panel type also
+has to be added to the panel type list in wp-admin with the `devo_panel_types`
+filter, or editors can't choose it (see "Panel components" below).
 
 This folder is part of the theme, so updating the theme from a zip replaces it
 along with everything else. Keep it under your own version control (a fork of
@@ -81,6 +83,11 @@ URLs use the `slug` (`/{slug}/{post-name}/`). When `rest_slug` differs (say
 the REST base up in `window.devoRestBases`, which `devo_js_globals()` builds
 from every public post type, so `/work/acme/` loads `/wp/v2/case-study` and
 renders `CaseStudy.tsx`. Nothing needs registering.
+
+Media items have no core template. `/media/{slug}/` maps to the theme's
+`/wp/v2/media-library/` route, so a `MediaLibrary.tsx` template (key
+`media-library`) is what renders them; until one exists those URLs show the
+404 page.
 
 Extension TSX is type-checked with the rest of the app, so `npm run build`
 fails on a type error in a panel or template.

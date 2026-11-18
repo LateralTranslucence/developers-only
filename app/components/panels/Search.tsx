@@ -135,6 +135,10 @@ const Search: React.FC<PanelProps> = ( {
     const [ hasFetched, setHasFetched ] = useState( false );
     // The last request failed: say so, rather than "nothing matched"
     const [ failed, setFailed ] = useState( false );
+    // Bumped by the Try Again button to re-send the same query. Without it a
+    // failed first request left no form (its fields come from the response),
+    // so only a reload could retry.
+    const [ attempt, setAttempt ] = useState( 0 );
 
     // Layout keys the page by pathname, so a link from /search/?s=foo to
     // /search/?s=bar keeps this panel mounted. Start a new query from the
@@ -171,7 +175,7 @@ const Search: React.FC<PanelProps> = ( {
                 }
             } );
         return () => controller.abort();
-    }, [ query, postID, panelPrefix, panelSuffix ] );
+    }, [ query, postID, panelPrefix, panelSuffix, attempt ] );
 
     // Reads the form into the query. Any change but paging starts again at
     // page 1.
@@ -186,13 +190,12 @@ const Search: React.FC<PanelProps> = ( {
         const nextQuery: Record<string, string> = {};
         for ( const [ key, value ] of formData.entries() ) {
             if ( typeof value === 'string' && value.length > 0 ) {
-                if ( value.indexOf( '=' ) !== -1 ) {
-                    const [ , parsedValue ] = value.split( '=' );
-                    if ( parsedValue ) {
-                        nextQuery[ key ] = parsedValue;
-                    }
-                } else {
-                    nextQuery[ key ] = value;
+                // Hidden fields hold "name=value"; strip only that prefix, so
+                // a value that itself contains "=" (a keyword like "a=b", or
+                // "x=1=2") isn't cut short
+                const parsedValue = value.startsWith( key + '=' ) ? value.slice( key.length + 1 ) : value;
+                if ( parsedValue ) {
+                    nextQuery[ key ] = parsedValue;
                 }
             }
         }
@@ -210,6 +213,10 @@ const Search: React.FC<PanelProps> = ( {
         searchSubmit( fieldName === 'paged' );
     };
 
+    const resultsAnnouncement = results.posts.length > 0
+        ? ( results.results_statement.text || `${ results.posts.length } results` )
+        : 'Nothing matched your search criteria.';
+
     if ( hasFetched || Object.keys( results.ui ).length > 0 || results.posts.length > 0 || results.results_statement.criteria.length > 0 ) {
         return (
             <div id="search-results">
@@ -219,8 +226,14 @@ const Search: React.FC<PanelProps> = ( {
                     <SearchResultsStatement results={ results } updateCriteria={ updateCriteria } />
                     <SearchSortBy results={ results } updateCriteria={ updateCriteria } />
                 </div>
+                {/* Announces each new set of results; the visible statement
+                    holds buttons, so it can't be the live region itself */}
+                <p className="screenReader" role="status">{ failed ? '' : resultsAnnouncement }</p>
                 { failed ?
-                    <div id="search-results-wrapper"><p className="search__error" role="alert">Sorry, the search couldn't be completed. Please try again.</p></div>
+                    <div id="search-results-wrapper">
+                        <p className="search__error" role="alert">Sorry, the search couldn't be completed.</p>
+                        <button type="button" className="search__retry search-action" onClick={ () => setAttempt( ( n ) => n + 1 ) }>Try again</button>
+                    </div>
                 : results.posts.length > 0 ?
                     <div id="search-results-wrapper">
                         <ul className={ 'search__results blocks ' + ( templateType !== 'list' ? 'blocks--post blocks--' + convertNumberToWords( panelPerRow ) : '' ) + ( panelPostsModal ? ' blocks--modals' : '' ) + ' blocks--' + templateType }>

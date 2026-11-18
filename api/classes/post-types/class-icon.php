@@ -40,6 +40,12 @@ class DO_Icon extends DO_Custom_Post_Type {
         $attachment_id = devo_get_media_by_url( $POST['icon_file'], 'thumbnail', 'id' );
         if ( ! $attachment_id ) return $POST;
 
+        $POST['icon_preview'] = $POST['icon_file'];
+        // Everything below edits the attachment (its file, title, content and
+        // meta), which may be someone else's upload. Leave it alone unless
+        // this user could edit it in the media library.
+        if ( ! current_user_can( 'edit_post', $attachment_id ) ) return $POST;
+
         $file_path = get_attached_file( $attachment_id );
         if ( $file_path && strtolower( pathinfo( $file_path, PATHINFO_EXTENSION ) ) === 'svg' ) {
             $svg = file_get_contents( $file_path );
@@ -63,7 +69,6 @@ class DO_Icon extends DO_Custom_Post_Type {
         );
         clean_post_cache( $attachment_id );
 
-        $POST['icon_preview'] = $POST['icon_file'];
         return $POST;
     }
 

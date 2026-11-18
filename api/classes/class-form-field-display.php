@@ -741,7 +741,10 @@ class DO_Form_Field_Display {
         // Read-only values can come from anonymous visitors (a form
         // submission's stored form ID), so every path out is escaped.
         $value = is_scalar( $this->value ) ? (string) $this->value : wp_json_encode( $this->value );
-        $binary = $this->value === '1' || $this->value === '0' || $this->value === TRUE || $this->value === FALSE;
+        // Only a real boolean (a manual field's value) reads as True/False. The
+        // strings "1" and "0" are just as likely an ID, such as a submission's
+        // form ID.
+        $binary = is_bool( $this->value );
         $email = is_email( $value );
         $link = strpos( $value, 'http' ) === 0;
         $output = '<textarea name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" style="display: none">' . esc_textarea( $value ) . '</textarea>';
@@ -809,10 +812,26 @@ class DO_Form_Field_Display {
             }
             $output .= '<select name="' . esc_attr( $this->field_name . ( $is_select_multiple ? '[]' : '' ) ) . '" ' . $css_attribute . '="' . esc_attr( $this->field_id ) . '"' . ( $this->disabled ? ' disabled="disabled" class="devo-disabled"' : '' ) . ( $is_select_multiple ? ' multiple' : '' ) . '>';
             $output .= '<option value="">' . esc_html( $this->label ? $this->label : __( 'Select', 'developers_only' ) ) . '</option>';
+            $option_values = [];
             foreach ( $this->field_options as $option ) {
                 $option_label = isset( $option['label'] ) ? $option['label'] : $option;
                 $option_value = isset( $option['value'] ) ? $option['value'] : $option;
+                $option_values[] = (string) $option_value;
                 $output .=  '<option value="' . esc_attr( $option_value ) . '" ' . ( $is_select_multiple ? ( in_array( $option_value, ( is_array( $this->value ) ? $this->value : [ $this->value ] ) ) ? ' selected="selected"' : '' ) : selected( $option_value, $this->value, FALSE ) ) . '>' . esc_html( ( $this->in_a_multi ? $this->label . ' - ' : '' ) . $option_label ) . '</option>';
+            }
+            // A stored value that is no longer an option (a post type that has
+            // since been made non-public or removed, say) had nothing selected,
+            // so the browser showed and saved the placeholder instead and the
+            // value was lost on the next save. Keep it, selected, and say why.
+            // admin.js drops these when it clones a row for a new entry.
+            $stored_values = $is_select_multiple ? ( is_array( $this->value ) ? $this->value : [] ) : [ $this->value ];
+            foreach ( $stored_values as $stored_value ) {
+                if ( ! is_scalar( $stored_value ) || ! strlen( (string) $stored_value ) || in_array( (string) $stored_value, $option_values, TRUE ) ) {
+                    continue;
+                }
+                /* translators: %s: a stored value that is not one of the field's options. */
+                $unavailable_label = sprintf( __( '%s (no longer available)', 'developers_only' ), $stored_value );
+                $output .= '<option class="devo-unavailable-option" value="' . esc_attr( $stored_value ) . '" selected="selected">' . esc_html( ( $this->in_a_multi ? $this->label . ' - ' : '' ) . $unavailable_label ) . '</option>';
             }
             $output .= '</select>';
         }

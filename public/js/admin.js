@@ -268,6 +268,8 @@ const array_add_field = function(e) {
     //if ( ! in_a_multi ) {
         $new_field.attr('data-i', i+1);
     //}
+    // A kept-but-unavailable stored value belongs to the row it came from
+    $new_field.find('option.devo-unavailable-option').remove();
     const $new_field_fields = $new_field.find('input:not(.search), select, textarea');
     if($new_field_fields.length) {
         $new_field_fields.each(index => {
