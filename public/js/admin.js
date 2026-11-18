@@ -51,10 +51,17 @@ const devo_disabled = function() {
     		value = vals.join(';');
     		name = $this.attr('name').replace('[]', '');
         } else {
-    		value = $this.attr('value');
+    		// .val(), not .attr('value'): a <select> has no value attribute,
+    		// so .attr() gave undefined and the hidden input posted "undefined".
+    		value = $this.val();
     		name = $this.attr('name');
     	}
-    	$this.before('<input type="hidden" value="'+value+'" name="'+name+'">');
+    	// A disabled select-multiple (name ending "[]") gives an array; post one
+    	// input per value, as the enabled field would.
+    	const values = Array.isArray(value) ? value : [value ?? ''];
+    	values.forEach(function(v) {
+    		$this.before(jQuery('<input type="hidden">').attr('name', name).val(v));
+    	});
     	$this.after('<span class="devo-enable">Enable</span>');
     });
     jQuery(document).on('click', '.devo-enable', function(e) {
