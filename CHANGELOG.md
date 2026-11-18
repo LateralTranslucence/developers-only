@@ -97,13 +97,16 @@ render, and the submit route only accepts values they can produce.
   `input.form-field__button-select-input:checked + label` and
   `:focus-visible + label` to make the labels look like buttons.
 - **Range Slider** uses the field's Min, Max and Increment (whole numbers,
-  defaulting to 0, 100 and 1) and starts at the minimum. In `/devo-form`
-  responses these are now `settings.min`, `settings.max` and `settings.step`.
-  They used to be sent as `options.settings`.
+  defaulting to 0, 100 and 1) and starts at the minimum. Each is clamped to
+  between -1,000,000,000 and 1,000,000,000. In `/devo-form` responses these
+  are now `settings.min`, `settings.max` and `settings.step`. They used to be
+  sent as `options.settings`.
 - **Toggle**: the first option is "off" and the default, and the second is
   "on". Off is sent as the first option's value. With a single option, that
   option is "on" and off sends nothing, so a required toggle has to be
-  switched on, as for a consent switch. In `/devo-form` responses these are
+  switched on, as for a consent switch. With two options a value is always
+  sent, so a required two-option toggle shows no asterisk and has no
+  `aria-required`, like a range slider. In `/devo-form` responses these are
   `settings.off` and `settings.on`.
 - The submit route treats a radio, button select, select or toggle value
   that isn't one of the field's options, or a range value off its scale, as
@@ -172,3 +175,17 @@ now limited:
 - **`/wp-json/wp/v2/devo-search/`**: `sort` only accepts the search panel's
   own sort options (its Custom Sort By rows, or the defaults). Any other
   value falls back to the panel's first option.
+
+### Known behaviour
+
+These are intentional, and aren't changing:
+
+- **Choice fields store and email the option's value, not its label.** For
+  a select, radio, button select or toggle, the submission, its Data table
+  and the alert email hold the value of the option that was picked. Email
+  Submissions Logic routes by that value, so it has to be what's stored.
+  Give options readable values if the email should read well.
+- **Checkbox values aren't checked against their options.** The submit
+  route only checks the types listed under "Form fields" above (radio,
+  button select, select, toggle and range slider). A checkbox group's values
+  are sanitised and stored as sent.
