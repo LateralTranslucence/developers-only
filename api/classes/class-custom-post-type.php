@@ -1367,6 +1367,16 @@ abstract class DO_Custom_Post_Type {
                         $is_multi = strpos( $type, 'multi' ) !== FALSE;
                         //$type = $array && ! $is_multi ? str_replace( '_array', '', $type ) : $type;
 
+                        // Read-only fields (a form submission's form ID and
+                        // data) are written by code, never by this screen.
+                        // Keep the stored value rather than round-tripping it
+                        // through the hidden textarea, which re-sanitises it
+                        // and loses it if it doesn't decode.
+                        if ( in_array( $type, [ 'read_only', 'read_only_json' ], TRUE ) ) {
+                            $saved_keys[] = $meta_field_key;
+                            continue;
+                        }
+
                         // Custom callback
                         if ( strpos( $type, '_callback' ) !== FALSE ) {
                             $callback = $type;

@@ -14,7 +14,7 @@ function add_nav_menu_custom_fields_rest_api() {
                 return devo_get_post_meta( $object['id'], '_menu_mega_menu' );
             },
             'update_callback' => function( $value, $object ) {
-                return update_post_meta( $object->ID, '_menu_mega_menu', $value );
+                return update_post_meta( $object->ID, '_menu_mega_menu', wp_slash( $value ) );
             },
         ],
     );
@@ -27,7 +27,7 @@ function add_nav_menu_custom_fields_rest_api() {
                 return devo_get_post_meta( $object['id'], '_menu_icon' );
             },
             'update_callback' => function( $value, $object ) {
-                return update_post_meta( $object->ID, '_menu_icon', $value );
+                return update_post_meta( $object->ID, '_menu_icon', wp_slash( $value ) );
             },
         ],
     );
@@ -40,7 +40,7 @@ function add_nav_menu_custom_fields_rest_api() {
                 return devo_get_post_meta( $object['id'], '_menu_media_icon' );
             },
             'update_callback' => function( $value, $object ) {
-                return update_post_meta( $object->ID, '_menu_media_icon', $value );
+                return update_post_meta( $object->ID, '_menu_media_icon', wp_slash( $value ) );
             },
         ],
     );
@@ -507,9 +507,11 @@ function devo_form_submit_query( $data ) {
     ];
     $submission_id = wp_insert_post( $create_submission_args );
     if ( $submission_id && ! is_wp_error( $submission_id ) ) {
-        update_post_meta( $submission_id, 'submission_email', $email_address ? $email_address : '' );
-        update_post_meta( $submission_id, 'submission_form_id', $form_id );
-        update_post_meta( $submission_id, 'submission_data', wp_json_encode( $json_encode_me ) );
+        // update_post_meta() unslashes, so slash first or the JSON's own
+        // escapes (é, \") are stripped and the stored value breaks.
+        update_post_meta( $submission_id, 'submission_email', wp_slash( $email_address ? $email_address : '' ) );
+        update_post_meta( $submission_id, 'submission_form_id', wp_slash( $form_id ) );
+        update_post_meta( $submission_id, 'submission_data', wp_slash( wp_json_encode( $json_encode_me ) ) );
     }
 
     // Submission Email Alert (internal)
