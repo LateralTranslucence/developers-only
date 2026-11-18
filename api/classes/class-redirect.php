@@ -48,13 +48,16 @@ class DO_Redirect {
 		if ( ! isset( $wp_query->query_vars['devo_redirect'] ) || ! is_string( $wp_query->query_vars['devo_redirect'] ) ) {
 			return $template;
 		}
-		$requested = urldecode( $wp_query->query_vars['devo_redirect'] );
+		// Already decoded: WordPress parse_str()s the rewrite's query, so
+		// decoding again turned "+" into a space and %xx into its character,
+		// and targets containing either never matched
+		$requested = $wp_query->query_vars['devo_redirect'];
 		$destination = FALSE;
 		if ( strpos( $this->from_path, '[slug]' ) !== FALSE && strpos( $this->to_url, '[slug]' ) !== FALSE ) {
 			$target_template = trim( $this->to_url, '/' );
 			$pattern = '#^' . str_replace( '\\[slug\\]', '([^/]+)', preg_quote( $target_template, '#' ) ) . '$#';
 			if ( preg_match( $pattern, $requested, $matches ) ) {
-				$destination = str_replace( '[slug]', rawurlencode( urldecode( $matches[1] ) ), $target_template );
+				$destination = str_replace( '[slug]', rawurlencode( $matches[1] ), $target_template );
 			}
 		} elseif ( $requested === $this->to_url ) {
 			$destination = $this->to_url;
