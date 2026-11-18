@@ -1,4 +1,5 @@
 import React, { JSX } from 'react';
+import { useLocation } from 'react-router-dom';
 import { evenOdd, getBackgroundField, getBackgroundStyle, getBooleanField, getStringField, panelClasses as getPanelClasses, parse, sanitizeTitleWithDashes } from '@/utils/helpers';
 import PanelLoader from '@/loaders/PanelLoader';
 import PanelWrapper from '@/components/layout/PanelWrapper';
@@ -116,9 +117,14 @@ const PanelContent: React.FC<PanelProps> = ( {
 // One panel of a landing page, in its own error boundary: a panel with bad
 // data, or an extension panel that throws (or has no default export), drops
 // out on its own instead of replacing the whole page.
+//
+// Reset on any URL change, query string included: Layout keeps the page
+// mounted across ?s=a -> ?s=b, and a panel that failed on one query (a search
+// panel, say) should get another try on the next.
 const Panel: React.FC<PanelProps> = ( props ): JSX.Element => {
+    const location = useLocation();
     return (
-        <ErrorBoundary fallback={ <PanelError panelNumber={ props.panelNumber } /> }>
+        <ErrorBoundary fallback={ <PanelError panelNumber={ props.panelNumber } /> } resetKey={ location.pathname + location.search }>
             <PanelContent { ...props } />
         </ErrorBoundary>
     );

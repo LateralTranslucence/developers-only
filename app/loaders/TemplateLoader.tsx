@@ -30,13 +30,15 @@ const extensionTemplates = import.meta.glob<{ default: React.ComponentType<Templ
 for ( const path in extensionTemplates ) {
     const name = path.replace( /^.*\//, '' ).replace( /\.tsx$/, '' );
     const key = pascalToKebab( name );
-    if ( ! ( key in templates ) ) {
+    if ( ! Object.prototype.hasOwnProperty.call( templates, key ) ) {
         templates[ key ] = lazy( extensionTemplates[ path ] );
     }
 }
 
 // URL post type segments whose REST base differs, when PHP hasn't said
-// (restBases covers every post type it registers)
+// (restBases covers every post type it registers). There is no core
+// 'media-library' template: /media/{slug}/ renders only once an extension adds
+// MediaLibrary.tsx (see extensions/README.md), and is a 404 until then.
 const postTypeAliases: Record<string, string> = {
     'media': 'media-library',
     'page': 'simple-page',
