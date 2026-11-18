@@ -11,6 +11,7 @@ const Binary: React.FC<FormFieldProps> = ( { field, error = false } ) => {
         value: 1,
         className: 'form-field__checkbox',
         defaultChecked: Boolean( currentValue ),
+        'aria-required': field.required || undefined,
     };
     return (
         <ul className="field-list">
