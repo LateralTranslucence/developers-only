@@ -13,6 +13,16 @@ const attributeFlag = ( value: string | undefined ): boolean => {
     return [ '', 'true', '1', 'yes', 'on', 'modal' ].includes( value.trim().toLowerCase() );
 };
 
+// Whether an element sits inside an <svg>
+const insideSVG = ( domNode: Element ): boolean => {
+    for ( let parent = domNode.parent; parent; parent = parent.parent ) {
+        if ( parent instanceof Element && parent.name.toLowerCase() === 'svg' ) {
+            return true;
+        }
+    }
+    return false;
+};
+
 const classList = ( value: string | undefined ): Array<string> => {
     return value ? value.split( /\s+/ ).filter( Boolean ) : [];
 };
@@ -22,13 +32,13 @@ const classList = ( value: string | undefined ): Array<string> => {
  *
  * The theme's own tags become components: <cta> (CTA), <image> (Image) and
  * <socialmenu>. Every element is filtered on the way through (see
- * utils/helpers/sanitize.ts): script, object, embed, frame, base, meta and
- * link elements are dropped (React 19 would hoist the last three into
- * <head>), as are SVG animations that target an href; inline event
- * handlers, srcdoc, and javascript:/vbscript:/data: URLs are stripped. React
- * 19 will load a <script async src> it renders, so this matters. It is a
- * blocklist and defence in depth, not a full sanitizer: the server is
- * responsible for what it stores.
+ * utils/helpers/sanitize.ts): script, object, embed, frame, base, meta,
+ * link, and (outside an <svg>) title elements are dropped (React 19 would
+ * hoist the last three into <head>), as are SVG animations that target an
+ * href; inline event handlers, srcdoc, and javascript:/vbscript:/data: URLs
+ * are stripped. React 19 will load a <script async src> it renders, so this
+ * matters. It is a blocklist and defence in depth, not a full sanitizer: the
+ * server is responsible for what it stores.
  */
 const parse: ( string: string | JSX.Element ) => React.ReactElement | string = ( string ): React.ReactElement | string => {
     if ( string === null || string === undefined || string === '' ) {
@@ -39,7 +49,7 @@ const parse: ( string: string | JSX.Element ) => React.ReactElement | string = (
             if ( ! ( domNode instanceof Element ) ) {
                 return undefined;
             }
-            if ( isBlockedElement( domNode.name ) ) {
+            if ( isBlockedElement( domNode.name, insideSVG( domNode ) ) ) {
                 return <></>;
             }
             // The attribute is attributeName in a browser-parsed DOM and
