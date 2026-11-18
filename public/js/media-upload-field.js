@@ -11,6 +11,9 @@ var delete_button = function($obj) {
         }
     });
 };
+var preview_image = function(url) {
+    return jQuery('<img height="100" class="media-upload-preview">').attr('src', url);
+};
 var delete_action = function(e, mode) {
     var $preview_wrapper = jQuery(e.target).parents('span.media-upload-preview-wrapper');
     if(mode == 'gallery') {
@@ -31,17 +34,20 @@ var admin_media_click_events = function() {
         var field_name = jQuery(this).attr('name');
         var send_meta_attachment = wp.media.editor.send.attachment;
         wp.media.editor.send.attachment = function(props, attachment) {
+            // Build nodes rather than an HTML string, so the attachment's URL
+            // and filename are only ever set as attribute values or text.
+            var input_name = field_name + '[' + $attachments.length + ']';
+            var newImage = jQuery('<span class="media-upload-preview-wrapper"></span>');
             if ($previews_wrapper.parents('div.gallery-wrapper').hasClass('gallery')) {
-                var newImage = '<span class="media-upload-preview-wrapper">';
-                newImage += '<img src="' + attachment.url + '" height="100" class="media-upload-preview">';
-                newImage += '<input type="hidden" class="media-upload-field" name="' + field_name + '[' + $attachments.length + ']" id="'+ field_name +'[' + $attachments.length + ']" value="'+ attachment.id +'">';
-                newImage += '</span>';
+                newImage.append(preview_image(attachment.url));
             } else {
-                var newImage = '<span class="media-upload-preview-wrapper">';
-                newImage += attachment.filename;
-                newImage += '<input type="hidden" class="media-upload-field" name="' + field_name + '[' + $attachments.length + ']" id="'+ field_name +'[' + $attachments.length + ']" value="'+ attachment.id +'">';
-                newImage += '</span>';
+                newImage.append(document.createTextNode(attachment.filename));
             }
+            newImage.append(
+                jQuery('<input type="hidden" class="media-upload-field">')
+                    .attr({ name: input_name, id: input_name })
+                    .val(attachment.id)
+            );
             if($attachments.length) {
                $attachments.last().after(newImage);
             } else {
@@ -64,7 +70,10 @@ var admin_media_click_events = function() {
                 if($preview_image.length) {
                     $preview_image.attr('src', attachment.url);
                 } else {
-                    $this.after('<br><span class="media-upload-preview-wrapper"><img src="' + attachment.url + '" height="100" class="media-upload-preview"></span>');
+                    $this.after(
+                        '<br>',
+                        jQuery('<span class="media-upload-preview-wrapper"></span>').append(preview_image(attachment.url))
+                    );
                 }
             }
             delete_button(jQuery('span.media-upload-preview-wrapper'));
