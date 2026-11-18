@@ -83,6 +83,19 @@ export const isUnsafeAnimation = ( tagName: string, attributeName: string | unde
 };
 
 /*
+ * Whether an SVG element is an animation that targets an href. Attribute
+ * lookups in an XML document are case-sensitive, so getAttribute(
+ * 'attributeName' ) misses attributename="href" or ATTRIBUTENAME="xlink:href",
+ * which the HTML parser then normalises to attributeName when the markup is
+ * injected. So every attribute is checked, whatever its case.
+ */
+const isUnsafeSVGAnimation = ( element: Element ): boolean => {
+    return Array.from( element.attributes ).some( ( attribute ) => (
+        attribute.localName.toLowerCase() === 'attributename' && isUnsafeAnimation( element.localName, attribute.value )
+    ) );
+};
+
+/*
  * Sanitizes an SVG document for injection with dangerouslySetInnerHTML.
  * Returns '' if the string isn't a well-formed SVG.
  *
@@ -124,7 +137,7 @@ export const sanitizeSVG = ( svg: string ): string => {
         }
         const element: Element = node as Element;
         const name: string = element.nodeName.toLowerCase();
-        if ( SVG_BLOCKED_ELEMENTS.has( name ) || isUnsafeAnimation( name, element.getAttribute( 'attributeName' ) ?? undefined ) ) {
+        if ( SVG_BLOCKED_ELEMENTS.has( name ) || isUnsafeSVGAnimation( element ) ) {
             element.remove();
             continue;
         }
