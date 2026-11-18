@@ -3,6 +3,7 @@
 
 abstract class DO_Custom_Post_Type {
     private static array $instances = [];
+    private ?array $read_only_meta_keys = NULL;
     private $admin_fields,
             $aftersave_callback,
             $all_meta_fields,
@@ -1612,53 +1613,98 @@ abstract class DO_Custom_Post_Type {
         return isset( $keys[ $meta_key ] ) || isset( $bonus_keys[ $meta_key ] ) || isset( $keys[ preg_replace( '/_\d+$/', '', $meta_key ) ] );
     }
 
-    /* One-time upgrade, run by devo_upgrade_unslash_meta(). save_post() used
-     * to validate the slashed $_POST and store it as-is ("O\'Brien"), and
-     * devo_get_post_meta() unslashed on every read. Values are now stored as
-     * typed and read as stored, so rewrite the slashed ones as the values they
-     * have always displayed as. See devo_unslash_legacy_meta_value() for what
-     * counts as slashed.
+    /* One-time upgrade, run in batches by devo_upgrade_unslash_meta().
+     * save_post() used to validate the slashed $_POST and store it as-is
+     * ("O\'Brien"), and devo_get_post_meta() unslashed on every read. Values
+     * are now stored as typed and read as stored, so rewrite the slashed ones
+     * as the values they have always displayed as. See
+     * devo_unslash_legacy_meta_value() for what counts as slashed.
      *
      * Only each post type's own fields saved from the edit screen: not
      * read-only fields (a form submission's data, written unslashed by code),
-     * _private keys, or BAK backups. Returns the number of values rewritten. */
-    public static function unslash_legacy_meta(): int {
-        $updated = 0;
-        foreach ( self::$instances as $instance ) {
-            $updated += $instance->unslash_legacy_meta_for_post_type();
-        }
-        return $updated;
-    }
-
-    private function unslash_legacy_meta_for_post_type(): int {
+     * _private keys, or BAK backups.
+     *
+     * Handles at most $limit rows with $after_meta_id < meta_id <= $max_meta_id,
+     * in meta_id order, and calls $before_rewrite( $meta_id ) just before it
+     * rewrites a row, so the caller can record that row as done first: if the
+     * request dies there, the row is left slashed rather than unslashed twice.
+     * If $before_rewrite returns FALSE (it couldn't record that), the row is
+     * not rewritten.
+     *
+     * Returns the last meta_id looked at (the cursor for the next batch), the
+     * number of values rewritten, whether no rows remain, and a database
+     * error ('' if none). A failed query returns no rows, which would
+     * otherwise read as "done"; on an error the batch stops, done is FALSE,
+     * and the cursor is the last row known to be finished (the failed row
+     * was not changed, so it can be retried). */
+    public static function unslash_legacy_meta_batch( int $after_meta_id, int $max_meta_id, int $limit = 100, ?callable $before_rewrite = NULL ): array {
         global $wpdb;
-        $read_only_keys = [];
-        foreach ( $this->source_meta_fields as $box_fields ) {
-            foreach ( (array) $box_fields as $label => $settings ) {
-                if ( is_string( $label ) && in_array( devo_get_meta_field_type( $settings ), [ 'read_only', 'read_only_json' ], TRUE ) ) {
-                    $read_only_keys[ devo_meta_field_key( $label, $this->meta_prefix ) ] = TRUE;
-                }
-            }
+        $by_post_type = [];
+        foreach ( self::$instances as $instance ) {
+            $by_post_type[ $instance->post_type ] = $instance;
         }
+        if ( ! $by_post_type || $after_meta_id >= $max_meta_id ) {
+            return [ 'last_meta_id' => $after_meta_id, 'updated' => 0, 'done' => TRUE, 'error' => '' ];
+        }
+        $post_types = array_keys( $by_post_type );
         $rows = $wpdb->get_results( $wpdb->prepare(
-            "SELECT pm.meta_id, pm.meta_key, pm.meta_value FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE p.post_type = %s AND pm.meta_value LIKE %s",
-            $this->post_type,
-            '%' . $wpdb->esc_like( '\\' ) . '%'
+            "SELECT pm.meta_id, pm.meta_key, pm.meta_value, p.post_type FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id"
+            . ' WHERE pm.meta_id > %d AND pm.meta_id <= %d AND pm.meta_value LIKE %s'
+            . ' AND p.post_type IN (' . implode( ', ', array_fill( 0, count( $post_types ), '%s' ) ) . ')'
+            . ' ORDER BY pm.meta_id ASC LIMIT %d',
+            array_merge( [ $after_meta_id, $max_meta_id, '%' . $wpdb->esc_like( '\\' ) . '%' ], $post_types, [ $limit ] )
         ) );
+        if ( $wpdb->last_error !== '' ) {
+            return [ 'last_meta_id' => $after_meta_id, 'updated' => 0, 'done' => FALSE, 'error' => $wpdb->last_error ];
+        }
+        $rows = (array) $rows;
+        $last_meta_id = $after_meta_id;
         $updated = 0;
-        foreach ( (array) $rows as $row ) {
+        foreach ( $rows as $row ) {
+            $previous_meta_id = $last_meta_id;
+            $last_meta_id = (int) $row->meta_id;
+            $instance = $by_post_type[ $row->post_type ] ?? NULL;
             $meta_key = (string) $row->meta_key;
-            if ( $meta_key === '' || $meta_key[0] === '_' || strpos( $meta_key, 'BAK' ) === 0 || isset( $read_only_keys[ $meta_key ] ) || ! $this->owns_meta_key( $meta_key ) ) {
+            if ( ! $instance || $meta_key === '' || $meta_key[0] === '_' || strpos( $meta_key, 'BAK' ) === 0 || isset( $instance->read_only_meta_keys()[ $meta_key ] ) || ! $instance->owns_meta_key( $meta_key ) ) {
                 continue;
             }
             $unslashed = devo_unslash_legacy_meta_value( $row->meta_value );
+            if ( $unslashed === NULL ) {
+                continue;
+            }
+            if ( $before_rewrite && $before_rewrite( $last_meta_id ) === FALSE ) {
+                return [ 'last_meta_id' => $previous_meta_id, 'updated' => $updated, 'done' => FALSE, 'error' => $wpdb->last_error !== '' ? $wpdb->last_error : 'Could not record progress.' ];
+            }
             // Unlike update_post_meta(), update_metadata_by_mid() stores the
-            // value as given, without unslashing it
-            if ( $unslashed !== NULL && update_metadata_by_mid( 'post', (int) $row->meta_id, $unslashed ) ) {
+            // value as given, without unslashing it. wpdb clears last_error
+            // on every query, so an error here is this row's.
+            if ( update_metadata_by_mid( 'post', $last_meta_id, $unslashed ) ) {
                 $updated++;
+            } elseif ( $wpdb->last_error !== '' ) {
+                return [ 'last_meta_id' => $previous_meta_id, 'updated' => $updated, 'done' => FALSE, 'error' => $wpdb->last_error ];
             }
         }
-        return $updated;
+        return [
+            'last_meta_id' => $last_meta_id,
+            'updated' => $updated,
+            'done' => count( $rows ) < $limit,
+            'error' => '',
+        ];
+    }
+
+    // Keys of this post type's read_only and read_only_json fields
+    private function read_only_meta_keys(): array {
+        if ( $this->read_only_meta_keys === NULL ) {
+            $this->read_only_meta_keys = [];
+            foreach ( $this->source_meta_fields as $box_fields ) {
+                foreach ( (array) $box_fields as $label => $settings ) {
+                    if ( is_string( $label ) && in_array( devo_get_meta_field_type( $settings ), [ 'read_only', 'read_only_json' ], TRUE ) ) {
+                        $this->read_only_meta_keys[ devo_meta_field_key( $label, $this->meta_prefix ) ] = TRUE;
+                    }
+                }
+            }
+        }
+        return $this->read_only_meta_keys;
     }
 
     // This post type's own meta keys currently stored on $post_id

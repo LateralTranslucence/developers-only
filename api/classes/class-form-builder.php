@@ -107,23 +107,27 @@ class DO_Form_Builder {
         // Hidden form ID field
         $fields['devo-form-id'] = [
             'hidden' => FALSE,
+            'hide_label' => FALSE,
             'field_type' => 'hidden',
             'label' => 'Form ID',
             'label_location' => $label_location,
             'name' => 'devo-form-id',
             'required' => FALSE,
             'options' => [],
+            'settings' => [],
             'current_value' => devo_get_post_meta( $post_id, 'form_form_id' ),
         ];
         // Hidden Post ID field
         $fields['devo-form-post-id'] = [
             'hidden' => FALSE,
+            'hide_label' => FALSE,
             'field_type' => 'hidden',
             'label' => 'Post ID',
             'label_location' => $label_location,
             'name' => 'devo-form-post-id',
             'required' => FALSE,
             'options' => [],
+            'settings' => [],
             'current_value' => $post_id,
         ];
 
@@ -144,7 +148,9 @@ class DO_Form_Builder {
             $field_label = devo_get_post_meta( $post_id, 'form_label_' . $i );
             $field_hide_label = (bool) devo_get_post_meta( $post_id, 'form_hide_label_' . $i );
             $field_name = strlen( $id = devo_get_post_meta( $post_id, 'form_id_' . $i ) ) ? $id : sanitize_title_with_dashes( $field_label );
-            $field_required = (bool) devo_get_post_meta( $post_id, 'form_required_' . $i );
+            // A field the visitor can't see can't be filled in, so it is never
+            // required: otherwise every submission would fail on it.
+            $field_required = ! $field_hidden && (bool) devo_get_post_meta( $post_id, 'form_required_' . $i );
             $field_options = [];
             $field_settings = [];
             switch ( $field_type ) {
@@ -152,22 +158,28 @@ class DO_Form_Builder {
                 case 'checkbox':
                 case 'radio':
                 case 'select':
-                case 'toggle':
                     $field_options_raw = is_array( $options = devo_get_post_meta( $post_id, 'form_options_' . $i ) ) ? $options : [];
                     $field_options = self::format_field_options( $field_options_raw );
                     break;
-                case 'range_slider':
+                case 'toggle':
                     $field_options_raw = is_array( $options = devo_get_post_meta( $post_id, 'form_options_' . $i ) ) ? $options : [];
-                    $field_max = strlen( $max = devo_get_post_meta( $post_id, 'form_max_' . $i ) ) ? $max : 100;
-                    $field_min = strlen( $min = devo_get_post_meta( $post_id, 'form_min_' . $i ) ) ? $min : 0;
-                    $field_increment = strlen( $increment = devo_get_post_meta( $post_id, 'form_increment_' . $i ) ) ? $increment : 1;
-                    $field_options = [
-                        'settings' => [
-                            'min' => $field_min,
-                            'max' => $field_max,
-                            'increment' => $field_increment,
-                        ],
-                    ];
+                    $field_options = self::format_field_options( $field_options_raw );
+                    $field_settings = self::toggle_settings( $field_options );
+                    break;
+                case 'range_slider':
+                    $field_settings = self::range_settings(
+                        devo_get_post_meta( $post_id, 'form_min_' . $i ),
+                        devo_get_post_meta( $post_id, 'form_max_' . $i ),
+                        devo_get_post_meta( $post_id, 'form_increment_' . $i )
+                    );
+                    break;
+                case 'text':
+                    $autocomplete = devo_get_post_meta( $post_id, 'form_autocomplete_' . $i );
+                    // Only a token from the list: the stored value is
+                    // whatever the admin form posted.
+                    if ( is_string( $autocomplete ) && isset( self::autocomplete_options()[ $autocomplete ] ) ) {
+                        $field_settings['autocomplete'] = $autocomplete;
+                    }
                     break;
             }
             // Two fields with the same label and no ID would get the same
@@ -185,6 +197,9 @@ class DO_Form_Builder {
             }
             $fields[ $field_name ] = [
                 'hidden' => $field_hidden,
+                // The label is still rendered, for assistive tech, but
+                // visually hidden (.screenReader).
+                'hide_label' => $field_hide_label,
                 'field_type' => $field_type,
                 // Labels are stored as sanitised HTML ("R&amp;D") but only ever
                 // shown as text: React text nodes, and the alert email, which
@@ -202,6 +217,7 @@ class DO_Form_Builder {
         if ( $show_privacy_policy ) {
             $fields['devo-privacy-policy'] = [
                 'hidden' => FALSE,
+                'hide_label' => FALSE,
                 'field_type' => 'privacy_policy',
                 'label' => '',
                 'label_location' => 'outside',
@@ -215,12 +231,14 @@ class DO_Form_Builder {
         // Submit button
         $fields['devo-form-submit'] = [
             'hidden' => FALSE,
+            'hide_label' => FALSE,
             'field_type' => 'button',
             'label' => strlen( $form_button_label = devo_plain_text( devo_get_post_meta( $post_id, 'form_submit_button_text' ) ) ) ? $form_button_label : 'Submit',
             'label_location' => $label_location,
             'name' => 'devo-form-submit',
             'required' => FALSE,
             'options' => [],
+            'settings' => [],
             'current_value' => 'submit',
         ];
 
@@ -279,7 +297,8 @@ class DO_Form_Builder {
         foreach ( $field_options_raw as $field_option ) {
             $label = isset( $field_option->label ) ? devo_plain_text( $field_option->label ) : '';
             $value = isset( $field_option->value ) ? $field_option->value : '';
-            $description = isset( $field_option->description ) ? $field_option->description : '';
+            // Shown as text, like the label (Button Select options have one)
+            $description = isset( $field_option->description ) ? devo_plain_text( $field_option->description ) : '';
             $field_options[] = [
                 'label' => $label,
                 'value' => $value,
@@ -287,6 +306,123 @@ class DO_Form_Builder {
             ];
         }
         return $field_options;
+    }
+
+    /* The autocomplete tokens a Text field can carry, as select options for
+     * the form builder. Keys are the HTML autocomplete tokens. Email and
+     * phone fields set their own token and have no setting. */
+    public static function autocomplete_options() {
+        $tokens = [
+            'name' => 'Full name',
+            'honorific-prefix' => 'Title (Mr, Dr...)',
+            'given-name' => 'First name',
+            'additional-name' => 'Middle name',
+            'family-name' => 'Last name',
+            'honorific-suffix' => 'Suffix (Jr, PhD...)',
+            'nickname' => 'Nickname',
+            'organization' => 'Organization',
+            'organization-title' => 'Job title',
+            'street-address' => 'Street address',
+            'address-line1' => 'Address line 1',
+            'address-line2' => 'Address line 2',
+            'address-level2' => 'City',
+            'address-level1' => 'State / province',
+            'postal-code' => 'Postal code',
+            'country-name' => 'Country',
+            'url' => 'Website',
+            'bday' => 'Birthday',
+            'username' => 'Username',
+        ];
+        $options = [];
+        foreach ( $tokens as $token => $label ) {
+            $options[ $token ] = [
+                'label' => $label . ' (' . $token . ')',
+                'value' => $token,
+            ];
+        }
+        return $options;
+    }
+
+    /* A range slider's bounds as whole numbers, defaulting to 0-100 in steps
+     * of 1. A step below 1 becomes 1, and a max below the min becomes the min,
+     * which is how the browser would read them anyway. */
+    public static function range_settings( $min, $max, $step ) {
+        $whole = function ( $value, $default ) {
+            return is_scalar( $value ) && preg_match( '/^\s*-?\d+\s*$/', (string) $value ) ? (int) $value : $default;
+        };
+        $min = $whole( $min, 0 );
+        $max = max( $min, $whole( $max, 100 ) );
+        $step = max( 1, $whole( $step, 1 ) );
+        return [
+            'min' => $min,
+            'max' => $max,
+            'step' => $step,
+        ];
+    }
+
+    /* A toggle's off and on states, from its options: the first option is
+     * off (and the default) and the second is on, as in the admin preview.
+     * With a single option, that option is "on" and off sends nothing, so a
+     * required toggle must be switched on (a consent switch). With none, on
+     * sends "1". */
+    public static function toggle_settings( $field_options ) {
+        $field_options = array_values( $field_options );
+        $empty = [ 'label' => '', 'value' => '' ];
+        if ( count( $field_options ) >= 2 ) {
+            $off = $field_options[0];
+            $on = $field_options[1];
+        } elseif ( count( $field_options ) === 1 ) {
+            $off = $empty;
+            $on = $field_options[0];
+        } else {
+            $off = $empty;
+            $on = [ 'label' => '', 'value' => '1' ];
+        }
+        if ( ! strlen( (string) $on['value'] ) ) {
+            $on['value'] = '1';
+        }
+        return [
+            'off' => [ 'label' => (string) $off['label'], 'value' => (string) $off['value'] ],
+            'on' => [ 'label' => (string) $on['label'], 'value' => (string) $on['value'] ],
+        ];
+    }
+
+    /* Whether a submitted value is one this field can produce. A browser only
+     * ever sends one of a choice field's options, or a range value on its
+     * step between min and max, so anything else was made up by the client.
+     * An empty value is left to the required check. Compared before
+     * sanitising, against the option values exactly as they were sent to the
+     * browser. */
+    public static function field_value_allowed( $form_field, $raw_value ) {
+        if ( ! devo_form_value_present( $raw_value ) ) {
+            return TRUE;
+        }
+        $type = isset( $form_field['field_type'] ) ? $form_field['field_type'] : '';
+        switch ( $type ) {
+            case 'button_select':
+            case 'radio':
+            case 'select':
+                if ( ! is_string( $raw_value ) ) {
+                    return FALSE;
+                }
+                foreach ( $form_field['options'] as $option ) {
+                    if ( (string) $option['value'] === $raw_value ) {
+                        return TRUE;
+                    }
+                }
+                return FALSE;
+            case 'toggle':
+                $settings = $form_field['settings'];
+                return is_string( $raw_value ) && in_array( $raw_value, [ $settings['off']['value'], $settings['on']['value'] ], TRUE );
+            case 'range_slider':
+                if ( ! is_string( $raw_value ) || ! preg_match( '/^-?\d+$/', $raw_value ) ) {
+                    return FALSE;
+                }
+                $settings = $form_field['settings'];
+                $value = (int) $raw_value;
+                return $value >= $settings['min'] && $value <= $settings['max'] && ( $value - $settings['min'] ) % $settings['step'] === 0;
+        }
+        return TRUE;
     }
 }
 $forms = DO_Form_Builder::get_instance();

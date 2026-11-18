@@ -374,14 +374,19 @@ jQuery(document).ready(function($) {
             const post_browser = new List(id, options);
 
             // On load, populate the titles of selected posts
+            // .text(), not an HTML string: the browser has already decoded
+            // data-title, so a post titled "&lt;img onerror=...&gt;" would
+            // otherwise become markup. The row is matched with .filter()
+            // rather than a selector built from the stored value.
             $this.find('span.array-field-wrapper').each(function(i) {
                 const id = $(this).find('input, select').val();
-                //console.log(id);
+                let title = '';
                 if(id) {
-                    $(this).prepend('<span class="post-browser-title">'+$this.find('tr[data-value="'+id+'"]').attr('data-title')+'</span>');
-                } else {
-                    $(this).prepend('<span class="post-browser-title"></span>');
+                    title = $this.find('tr[data-value]').filter(function() {
+                        return $(this).attr('data-value') === String(id);
+                    }).first().attr('data-title') || '';
                 }
+                $(this).prepend($('<span class="post-browser-title"></span>').text(title));
             });
         });
 

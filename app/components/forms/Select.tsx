@@ -1,6 +1,7 @@
 import React from 'react';
 import FieldError from '@/components/forms/FieldError';
 import RequiredMarker from '@/components/forms/RequiredMarker';
+import { fieldAriaProps, fieldLabelClass } from '@/components/forms/fieldAria';
 import { getFieldOptionsArray, getFieldStringValue } from '@/utils/types/Form';
 import { FormFieldProps } from '@/utils/types/FormFieldProps';
 
@@ -9,12 +10,12 @@ const Select: React.FC<FormFieldProps> = ( { field, error = false } ) => {
     const required: boolean = field.required;
     return (
         <>
-        <label htmlFor={ field.name }>
+        <label htmlFor={ field.name } className={ fieldLabelClass( field ) }>
             { field.label }
             { required ? <RequiredMarker /> : null }
         </label>
-        <FieldError error={ error } label={ field.label } />
-        <select aria-required={ required || undefined } name={ field.name } id={ field.name } defaultValue={ currentValue } >
+        <FieldError error={ error } label={ field.label } name={ field.name } />
+        <select name={ field.name } id={ field.name } defaultValue={ currentValue } { ...fieldAriaProps( field, error ) }>
             <option value="">Select</option>
             { getFieldOptionsArray( field.options ).map( ( option, index: number ) => {
                 return <option key={ index } value={ option.value ?? option.name ?? '' }>{ option.label }</option>;

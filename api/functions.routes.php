@@ -478,6 +478,11 @@ function devo_form_submit_query( $data ) {
             if ( ! is_string( $raw_value ) && ! is_array( $raw_value ) ) {
                 $raw_value = NULL;
             }
+            // A choice that isn't one of the field's options, or a range
+            // value off its scale, counts as not sent
+            if ( $raw_value !== NULL && ! DO_Form_Builder::field_value_allowed( $form_field, $raw_value ) ) {
+                $raw_value = NULL;
+            }
         }
         $present = $raw_value !== NULL && devo_form_value_present( $raw_value );
         // If it is required but not present, add to the list of missing fields and set error to true
@@ -517,8 +522,10 @@ function devo_form_submit_query( $data ) {
     $form['alert_status'] = NULL;
     $form['confirmation_status'] = NULL;
     $form['notice'] = NULL;
-    // If there is an error, return the form
+    // If there is an error, return the form, with a notice for the error
+    // summary above it (missing_fields says which ones)
     if ( $form['error'] ) {
+        $form['notice'] = __( 'Some required fields are empty. Please fill them in and send the form again.', 'developers_only' );
         return $form;
     }
 

@@ -10,7 +10,7 @@ const Button: React.FC<FormFieldProps> = ( { field, error = false } ) => {
         <button name={ field.name } id={ field.name } value={ currentValue } className="solid-button color-white">
             <span>{ field.label }</span>
         </button>
-        <FieldError error={ error } label={ field.label } />
+        <FieldError error={ error } label={ field.label } name={ field.name } />
         </>
     );
 };

@@ -28,7 +28,7 @@ const Alphabet: React.FC<FormFieldProps> = ( { field, callback, error = false } 
     return (
         <>
         <input type="hidden" value={ Array.isArray( currentValue ) && currentValue.length > 0 ? field.name + '=' + currentValue.join( ',' ) : ( hasCurrentValue ? field.name + '=' + currentValue : '' ) } name={ field.name } id={ field.name } />
-        <FieldError error={ error } label={ field.label } />
+        <FieldError error={ error } label={ field.label } name={ field.name } />
         <select className="select-list-toggle mobile-toggle" value={ selectedOption?.name ?? '' } onChange={ ( event ) => updateFieldValue( event.target.value ) }>
             <option value="">Filter by { field.label }</option>
             { activeOptions.map( ( optionDetails, index: number ) => (

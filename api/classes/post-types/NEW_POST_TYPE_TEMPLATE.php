@@ -91,7 +91,8 @@ class DO_POST_TYPE extends DO_Custom_Post_Type {
      *                     extra named hooks some theme code looks up by a
      *                     short alias instead of the full meta key.
      *   - rest_slug       Override the REST API base if it should differ
-     *                     from `slug` (defaults to the same value).
+     *                     from `slug` (defaults to the same value). List it
+     *                     after `slug`: setting `slug` resets it.
      *   - menu_position   Where this post type sits in the wp-admin sidebar.
      *   - restrict_users  Array of role slugs allowed to manage this post
      *                     type in wp-admin (defaults to everyone).

@@ -31,7 +31,7 @@ const SelectList: React.FC<FormFieldProps> = ( { field, error = false, callback 
     return (
         <>
         <input type="hidden" value={ Array.isArray( currentValue ) && currentValue.length > 0 ? field.name + '=' + currentValue.join( ',' ) : ( hasCurrentValue ? field.name + '=' + currentValue : '' ) } name={ field.name } id={ field.name } />
-        <FieldError error={ error } label={ field.label } />
+        <FieldError error={ error } label={ field.label } name={ field.name } />
         <select className="select-list-toggle" value={ selectedOption?.name ?? '' } onChange={ ( event ) => updateFieldValue( event.target.value ) }>
             <option value="">Filter by { field.label }</option>
             { options.map( ( optionDetails, index: number ) => (

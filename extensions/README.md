@@ -84,6 +84,16 @@ the REST base up in `window.devoRestBases`, which `devo_js_globals()` builds
 from every public post type, so `/work/acme/` loads `/wp/v2/case-study` and
 renders `CaseStudy.tsx`. Nothing needs registering.
 
+Two things to know when setting these in `settings()`:
+
+- **Put `rest_slug` after `slug`.** Settings are applied in order, and `slug`
+  also resets the REST base to itself, so a `rest_slug` listed before `slug`
+  is silently overwritten.
+- **With neither set, both default to the last `_` segment of the post type
+  name**, lowercased: `devo_case_study` gets `study`, not `case-study`, so
+  its URLs are `/study/{post-name}/` and its template key is `study`. Set
+  `'slug' => 'case-study'` to get the name you'd expect.
+
 Media items have no core template. `/media/{slug}/` maps to the theme's
 `/wp/v2/media-library/` route, so a `MediaLibrary.tsx` template (key
 `media-library`) is what renders them; until one exists those URLs show the
