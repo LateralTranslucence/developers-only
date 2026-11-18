@@ -22,6 +22,7 @@ export { getPostContent, getPostExcerpt, getPostID, getPostSlug, getPostTitle, g
 export { default as getStringField } from '@/utils/helpers/getStringField';
 export { default as getVimeoID } from '@/utils/helpers/getVimeoID';
 export { default as getYouTubeID } from '@/utils/helpers/getYouTubeID';
+export { default as htmlToText } from '@/utils/helpers/htmlToText';
 export { default as isEmail } from '@/utils/helpers/isEmail';
 export { default as length } from '@/utils/helpers/length';
 export { default as metaFieldKey } from '@/utils/helpers/metaFieldKey';

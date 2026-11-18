@@ -1,6 +1,6 @@
 import React, { JSX } from 'react';
 import { useEffect, useId, useRef, useState } from 'react';
-import { getArrayField, length, parse } from '@/utils/helpers';
+import { getArrayField, htmlToText, length, parse } from '@/utils/helpers';
 import CTA from '@/components/shared/CTA';
 import Heading from '@/components/shared/Heading';
 import MediaLoader from '@/components/shared/MediaLoader';
@@ -82,7 +82,7 @@ const DecisionTree:React.FC<PanelProps> = ( {
                                                                 { item.icon && length( item.icon ) ?
                                                                     <MediaLoader media={ item.icon } />
                                                                 : null }
-                                                                <span>{ item.title }</span>
+                                                                <span>{ htmlToText( item.title ?? '' ) }</span>
                                                             </CTA>
                                                         </li>
                                                     );

@@ -516,8 +516,10 @@ function devo_form_submit_query( $data ) {
 
     // Submission Email Alert (internal)
     $form_name = devo_get_post_meta( $form_post_id, 'form_form_name' );
-    $form_name = is_string( $form_name ) ? $form_name : '';
-    $subject = devo_get_post_meta( $form_post_id, 'form_email_subject' );
+    // Both are stored as sanitised HTML ("R&amp;D"); the subject header is
+    // plain text.
+    $form_name = devo_plain_text( $form_name );
+    $subject = devo_plain_text( devo_get_post_meta( $form_post_id, 'form_email_subject' ) );
     $submission_email_subject = is_string( $subject ) && strlen( $subject ) ? $subject : sprintf( /* translators: %s: form name. */ __( 'Submission from %s form', 'developers_only' ), $form_name );
     // Submitted values go into an HTML email, so every one is escaped.
     $submission_email_content = '';

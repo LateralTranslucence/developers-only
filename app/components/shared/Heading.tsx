@@ -1,5 +1,5 @@
 import React, { ElementType } from 'react';
-import { parse, trimChar } from '@/utils/helpers';
+import { htmlToText, parse, trimChar } from '@/utils/helpers';
 import CTA from '@/components/shared/CTA';
 import CTAs from '@/components/shared/CTAs';
 import { CustomAttributes } from '@/utils/types/CustomAttributes';
@@ -36,8 +36,11 @@ const Heading: React.FC<HeadingProps> = ( {
     if ( id ) {
         tagAttributes.id = id;
     }
+    // Titles are stored as sanitised HTML ("R&amp;D"). The pretitle is shown
+    // by CSS content: attr(), and the plain title as a React text node, so
+    // both need it as text.
     if ( ! hasPublishDate && pretitle.length ) {
-        tagAttributes[ 'data-pretitle' ] = pretitle;
+        tagAttributes[ 'data-pretitle' ] = htmlToText( pretitle );
     }
     return (
         <>
@@ -48,7 +51,7 @@ const Heading: React.FC<HeadingProps> = ( {
                     <span className="heading__title">{ parse( title ) }</span>
                     <span className="heading__publish-date">{ publishDate }</span>
                     </>
-                : title }
+                : htmlToText( title ) }
             </CTA>
         </Tag>
         { ctas.length > 0 ?
