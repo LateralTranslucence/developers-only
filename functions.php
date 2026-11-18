@@ -330,13 +330,21 @@ function devo_js_globals() {
     // an extension can supply it from wherever it keeps site settings.
     $cookie_consent_text = apply_filters( 'devo_cookie_consent_text', '' );
     $cookie_consent_text = is_string( $cookie_consent_text ) ? $cookie_consent_text : '';
+    // The site name is stored HTML-escaped ("R&amp;D"); React renders it as text
+    $site_name = devo_plain_text( get_bloginfo( 'name' ) );
+    // Settings > Privacy. '' when no page is set or it isn't published.
+    $privacy_policy_url = get_privacy_policy_url();
+    // JSON for a <script> block: JSON_HEX_TAG so a value can't close it
+    $json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES;
 ?>
 <script>
     window.devoEnv = "<?php echo esc_js( DO_ENVIRONMENT ) ?>";
     window.homeURL = "<?php echo esc_url( $home_url ) ?>";
     window.relativeHomeURL = "<?php echo esc_js( $relative_home_url ) ?>";
-    window.devoCookieConsentText = <?php echo wp_json_encode( $cookie_consent_text ) ?>;
-    window.menus = [];
+    window.devoCookieConsentText = <?php echo wp_json_encode( $cookie_consent_text, $json_flags ) ?>;
+    window.devoSiteName = <?php echo wp_json_encode( $site_name, $json_flags ) ?>;
+    window.devoLocale = <?php echo wp_json_encode( get_locale(), $json_flags ) ?>;
+    window.devoPrivacyPolicyURL = <?php echo wp_json_encode( $privacy_policy_url, $json_flags ) ?>;
 </script>
 <?php }
 add_action( 'wp_head', 'devo_js_globals' );

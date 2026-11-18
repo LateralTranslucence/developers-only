@@ -6,8 +6,9 @@ declare global {
         devoCookieConsentText: string;
         devoEnv: string;
         relativeHomeURL: string;
-        menus: Array<string>;
-        // Optional site details; see globalVariables.ts for the fallbacks
+        // Site details from devo_js_globals(). Optional so a page without the
+        // theme's wp_head (or an older cached one) falls back; see
+        // globalVariables.ts.
         devoLocale?: string;
         devoPrivacyPolicyURL?: string;
         devoSiteName?: string;
