@@ -132,7 +132,7 @@ const CTA: React.FC<CTASettings> = ( {
         return (
             <>
                 { trigger }
-                <Modal className={ [ type, modal_class ].filter( Boolean ).join( ' ' ) } id={ modalID } renderWhenOpen>
+                <Modal className={ [ type, modal_class ].filter( Boolean ).join( ' ' ) } id={ modalID } label={ label || undefined } renderWhenOpen>
                     <ModalContent link={ link } text={ label } type={ type } />
                 </Modal>
             </>

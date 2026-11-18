@@ -9,6 +9,9 @@ interface ModalProps {
     content?: JSX.Element | string;
     heading?: HeadingProps;
     id: string;
+    // The dialog's accessible name when it has no heading (which names it
+    // instead, through aria-labelledby)
+    label?: string;
     // Render the content only while the dialog is open: media and iframes
     // then load on demand, and closing unmounts them, which stops playback.
     renderWhenOpen?: boolean;
@@ -29,7 +32,7 @@ const stopMedia = ( dialog: HTMLDialogElement ): void => {
 
 // Backed by the native <dialog> element: browser-provided focus trap,
 // Escape-to-close, and ::backdrop - opened elsewhere via dialog.showModal().
-const Modal: React.FC<ModalProps> = ( { children, className = '', content = '', heading, id, renderWhenOpen = false } ) => {
+const Modal: React.FC<ModalProps> = ( { children, className = '', content = '', heading, id, label, renderWhenOpen = false } ) => {
     const dialogRef = useRef<HTMLDialogElement>( null );
     const [ isOpen, setIsOpen ] = useState<boolean>( false );
 
@@ -64,9 +67,17 @@ const Modal: React.FC<ModalProps> = ( { children, className = '', content = '', 
     };
 
     const showContent: boolean = ! renderWhenOpen || isOpen;
+    // A screen reader announces the dialog by its heading, so it needs an id
+    const headingID: string | undefined = heading?.title ? ( heading.id || id + '-heading' ) : undefined;
 
     return (
-        <dialog className={ [ 'modal', className ].filter( Boolean ).join( ' ' ) } id={ id } onClick={ handleBackdropClick } ref={ dialogRef }>
+        <dialog
+            aria-label={ headingID ? undefined : ( label || undefined ) }
+            aria-labelledby={ headingID }
+            className={ [ 'modal', className ].filter( Boolean ).join( ' ' ) }
+            id={ id }
+            onClick={ handleBackdropClick }
+            ref={ dialogRef }>
             <div className="modal__inner">
                 <button className="modal__close" onClick={ () => dialogRef.current?.close() } type="button">
                     <span className="screenReader">Close</span>
@@ -74,7 +85,7 @@ const Modal: React.FC<ModalProps> = ( { children, className = '', content = '', 
                 <div className="modal__content">
                     { heading ?
                         <header className="modal__header">
-                            <Heading { ...heading } />
+                            <Heading { ...heading } id={ headingID } />
                         </header>
                     : null }
                     { showContent && content ?
