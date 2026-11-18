@@ -1,6 +1,6 @@
 import React from 'react';
 import FieldError from '@/components/forms/FieldError';
-import { fieldAriaProps } from '@/components/forms/fieldAria';
+import { fieldAriaProps, fieldLabelClass } from '@/components/forms/fieldAria';
 import { FormFieldProps } from '@/utils/types/FormFieldProps';
 
 const Binary: React.FC<FormFieldProps> = ( { field, error = false } ) => {
@@ -19,7 +19,7 @@ const Binary: React.FC<FormFieldProps> = ( { field, error = false } ) => {
             <li className="form-field__multi-field">
                 <label htmlFor={ field.name } className="form-field__checkbox-label">
                     <input { ...optionAttrs } /> 
-                    <span>{ field.label }</span>
+                    <span className={ fieldLabelClass( field ) }>{ field.label }</span>
                 </label>
                 <FieldError error={ error } label={ field.label } name={ field.name } />
             </li>

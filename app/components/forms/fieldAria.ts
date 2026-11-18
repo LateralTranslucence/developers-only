@@ -13,7 +13,11 @@ export const fieldErrorId = ( name: string ): string => `${ name }-error`;
  * RenderForm shows one error summary and moves focus to the first invalid
  * field. Pass required: false for an input in a checkbox group, where the
  * requirement is "pick at least one", not "check this box". */
-export const fieldAriaProps = ( field: FormField | SearchFormField, error: boolean, required: boolean = field.required ): FieldAriaProps => ( {
+// The class for a field's <label> or <legend>: the form builder's Hide Label
+// hides it visually but keeps it, so the field still has a name
+export const fieldLabelClass = ( field: FormField | SearchFormField ): string | undefined => field.hide_label ? 'screenReader' : undefined;
+
+export const fieldAriaProps =( field: FormField | SearchFormField, error: boolean, required: boolean = field.required ): FieldAriaProps => ( {
     'aria-required': required ? true : undefined,
     'aria-invalid': error ? true : undefined,
     'aria-describedby': error ? fieldErrorId( field.name ) : undefined,

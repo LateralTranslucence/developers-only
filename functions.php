@@ -262,7 +262,18 @@ add_action( 'after_setup_theme', 'devo_create_objects', 1 );
  * each rewrite (a request that dies mid-row leaves that row slashed, not
  * stripped twice). Only rows that existed when the upgrade started are looked
  * at: anything written later was stored as typed. The done-flag is set once
- * nothing is left. */
+ * nothing is left.
+ *
+ * The flag is checked first from the options cache, which is cheap, and again
+ * from the database once the lock is held: a request that read its options
+ * before another one finished would otherwise start a fresh pass from row 0.
+ * A database error stops the run without setting the flag, keeping the
+ * cursor where it was, and the cursor is only dropped once the flag is
+ * confirmed stored. */
+function devo_meta_unslashed_stored() {
+    global $wpdb;
+    return (bool) $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", 'devo_meta_unslashed' ) );
+}
 function devo_upgrade_unslash_meta() {
     global $wpdb;
     if ( get_option( 'devo_meta_unslashed' ) || ! current_user_can( 'manage_options' ) || is_customize_preview() ) {
@@ -288,26 +299,49 @@ function devo_upgrade_unslash_meta() {
         }
     }
     try {
+        // Another request may have finished between the cached check above
+        // and taking the lock
+        $done = devo_meta_unslashed_stored();
+        if ( $wpdb->last_error !== '' || $done ) {
+            return;
+        }
         // Read past any cached copy: another request may have moved it on
         wp_cache_delete( 'devo_meta_unslash_progress', 'options' );
         $progress = get_option( 'devo_meta_unslash_progress' );
         if ( ! is_array( $progress ) || ! isset( $progress['after'], $progress['ceiling'] ) ) {
+            $ceiling = $wpdb->get_var( "SELECT MAX(meta_id) FROM {$wpdb->postmeta}" );
+            // A failed query reads as a ceiling of 0, which is "done"
+            if ( $wpdb->last_error !== '' ) {
+                return;
+            }
             $progress = [
                 'after' => 0,
-                'ceiling' => (int) $wpdb->get_var( "SELECT MAX(meta_id) FROM {$wpdb->postmeta}" ),
+                'ceiling' => (int) $ceiling,
             ];
         }
+        // Returns FALSE when the cursor couldn't be stored, and the batch
+        // then leaves the row alone
         $save_progress = function( $meta_id ) use ( &$progress ) {
             $progress['after'] = $meta_id;
-            update_option( 'devo_meta_unslash_progress', $progress, FALSE );
+            return update_option( 'devo_meta_unslash_progress', $progress, FALSE );
         };
         $deadline = microtime( TRUE ) + 5;
         do {
             $batch = DO_Custom_Post_Type::unslash_legacy_meta_batch( (int) $progress['after'], (int) $progress['ceiling'], 100, $save_progress );
             $progress['after'] = $batch['last_meta_id'];
+            if ( $batch['error'] !== '' ) {
+                // Back to the last row known to be finished; the flag stays
+                // unset, and the next admin request carries on from here
+                update_option( 'devo_meta_unslash_progress', $progress, FALSE );
+                return;
+            }
             if ( $batch['done'] ) {
                 update_option( 'devo_meta_unslashed', 1, TRUE );
-                delete_option( 'devo_meta_unslash_progress' );
+                // Without the flag, dropping the cursor would start the
+                // next pass over from row 0
+                if ( devo_meta_unslashed_stored() ) {
+                    delete_option( 'devo_meta_unslash_progress' );
+                }
                 return;
             }
             update_option( 'devo_meta_unslash_progress', $progress, FALSE );

@@ -1,5 +1,7 @@
 export interface FieldOption {
     count?: number;
+    // Shown under a Button Select option
+    description?: string;
     icon?: string;
     label: string;
     name?: string;
@@ -13,7 +15,11 @@ export type FieldOptions = FieldOptionList | FieldOptionMap;
 
 interface BaseField {
     current_value?: string | Array<string> | number;
+    // The form builder's Hide Field: not shown, and never required
     hidden: boolean;
+    // The form builder's Hide Label: the label is still there for assistive
+    // tech, but visually hidden (.screenReader)
+    hide_label?: boolean;
     label: string;
     label_location: string;
     name: string;
@@ -80,7 +86,37 @@ export const getFieldStringValue = ( value: FormField['current_value'] ): string
     return value ?? '';
 };
 
-export const getFieldListValue = ( value: FormField['current_value'] ): string | Array<string> => {
+// A string from a field's settings (the autocomplete token, say), or ''
+export const getFieldStringSetting = ( field: FormField | SearchFormField, key: string ): string => {
+    const value: unknown = field.settings?.[ key ];
+    return typeof value === 'string' ? value : '';
+};
+
+// A whole number from a field's settings (a range's min, max and step)
+export const getFieldNumberSetting = ( field: FormField | SearchFormField, key: string, fallback: number ): number => {
+    const value: unknown = field.settings?.[ key ];
+    const number: number = typeof value === 'number' ? value : typeof value === 'string' && value.trim() !== '' ? Number( value ) : NaN;
+    return Number.isFinite( number ) ? number : fallback;
+};
+
+// One state of a toggle: what it sends, and its option label
+export interface ToggleState {
+    label: string;
+    value: string;
+}
+
+// A toggle's off or on state from its settings (see
+// DO_Form_Builder::toggle_settings())
+export const getToggleState = ( field: FormField | SearchFormField, key: 'off' | 'on' ): ToggleState => {
+    const state: unknown = field.settings?.[ key ];
+    const record: Record<string, unknown> = state && typeof state === 'object' ? state as Record<string, unknown> : {};
+    return {
+        label: typeof record.label === 'string' ? record.label : '',
+        value: typeof record.value === 'string' ? record.value : key === 'on' ? '1' : '',
+    };
+};
+
+export const getFieldListValue =( value: FormField['current_value'] ): string | Array<string> => {
     if ( Array.isArray( value ) ) {
         return value;
     }

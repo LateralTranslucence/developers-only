@@ -55,15 +55,37 @@ const setConsent = ( value: Consent ): void => {
     document.cookie = `${ CONSENT_COOKIE }=${ value }; max-age=${ CONSENT_MAX_AGE }; path=/; SameSite=Lax${ secure }`;
 };
 
+// Focus an element, making it focusable first if it isn't (<main>, say).
+// Returns whether it took focus: a hidden one (a link in a closed menu) can't.
+const focusElement = ( element: HTMLElement, preventScroll: boolean = false ): boolean => {
+    if ( element.tabIndex < 0 && ! element.hasAttribute( 'tabindex' ) ) {
+        element.setAttribute( 'tabindex', '-1' );
+    }
+    element.focus( { preventScroll } );
+    return document.activeElement === element;
+};
+
 const CookieConsent: React.FC = (): JSX.Element | null => {
     const [ open, setOpen ] = useState<boolean>( () => ! getConsent() );
+    const bannerRef = useRef<HTMLElement | null>( null );
     const acceptRef = useRef<HTMLButtonElement | null>( null );
     // Set when the visitor reopens the banner, so focus moves to it once it
     // has rendered
     const focusOnOpen = useRef<boolean>( false );
+    // What reopened the banner, for focus to go back to after a choice
+    const openerRef = useRef<HTMLElement | null>( null );
+    // Set when a choice is made with focus in the banner (or nowhere), so
+    // focus moves on once the banner has gone rather than dropping to <body>
+    const focusOnClose = useRef<boolean>( false );
 
     useEffect( () => {
-        const reopen = (): void => {
+        const reopen = ( opener: Element | null ): void => {
+            // The link or button that asked, else whatever had focus when the
+            // event was dispatched; not something inside the banner itself
+            const candidate: Element | null = opener ?? document.activeElement;
+            if ( candidate instanceof HTMLElement && candidate !== document.body && ! bannerRef.current?.contains( candidate ) ) {
+                openerRef.current = candidate;
+            }
             if ( acceptRef.current ) {
                 acceptRef.current.focus();
             } else {
@@ -74,16 +96,18 @@ const CookieConsent: React.FC = (): JSX.Element | null => {
         // Capture phase, so the click is handled (and a router link's
         // navigation prevented) before anything else sees it
         const onClick = ( event: MouseEvent ): void => {
-            if ( event.target instanceof Element && event.target.closest( OPEN_SELECTOR ) ) {
+            const opener: Element | null = event.target instanceof Element ? event.target.closest( OPEN_SELECTOR ) : null;
+            if ( opener ) {
                 event.preventDefault();
-                reopen();
+                reopen( opener );
             }
         };
+        const onOpenEvent = (): void => reopen( null );
         document.addEventListener( 'click', onClick, true );
-        document.addEventListener( OPEN_EVENT, reopen );
+        document.addEventListener( OPEN_EVENT, onOpenEvent );
         return () => {
             document.removeEventListener( 'click', onClick, true );
-            document.removeEventListener( OPEN_EVENT, reopen );
+            document.removeEventListener( OPEN_EVENT, onOpenEvent );
         };
     }, [] );
 
@@ -92,6 +116,21 @@ const CookieConsent: React.FC = (): JSX.Element | null => {
             focusOnOpen.current = false;
             acceptRef.current?.focus();
         }
+        // Back to what reopened the banner, or, the first time (or when that
+        // has gone), to the page's <main>
+        if ( ! open && focusOnClose.current ) {
+            focusOnClose.current = false;
+            const opener: HTMLElement | null = openerRef.current;
+            openerRef.current = null;
+            if ( opener && opener.isConnected && focusElement( opener ) ) {
+                return;
+            }
+            const main: HTMLElement | null = document.querySelector( 'main#content' ) ?? document.querySelector( 'main' );
+            // Without scrolling: the visitor stays where they were reading
+            if ( main ) {
+                focusElement( main, true );
+            }
+        }
     }, [ open ] );
 
     if ( ! open ) {
@@ -99,13 +138,15 @@ const CookieConsent: React.FC = (): JSX.Element | null => {
     }
 
     const choose = ( value: Consent ): void => {
+        const active: Element | null = document.activeElement;
+        focusOnClose.current = ! active || active === document.body || Boolean( bannerRef.current?.contains( active ) );
         setConsent( value );
         setOpen( false );
         document.dispatchEvent( new CustomEvent( CONSENT_EVENT, { detail: { consent: value } } ) );
     };
 
     return (
-        <aside className="cookie-consent" role="region" aria-label="Cookie consent">
+        <aside className="cookie-consent" role="region" aria-label="Cookie consent" ref={ bannerRef }>
             <div className="cookie-consent__copy">
                 { window.devoCookieConsentText ? parse( window.devoCookieConsentText ) : <Boilerplate /> }
             </div>

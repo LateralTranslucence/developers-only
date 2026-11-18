@@ -1,6 +1,6 @@
 import React from 'react';
 import FieldError from '@/components/forms/FieldError';
-import { fieldAriaProps } from '@/components/forms/fieldAria';
+import { fieldAriaProps, fieldLabelClass } from '@/components/forms/fieldAria';
 import { getFieldStringValue } from '@/utils/types/Form';
 import { FormFieldProps } from '@/utils/types/FormFieldProps';
 
@@ -9,7 +9,7 @@ const Phone: React.FC<FormFieldProps> = ( { field, error = false } ) => {
     const required = field.required;
     return (
         <>
-            <label htmlFor={ field.name }>
+            <label htmlFor={ field.name } className={ fieldLabelClass( field ) }>
                 { field.label }
                 { required ?
                     <span className="form-field__required">*</span>

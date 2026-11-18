@@ -85,8 +85,17 @@ class DO_Form extends DO_Custom_Post_Type {
                                 ],
                             ],
                         ],
-                        'text' => [],
+                        'text' => [
+                            // The autocomplete token for the input (WCAG
+                            // 1.3.5). Email and phone fields set their own.
+                            'Autocomplete' => [
+                                'type' => 'select',
+                                'options' => DO_Form_Builder::autocomplete_options(),
+                            ],
+                        ],
                         'textarea' => [],
+                        // The first option is "off" and the second "on"; the
+                        // first is the default, as in the admin preview.
                         'toggle' => [
                             'Options' => [
                                 'type' => 'multi_array',
@@ -158,6 +167,7 @@ class DO_Form extends DO_Custom_Post_Type {
             ],
             'Field' => [
                 'Hide Field' => 'binary',
+                'Hide Label' => 'binary',
                 'Field Type' => [
                     'type' => 'select',
                     'options' => [

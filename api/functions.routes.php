@@ -478,6 +478,11 @@ function devo_form_submit_query( $data ) {
             if ( ! is_string( $raw_value ) && ! is_array( $raw_value ) ) {
                 $raw_value = NULL;
             }
+            // A choice that isn't one of the field's options, or a range
+            // value off its scale, counts as not sent
+            if ( $raw_value !== NULL && ! DO_Form_Builder::field_value_allowed( $form_field, $raw_value ) ) {
+                $raw_value = NULL;
+            }
         }
         $present = $raw_value !== NULL && devo_form_value_present( $raw_value );
         // If it is required but not present, add to the list of missing fields and set error to true

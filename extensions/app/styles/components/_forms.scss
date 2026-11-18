@@ -60,7 +60,8 @@ div.form-field {
     margin-bottom: 0; // the form's own gap spaces the fields
     width: 100%;
 
-    > label {
+    > label,
+    > fieldset.form-field__group > legend {
         @include mono-label(10px, 500, 0.16em);
         position: static;
         left: auto;
