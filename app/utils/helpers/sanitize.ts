@@ -5,7 +5,7 @@
  * returns. These remove the things that would run script if a bad value got
  * through anyway - script elements, inline event handlers, srcdoc,
  * javascript:/data: URLs, and SVG animations that rewrite an href - or that
- * would change the page's <head> (meta, link, base).
+ * would change the page's <head> (meta, link, base, title).
  */
 
 // Elements dropped outright, with their content. React 19 hoists a rendered
@@ -13,6 +13,10 @@
 // "refresh"> in post content would redirect the page; <base> would re-root
 // every relative URL.
 const BLOCKED_ELEMENTS: ReadonlySet<string> = new Set( [ 'script', 'object', 'embed', 'base', 'frame', 'frameset', 'meta', 'link' ] );
+// Dropped only outside an <svg>. React 19 hoists any other <title> into
+// <head>, where it replaces the document title; inside an <svg> it is the
+// graphic's accessible name, and React leaves it in place.
+const BLOCKED_OUTSIDE_SVG: ReadonlySet<string> = new Set( [ 'title' ] );
 
 // Attributes that take a URL
 const URL_ATTRIBUTES: ReadonlySet<string> = new Set( [
@@ -41,8 +45,9 @@ export const isSafeURL = ( url: string, allowDataImage: boolean = false ): boole
 };
 
 // Whether an element should be dropped, content and all
-export const isBlockedElement = ( tagName: string ): boolean => {
-    return BLOCKED_ELEMENTS.has( tagName.toLowerCase() );
+export const isBlockedElement = ( tagName: string, inSVG: boolean = false ): boolean => {
+    const name: string = tagName.toLowerCase();
+    return BLOCKED_ELEMENTS.has( name ) || ( ! inSVG && BLOCKED_OUTSIDE_SVG.has( name ) );
 };
 
 /*

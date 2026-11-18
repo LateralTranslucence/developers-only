@@ -1,5 +1,6 @@
 import React from 'react';
 import FieldError from '@/components/forms/FieldError';
+import RequiredMarker from '@/components/forms/RequiredMarker';
 import { fieldAriaProps, fieldLabelClass } from '@/components/forms/fieldAria';
 import { getFieldStringValue } from '@/utils/types/Form';
 import { FormFieldProps } from '@/utils/types/FormFieldProps';
@@ -11,9 +12,7 @@ const Textarea: React.FC<FormFieldProps> = ( { field, error = false } ) => {
         <>
             <label htmlFor={ field.name } className={ fieldLabelClass( field ) }>
                 { field.label }
-                { required ?
-                    <span className="form-field__required">*</span>
-                : null }
+                { required ? <RequiredMarker /> : null }
             </label>
             <FieldError error={ error } label={ field.label } name={ field.name } />
             <textarea name={ field.name } id={ field.name } className={ field.name } defaultValue={ currentValue } { ...fieldAriaProps( field, error ) } />

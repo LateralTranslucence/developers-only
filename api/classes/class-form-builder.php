@@ -131,8 +131,15 @@ class DO_Form_Builder {
             'current_value' => $post_id,
         ];
 
-        // Added after the numbered fields (see below)
-        $reserved_names = [ 'devo-privacy-policy' => TRUE, 'devo-form-submit' => TRUE ];
+        // Added after the numbered fields (see below). The honeypot input is
+        // rendered by the front end, and a filled one makes the submit route
+        // answer with a fake success; a real field sharing its name would
+        // silently discard every genuine submission.
+        $reserved_names = [
+            'devo-privacy-policy' => TRUE,
+            'devo-form-submit' => TRUE,
+            devo_form_honeypot_field() => TRUE,
+        ];
 
         // Get the rest of the fields
         for ( $i = 1; $i <= $form_fields_count; $i++ ) {
@@ -179,8 +186,9 @@ class DO_Form_Builder {
             // name, and the second replaced the first. Number the repeat
             // instead (name-2), so the first keeps the name it always had.
             // The privacy notice and submit button are added after this loop,
-            // so their names are reserved up front; a field called
-            // "devo-privacy-policy" used to be overwritten by the notice.
+            // so their names are reserved up front (with the honeypot's); a
+            // field called "devo-privacy-policy" used to be overwritten by the
+            // notice.
             if ( isset( $fields[ $field_name ] ) || isset( $reserved_names[ $field_name ] ) ) {
                 $base_name = $field_name;
                 for ( $n = 2; isset( $fields[ $field_name ] ) || isset( $reserved_names[ $field_name ] ); $n++ ) {

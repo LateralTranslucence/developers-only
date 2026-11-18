@@ -1,5 +1,6 @@
 import React from 'react';
 import FieldError from '@/components/forms/FieldError';
+import RequiredMarker from '@/components/forms/RequiredMarker';
 import { fieldAriaProps, fieldLabelClass } from '@/components/forms/fieldAria';
 import { getFieldOptionsArray, getFieldStringValue } from '@/utils/types/Form';
 import { FormFieldProps } from '@/utils/types/FormFieldProps';
@@ -27,9 +28,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ( { field, error = false, variant 
         <fieldset className={ 'form-field__group' + ( buttonSelect ? ' form-field__button-select' : '' ) } role="radiogroup" aria-required={ required ? true : undefined }>
             <legend className={ fieldLabelClass( field ) }>
                 { field.label }
-                { required ?
-                    <span className="form-field__required">*</span>
-                : null }
+                { required ? <RequiredMarker /> : null }
             </legend>
             <FieldError error={ error } label={ field.label } name={ field.name } />
             <ul className="field-list">

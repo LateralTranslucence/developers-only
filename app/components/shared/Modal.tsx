@@ -10,7 +10,8 @@ interface ModalProps {
     heading?: HeadingProps;
     id: string;
     // The dialog's accessible name when it has no heading (which names it
-    // instead, through aria-labelledby)
+    // instead, through aria-labelledby). Without either it falls back to a
+    // generic name, since an unnamed dialog is announced as just "dialog".
     label?: string;
     // Render the content only while the dialog is open: media and iframes
     // then load on demand, and closing unmounts them, which stops playback.
@@ -72,7 +73,7 @@ const Modal: React.FC<ModalProps> = ( { children, className = '', content = '', 
 
     return (
         <dialog
-            aria-label={ headingID ? undefined : ( label || undefined ) }
+            aria-label={ headingID ? undefined : ( label || 'Dialog' ) }
             aria-labelledby={ headingID }
             className={ [ 'modal', className ].filter( Boolean ).join( ' ' ) }
             id={ id }

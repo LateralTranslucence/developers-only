@@ -311,8 +311,12 @@ class DO_Form_Field_Display {
                         }
                     }
                 }
-                $output .= '<label 
-                                for="' . esc_attr( $this->field_id ) . '_other_text" 
+                // Wrapped like each option above. The closing </div> below
+                // had no opening one, so it closed whatever held the field
+                // (the disabled wrapper, or a meta box element) early.
+                $output .= '<div class="multi-field">';
+                $output .= '<label
+                                for="' . esc_attr( $this->field_id ) . '_other_text"
                                 class="' . esc_attr( $type ) . '-label">' . esc_html( $other_text ) . '</label>
                                 <input 
                                     class="widefat devo-other-text" 

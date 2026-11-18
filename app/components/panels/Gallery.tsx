@@ -45,7 +45,7 @@ const Gallery: React.FC<PanelProps> = ( {
                                         <span className="screenReader">{ itemTitle ? itemTitle : 'Open image' }</span>
                                     </button>
                                     { /* The full-size image loads only when the lightbox opens */ }
-                                    <Modal id={ modalID } className="gallery-lightbox" heading={ mediaItem.title ? { tag: 'h3', title: mediaItem.title } : undefined } renderWhenOpen>
+                                    <Modal id={ modalID } className="gallery-lightbox" heading={ mediaItem.title ? { tag: 'h3', title: mediaItem.title } : undefined } label="Image" renderWhenOpen>
                                         <img src={ fullImage } alt={ itemTitle } />
                                     </Modal>
                                 </li>

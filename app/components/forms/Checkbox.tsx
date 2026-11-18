@@ -1,11 +1,14 @@
 import React from 'react';
 import FieldError from '@/components/forms/FieldError';
+import RequiredMarker from '@/components/forms/RequiredMarker';
 import { fieldAriaProps, fieldLabelClass } from '@/components/forms/fieldAria';
 import { getFieldOptionsArray, getFieldStringValue } from '@/utils/types/Form';
 import { FormFieldProps } from '@/utils/types/FormFieldProps';
 
 // A group of checkboxes, named by a fieldset legend: there is no single input
-// for a <label htmlFor> to point at, so a label left the group unnamed
+// for a <label htmlFor> to point at, so a label left the group unnamed. ARIA
+// doesn't allow aria-required on a fieldset (a group), so the legend's marker
+// says "required" to assistive technology instead.
 const Checkbox: React.FC<FormFieldProps> = ( { field, error = false } ) => {
     const currentValue: string = getFieldStringValue( field.current_value );
     const required: boolean = field.required;
@@ -13,9 +16,7 @@ const Checkbox: React.FC<FormFieldProps> = ( { field, error = false } ) => {
         <fieldset className="form-field__group">
             <legend className={ fieldLabelClass( field ) }>
                 { field.label }
-                { required ?
-                    <span className="form-field__required">*</span>
-                : null }
+                { required ? <RequiredMarker spoken /> : null }
             </legend>
             <FieldError error={ error } label={ field.label } name={ field.name } />
             <ul className="field-list">
