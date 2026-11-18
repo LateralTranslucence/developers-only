@@ -11,3 +11,16 @@ Thumbs.db
 /node_modules
 
 
+
+# TypeScript build artefacts (tsc -b writes these next to the tsconfig)
+*.tsbuildinfo
+vite.config.d.ts
+
+# Claude Code agent worktrees and local settings
+.claude/
+
+# Source maps from `npm run dev` watch builds; production builds emit none
+public/dist/**/*.map
+
+# Theme zips written by `npm run package`
+/release/

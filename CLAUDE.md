@@ -5,11 +5,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev        # Vite build in watch mode (development)
-npm run build      # TypeScript check + Vite build (production)
+npm run dev        # Vite build in watch mode, with source maps (development)
+npm run build      # TypeScript check + Vite build + verify:layers (production)
+npm run lint       # ESLint
+npm run package    # build, then write an installable theme zip to release/
 ```
 
-There are no test commands. TypeScript (`tsc -b`) is the only static check; run it as part of `npm run build`.
+Node `^20.19.0 || >=22.12.0` is required (Vite 8 and ESLint 10); `.nvmrc` pins
+24 LTS, so run `nvm use` first. On older Node, `npm install` fails with
+EBADENGINE (`.npmrc` sets `engine-strict`).
+
+There are no test commands. The static checks are TypeScript (`tsc -b`, run by
+`npm run build`) and ESLint (`npm run lint`).
+
+Production builds emit no source maps; `npm run dev` passes `--sourcemap`, and
+those maps are gitignored. `build/package.cjs` (behind `npm run package`)
+decides what goes in the release zip: no `app/` source, dev configs, dotfiles
+or `.map` files, but `public/dist` and the `extensions/` source are kept.
+`release/` is gitignored.
 
 ## Architecture
 
@@ -34,18 +47,22 @@ The `@` path alias resolves to `app/`.
 
 ```
 index.tsx (BrowserRouter)
-  └── Layout.tsx              — Header + Footer wrapper
-        └── TemplateLoader    — fetches post from REST API, picks template component
-              ├── LandingPage — flexible panel-based pages
-              ├── Blog / SimplePage / Form — single-purpose templates
-              └── Page404
+  └── SiteShell.tsx                 — Header; stays mounted across navigation
+        └── Layout.tsx              — one page view per route: <main>, loading state, Footer
+              └── TemplateLoader    — fetches post from REST API, picks template component
+                    ├── LandingPage — flexible panel-based pages
+                    ├── SimplePage / Form — single-purpose templates
+                    ├── extension templates (extensions/app/components/templates/single/)
+                    └── Page404
 ```
+
+`/iframe/...` routes render `Layout` without `SiteShell` (no header or footer), for content shown inside modals.
 
 `TemplateLoader` calls `getPost(postType, slug)` → `GET /wp-json/wp/v2/{postType}?slug={slug}`. All templates receive the full `Post` object (see `app/utils/types/Post.ts`).
 
 `LandingPage` reads `{meta_prefix}_panel_count` from `post.fields`, then renders that many `<Panel>` components numbered 1–N. `Panel` reads `{meta_prefix}_panel_type_{N}` to decide which panel component to render via `PanelLoader`.
 
-Available panel types (in `PanelLoader.tsx`): `accordion`, `blocks`, `cta`, `form`, `gallery`, `posts`, `quotes`, `search`, `stats`, `tabs`, `text`, `text-media`.
+Available panel types (in `PanelLoader.tsx`): `accordion`, `blocks`, `cta`, `decision-tree`, `featured-media`, `featured-post`, `form`, `gallery`, `posts`, `quotes`, `search`, `stats`, `tabs`, `text`, `text-media`.
 
 `PartialTemplateLoader` handles individual post cards rendered inside panels. It selects a sub-template by view type (`block`, `list`, `simple`) and post type.
 
@@ -169,4 +186,4 @@ Two constraints follow:
 
 ### Environment
 
-`window.devoEnv` (and `DO_ENVIRONMENT` in PHP) is one of `local`, `dev`, `stg`, `prod`. API calls log the endpoint URL in non-prod environments. WP admin color scheme varies by environment.
+`window.devoEnv` (and `DO_ENVIRONMENT` in PHP) is one of `local`, `dev`, `stg`, `prod`. A site can pin it with `define( 'DO_ENVIRONMENT', 'prod' );` in `wp-config.php`; when it's undefined, `functions.php` derives it from `wp_get_environment_type()` (`local` → `local`, `development` → `dev`, `staging` → `stg`, `production` → `prod`; anything else → `prod`). API calls log the endpoint URL in non-prod environments, `dev` and `stg` are noindexed, and the WP admin color scheme varies by environment.
