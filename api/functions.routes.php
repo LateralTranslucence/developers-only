@@ -163,7 +163,26 @@ function devo_archive_query( $data ) {
     }
     // Order By: field_direction, comma-separated (title_asc,date_desc), or
     // anything_random
+    // Only core post fields and the meta keys allowed by the
+    // devo_archive_sortable_meta_keys filter (none by default) can be sorted
+    // on. Ordering by an arbitrary meta key reveals the order of its values,
+    // which leaks private meta one comparison at a time.
     if ( strlen( $orderbys ) ) {
+        $core_orderbys = [
+            'date' => 'date',
+            'post_date' => 'date',
+            'modified' => 'modified',
+            'post_modified' => 'modified',
+            'title' => 'title',
+            'post_title' => 'title',
+            'name' => 'name',
+            'post_name' => 'name',
+            'menu_order' => 'menu_order',
+            'id' => 'ID',
+            'post_type' => 'type',
+        ];
+        $sortable_meta_keys = apply_filters( 'devo_archive_sortable_meta_keys', [], $post_type );
+        $sortable_meta_keys = is_array( $sortable_meta_keys ) ? array_filter( $sortable_meta_keys, 'is_string' ) : [];
         $posts_orderbys = explode( ',', $orderbys );
         foreach ( $posts_orderbys as $posts_orderby ) {
             $order_options = explode( '_', $posts_orderby );
@@ -176,9 +195,9 @@ function devo_archive_query( $data ) {
             if ( count( $order_options ) < 2 || ! in_array( $order, [ 'asc', 'desc' ], TRUE ) || ! strlen( $orderby ) ) {
                 continue;
             }
-            if ( in_array( $orderby, devo_default_fields_array() ) ) {
-                $query_args['orderby'][ $orderby ] = strtoupper( $order );
-            } else {
+            if ( isset( $core_orderbys[ $orderby ] ) ) {
+                $query_args['orderby'][ $core_orderbys[ $orderby ] ] = strtoupper( $order );
+            } elseif ( in_array( $orderby, $sortable_meta_keys, TRUE ) ) {
                 $query_args['orderby'][ $orderby ] = strtoupper( $order );
                 $query_args['meta_query'][ $orderby ] = [
                     'key' => $orderby,
@@ -629,7 +648,11 @@ function devo_media_library_route( $data ) {
     $media = current( $media_query->posts );
     // current() returns FALSE on an empty result; reading ->ID off that warns and
     // hands strtotime() a null, so bail before touching the object.
-    if ( ! $media ) {
+    // Match core's /wp/v2/media visibility: an attachment uploaded to a draft,
+    // private or otherwise unreadable post is hidden from anyone who can't read
+    // that parent. Answer with the same 404 so its existence doesn't leak.
+    $attachments_controller = new WP_REST_Attachments_Controller( 'attachment' );
+    if ( ! $media || ! $attachments_controller->check_read_permission( $media ) ) {
         return new WP_Error( 'devo_not_found', __( 'No media found for that slug.', 'developers_only' ), [ 'status' => 404 ] );
     }
     $post_date = new DO_Form_Field_API_Display( 'date', 'post_date', $media->ID, FALSE, date( 'U', strtotime( $media->post_date ) ) );
