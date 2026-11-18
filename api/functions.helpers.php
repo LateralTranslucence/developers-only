@@ -533,7 +533,7 @@ function devo_array_median( $raw_array ) {
     }
     sort( $array );
     $count = count( $array ); //total numbers in array
-    $middle_val = floor( ( $count - 1 ) / 2 ); // find the middle value, or the lowest middle value
+    $middle_val = (int) floor( ( $count - 1 ) / 2 ); // find the middle value, or the lowest middle value; (int) because floor() returns a float, which isn't an array key
     if ( $count % 2 ) { // odd number, middle is the median
         $median = $array[ $middle_val ];
     } else { // even number, calculate avg of 2 medians
@@ -2010,7 +2010,14 @@ function devo_rewrite_generator( $wp_rewrite, $criteria_count, $root, $post_type
 	}
 }
 
-// Get the site ID from the site path
+/**
+ * Get the site ID from the site path.
+ *
+ * @param string|false $name A site's stylesheet ('global' for the main site),
+ *                           or FALSE for all of them.
+ * @return int|false|array<string, int> The site's ID, FALSE if there's no such
+ *                                      site, or every site's ID by name.
+ */
 function devo_site_id( $name = FALSE ) {
     $sites_raw = get_sites();
     $sites = [];
