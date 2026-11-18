@@ -1,0 +1,1 @@
+import"./rolldown-runtime-B0Z9INg1.js";import{j as e,m as t,p as n}from"./helpers-hUOFS9fa.js";import{r}from"./LandingPage-TD8yDMAg.js";e();var i=t(),a=({post:e,panelPrefix:t=``,panelSuffix:a=``})=>{let o=r(e.fields,t+`_cta`+a);return(0,i.jsx)(n,{ctas:o})};export{a as default};
