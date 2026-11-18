@@ -141,7 +141,7 @@ abstract class DO_Custom_Post_Type {
         add_filter( 'post_type_link', [ $this, 'permalinks' ], 10, 3 );
 
         // Listen for the save post hook
-        add_action( 'save_post', [ $this, 'save_post' ] );
+        add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
 
         // Save Initial post data
         add_filter( 'wp_insert_post_data' , function( $data , $postarr ) {
@@ -1289,14 +1289,29 @@ abstract class DO_Custom_Post_Type {
      * Save post
      *
      * */
-    public function save_post() {
-        global $post;
+    public function save_post( $post_id, $post = NULL ) {
+        $post_id = (int) $post_id;
+        $post = $post instanceof WP_Post ? $post : get_post( $post_id );
+        // Work only on the post that save_post fired for, never the global
+        // $post. "Preview Changes" on a published post (classic editor) runs
+        // wp_create_post_autosave(), which fires save_post for the autosave
+        // revision while the global $post, the nonce and every posted field
+        // still belong to the live post: reading the global made a preview
+        // publish its changes. Revisions and autosaves keep no theme meta.
+        if ( ! $post || wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+            return;
+        }
+        // The posted fields belong to the post on the edit screen. Anything
+        // else saved during the same request (another post inserted by a
+        // hook, say) must not pick them up.
+        if ( ! isset( $_POST['post_ID'] ) || (int) $_POST['post_ID'] !== $post_id ) {
+            return;
+        }
         // verify this came from the our screen and with proper authorization,
         // because save_post can be triggered at other times
-        if ( $post ) {
+        if ( $post->post_type === $this->post_type ) {
             $box_id = $this->meta_box_id( $post->post_type, isset( $_POST['meta_box_title'] ) ? $_POST['meta_box_title'] : '' );
             $nonce_id = $box_id . '_nonce';
-            $post_id = $post->ID;
             if ( $post->post_type != 'page' ) {
                 if ( ! array_key_exists( $nonce_id, $_POST ) ) {
                     return;
@@ -1314,7 +1329,7 @@ abstract class DO_Custom_Post_Type {
                 return $post_id;
             }
             // Save meta fields
-            if ( isset( $_POST ) && isset( $post_id ) && get_post_type( $post_id ) == $this->post_type ) {
+            if ( isset( $_POST ) ) {
                 // Comments status
                 if ( $this->comments ) {
                     if ( isset( $this->comment_status_callback ) && function_exists( $this->comment_status_callback ) ) {
@@ -1461,9 +1476,9 @@ abstract class DO_Custom_Post_Type {
                         remove_action( 'save_post', [ $this, 'save_post' ] );
                         // Update the post with the new content
                         $validate = new DO_Form_Field_Validate( 'wp_editor', $content );
-                        wp_update_post( [ 'ID' => $_POST['post_ID'], 'post_content' => $validate->value ] );
+                        wp_update_post( [ 'ID' => $post_id, 'post_content' => $validate->value ] );
                         // Rehook
-                        add_action( 'save_post', [ $this, 'save_post' ] );
+                        add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
                     }
                 }
 
@@ -1476,9 +1491,9 @@ abstract class DO_Custom_Post_Type {
                         remove_action( 'save_post', [ $this, 'save_post' ] );
                         // Update the post with the new excerpt
                         $validate = new DO_Form_Field_Validate( 'wp_editor', $excerpt );
-                        wp_update_post( [ 'ID' => $_POST['post_ID'], 'post_excerpt' => $validate->value ] );
+                        wp_update_post( [ 'ID' => $post_id, 'post_excerpt' => $validate->value ] );
                         // Rehook
-                        add_action( 'save_post', [ $this, 'save_post' ] );
+                        add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
                     }
                 }
 
@@ -1497,7 +1512,7 @@ abstract class DO_Custom_Post_Type {
                         // Unhook to avoid an infinite loop
                         remove_action( 'save_post', [ $this, 'save_post' ] );
                         $args = [
-                            'ID' => $_POST['post_ID'],
+                            'ID' => $post_id,
                             'post_title' => str_replace( ' , ', ', ', implode( ' ', $title_array ) ),
                         ];
                         if ( ! isset( $this->post_type_post_name ) ) {
@@ -1506,7 +1521,7 @@ abstract class DO_Custom_Post_Type {
                         // Update the post with the new title
                         wp_update_post( $args );
                         // Rehook
-                        add_action( 'save_post', [ $this, 'save_post' ] );
+                        add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
                     }
                 }
                 // Build Slug
@@ -1516,9 +1531,9 @@ abstract class DO_Custom_Post_Type {
                         // Unhook to avoid an infinite loop
                         remove_action( 'save_post', [ $this, 'save_post' ] );
                         // Update the post with the new slug
-                        wp_update_post( [ 'ID' => $_POST['post_ID'], 'post_name' => remove_accents( implode( '-', $slug_array ) ) ] );
+                        wp_update_post( [ 'ID' => $post_id, 'post_name' => remove_accents( implode( '-', $slug_array ) ) ] );
                         // Rehook
-                        add_action( 'save_post', [ $this, 'save_post' ] );
+                        add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
                     }
                 }
                 // Comments status
@@ -1528,27 +1543,27 @@ abstract class DO_Custom_Post_Type {
                     if ( isset( $this->comment_status_callback ) && function_exists( $this->comment_status_callback ) ) {
                         $comment_status = call_user_func( $this->comment_status_callback, $_POST );
                         // Update the post with the new slug
-                        wp_update_post( [ 'ID' => $_POST['post_ID'], 'comment_status' => in_array( $comment_status, [ 'closed', 'open' ] ) ? $comment_status : 'open' ] );
+                        wp_update_post( [ 'ID' => $post_id, 'comment_status' => in_array( $comment_status, [ 'closed', 'open' ] ) ? $comment_status : 'open' ] );
                     } else {
-                        wp_update_post( [ 'ID' => $_POST['post_ID'], 'comment_status' => 'open' ] );
+                        wp_update_post( [ 'ID' => $post_id, 'comment_status' => 'open' ] );
                     }
                     // Rehook
-                    add_action( 'save_post', [ $this, 'save_post' ] );
+                    add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
                 }
             }
             // AfterSave callback
             if ( isset( $this->aftersave_callback ) ) {
                 // Method
-                if ( is_array( $this->aftersave_callback ) && isset( $this->aftersave_callback[0] ) && isset( $this->aftersave_callback[1] ) && isset( $_POST['post_ID'] ) ) {
+                if ( is_array( $this->aftersave_callback ) && isset( $this->aftersave_callback[0] ) && isset( $this->aftersave_callback[1] ) ) {
                     $obj = $this->aftersave_callback[0];
                     $callback = $this->aftersave_callback[1];
                     if ( method_exists( $obj, $callback ) ) {
-                        call_user_func( [ $obj, $callback ], $_POST['post_ID'] );
+                        call_user_func( [ $obj, $callback ], $post_id );
                     }
                 }
                 // Function
                 elseif ( is_string( $this->aftersave_callback ) && function_exists( $this->aftersave_callback ) ) {
-                    call_user_func( $this->aftersave_callback, $_POST['post_ID'] );
+                    call_user_func( $this->aftersave_callback, $post_id );
                 }
             }
         }
