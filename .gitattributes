@@ -2,3 +2,6 @@
 *.css -diff
 *.svg -diff
 public/dist/* -diff
+# The theme header (Version, Requires PHP, ...) lives in style.css; keep it
+# reviewable.
+/style.css diff
