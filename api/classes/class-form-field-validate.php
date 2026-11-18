@@ -93,6 +93,14 @@ class DO_Form_Field_Validate {
     //     return $this->multi_array( $value );
     // }
 
+    // A choice, like radio and select: plain text. Without its own method it
+    // went through wp_kses_post(), which turned "&" into "&amp;", so a
+    // submitted "S & M" no longer matched its option and didn't pre-fill.
+    private function button_select( $force_value = FALSE ) {
+        $value = $force_value !== FALSE ? $force_value : $this->raw_value;
+        return $this->varchar( $value );
+    }
+
     private function checkbox( $force_value = FALSE ) {
         $value = $force_value !== FALSE ? $force_value : $this->raw_value;
         return $this->basic_array_validation( $value );
@@ -363,6 +371,12 @@ class DO_Form_Field_Validate {
         return $this->year( $value );
     }
     
+    // Sends one of two option values; plain text like button_select
+    private function toggle( $force_value = FALSE ) {
+        $value = $force_value !== FALSE ? $force_value : $this->raw_value;
+        return $this->varchar( $value );
+    }
+
     private function url( $force_value = FALSE ) {
         $value = $force_value !== FALSE ? $force_value : $this->raw_value;
         // Remove root url

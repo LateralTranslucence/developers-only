@@ -12,19 +12,24 @@ import { FormFieldProps } from '@/utils/types/FormFieldProps';
  * Off is sent from a hidden input that is only there while the switch is off.
  * RenderForm joins repeated names with commas, so a hidden input left in
  * place beside the checked box would send "off,on". When the off value is
- * empty nothing is sent, so a required toggle has to be switched on.
+ * empty nothing is sent, so a required toggle has to be switched on. When
+ * it isn't, the toggle always sends a value and "required" is always met, so
+ * like Range it shows no asterisk and has no aria-required.
  *
  * The option labels show either side of the switch. They're hidden from
  * assistive tech there, which reads the switch as on or off, and given to it
- * as the switch's description instead. */
+ * as the switch's description instead: both states when both have a label,
+ * else only the one that does. A single-option consent switch is described
+ * by its option, "I agree", not "Off: off. On: I agree.". */
 const Toggle: React.FC<FormFieldProps> = ( { field, error = false } ) => {
     const off = getToggleState( field, 'off' );
     const on = getToggleState( field, 'on' );
     const [ checked, setChecked ] = useState<boolean>( getFieldStringValue( field.current_value ) === on.value );
-    const required: boolean = field.required;
-    const aria = fieldAriaProps( field, error );
+    const required: boolean = field.required && off.value === '';
+    const aria = fieldAriaProps( field, error, required );
     const statesId: string = `${ field.name }-states`;
-    const hasStateLabels: boolean = Boolean( off.label || on.label );
+    const statesDescription: string = off.label && on.label ? `Off: ${ off.label }. On: ${ on.label }.` : off.label ? `Off: ${ off.label }.` : on.label;
+    const hasStateLabels: boolean = statesDescription !== '';
     const describedBy: string | undefined = [ hasStateLabels ? statesId : '', aria[ 'aria-describedby' ] ?? '' ].filter( Boolean ).join( ' ' ) || undefined;
     return (
         <>
@@ -57,7 +62,7 @@ const Toggle: React.FC<FormFieldProps> = ( { field, error = false } ) => {
                 : null }
             </span>
             { hasStateLabels ?
-                <span className="screenReader" id={ statesId }>{ `Off: ${ off.label || 'off' }. On: ${ on.label || 'on' }.` }</span>
+                <span className="screenReader" id={ statesId }>{ statesDescription }</span>
             : null }
         </>
     );

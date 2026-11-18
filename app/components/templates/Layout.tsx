@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import { NavigationType, useLocation, useNavigationType, useParams } from 'react-router-dom';
 import TemplateLoader from '@/loaders/TemplateLoader';
 import BackToTopButton from '@/components/shared/BackToTopButton';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
@@ -28,6 +28,21 @@ const fragmentTarget = ( hash: string ): HTMLElement | null => {
     }
     const element: Element | null = document.getElementById( id ) ?? document.querySelector( `a[name="${ CSS.escape( id ) }"]` );
     return element instanceof HTMLElement ? element : null;
+};
+
+// Scrolls to and focuses a #fragment's target, as the browser does when it
+// follows a link to one. False when the page has no such target.
+const focusFragment = ( hash: string ): boolean => {
+    const fragment: HTMLElement | null = fragmentTarget( hash );
+    if ( ! fragment ) {
+        return false;
+    }
+    if ( fragment.tabIndex < 0 && ! fragment.hasAttribute( 'tabindex' ) ) {
+        fragment.setAttribute( 'tabindex', '-1' );
+    }
+    fragment.focus( { preventScroll: true } );
+    fragment.scrollIntoView();
+    return true;
 };
 
 interface LayoutProps {
@@ -82,9 +97,31 @@ const PageView: React.FC<Required<Pick<LayoutProps, 'iframe' | 'notFound'>> & { 
     // When the URL has a #fragment, scroll to its target and focus that
     // instead, on the first page too: the page renders after the browser
     // has looked for the target and not found it, and ScrollToTop has put
-    // the page back at the top.
+    // the page back at the top. If the page has no such target, it's
+    // treated as a plain navigation.
+    //
+    // A router link to this same page with a #fragment (/#contact on the
+    // home page, /about/#team on /about/) changes only the hash, and this
+    // view stays mounted, so the browser does nothing either. Scroll to and
+    // focus the target then, without touching the heading. The location's
+    // key is new on every click, so following the same link twice works.
+    // Back and forward (POP) are left alone: the browser restores the scroll
+    // position itself, and a plain <a href="#..."> (the skip link) is
+    // followed natively and also arrives as a POP.
+    const { hash, key: locationKey } = useLocation();
+    const navigationType = useNavigationType();
+    // The location this view last handled; null until its content loads
+    const handledKeyRef = useRef<string | null>( null );
     useEffect( () => {
-        if ( ! contentLoaded || iframe ) {
+        if ( ! contentLoaded || iframe || handledKeyRef.current === locationKey ) {
+            return;
+        }
+        const samePage: boolean = handledKeyRef.current !== null;
+        handledKeyRef.current = locationKey;
+        if ( samePage ) {
+            if ( navigationType !== NavigationType.Pop && hash ) {
+                focusFragment( hash );
+            }
             return;
         }
         const firstPage: boolean = ! initialPageLoaded;
@@ -93,15 +130,7 @@ const PageView: React.FC<Required<Pick<LayoutProps, 'iframe' | 'notFound'>> & { 
         if ( ! main ) {
             return;
         }
-        if ( window.location.hash ) {
-            const fragment: HTMLElement | null = fragmentTarget( window.location.hash );
-            if ( fragment ) {
-                if ( fragment.tabIndex < 0 && ! fragment.hasAttribute( 'tabindex' ) ) {
-                    fragment.setAttribute( 'tabindex', '-1' );
-                }
-                fragment.focus( { preventScroll: true } );
-                fragment.scrollIntoView();
-            }
+        if ( hash && focusFragment( hash ) ) {
             return;
         }
         if ( firstPage ) {
@@ -113,7 +142,7 @@ const PageView: React.FC<Required<Pick<LayoutProps, 'iframe' | 'notFound'>> & { 
             target.setAttribute( 'tabindex', '-1' );
         }
         target.focus( { preventScroll: true } );
-    }, [ contentLoaded, iframe ] );
+    }, [ contentLoaded, iframe, hash, locationKey, navigationType ] );
 
     const content = (
         <ErrorBoundary onError={ iframe ? undefined : handleLoad }>
