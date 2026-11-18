@@ -116,7 +116,7 @@ export const getToggleState = ( field: FormField | SearchFormField, key: 'off' |
     };
 };
 
-export const getFieldListValue =( value: FormField['current_value'] ): string | Array<string> => {
+export const getFieldListValue = ( value: FormField['current_value'] ): string | Array<string> => {
     if ( Array.isArray( value ) ) {
         return value;
     }
