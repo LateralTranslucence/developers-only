@@ -2,10 +2,11 @@ import React from 'react';
 
 interface RequiredMarkerProps {
     /*
-     * Also say "required" to assistive technology. For a field whose control
-     * can't carry aria-required - a checkbox group, which ARIA doesn't allow
-     * it on - so the word goes into the group's name instead. A single
-     * control sets aria-required and leaves this off, or it is said twice.
+     * Also say "required" to assistive technology. For a field with nothing
+     * that can carry aria-required - a checkbox group's fieldset, which ARIA
+     * doesn't allow it on - so the word goes into the group's name instead.
+     * A control that has aria-required (see fieldAriaProps), or a radiogroup,
+     * leaves this off, or it is said twice.
      */
     spoken?: boolean;
 }
