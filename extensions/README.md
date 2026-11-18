@@ -74,8 +74,16 @@ a built-in panel type, only add new ones.
 Same pattern as panels: a `.tsx` file exporting a default
 `React.FC<TemplateProps>`, e.g. `CaseStudy.tsx` -> key `case-study`, picked
 up by `app/loaders/TemplateLoader.tsx`. The key must match the post type's
-REST slug (the `rest_slug` / `slug` setting on the corresponding post type
-class) for `TemplateLoader` to route to it.
+REST base: its `rest_slug` setting, or its `slug` when `rest_slug` isn't set.
+
+URLs use the `slug` (`/{slug}/{post-name}/`). When `rest_slug` differs (say
+`'slug' => 'work'` and `'rest_slug' => 'case-study'`), `TemplateLoader` looks
+the REST base up in `window.devoRestBases`, which `devo_js_globals()` builds
+from every public post type, so `/work/acme/` loads `/wp/v2/case-study` and
+renders `CaseStudy.tsx`. Nothing needs registering.
+
+Extension TSX is type-checked with the rest of the app, so `npm run build`
+fails on a type error in a panel or template.
 
 ## Styles (`app/styles/extensions-global.scss`)
 

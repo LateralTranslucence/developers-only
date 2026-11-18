@@ -3,6 +3,9 @@ import ErrorFallback from '@/components/shared/ErrorFallback';
 
 interface ErrorBoundaryProps {
     children: React.ReactNode;
+    // What to render instead of the crashed subtree. Defaults to the page-level
+    // ErrorFallback; null renders nothing.
+    fallback?: React.ReactNode;
     // Called once when an error is caught - e.g. to clear a "loading" state
     // that would otherwise never resolve since the crashed subtree never
     // gets to call its own onLoad.
@@ -17,8 +20,9 @@ interface ErrorBoundaryState {
 
 // Class component: getDerivedStateFromError/componentDidCatch have no hook
 // equivalent. Catches render/lifecycle errors in the subtree below it (not
-// event handlers) so one broken panel/template can't blank the whole app -
-// Header/Footer stay mounted since they're siblings, outside this boundary.
+// event handlers). Layout wraps each page in one, so a broken template can't
+// blank the whole app (Header/Footer are siblings, outside it), and Panel
+// wraps each panel in one, so a broken panel can't blank the page.
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
     constructor( props: ErrorBoundaryProps ) {
         super( props );
@@ -42,7 +46,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
     render(): React.ReactNode {
         if ( this.state.hasError ) {
-            return <ErrorFallback />;
+            return this.props.fallback !== undefined ? this.props.fallback : <ErrorFallback />;
         }
         return this.props.children;
     }

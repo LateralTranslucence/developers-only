@@ -12,6 +12,9 @@ declare global {
         devoLocale?: string;
         devoPrivacyPolicyURL?: string;
         devoSiteName?: string;
+        // { URL post type segment: REST base }, for post types whose
+        // rest_slug differs from their slug; see globalVariables.ts
+        devoRestBases?: Record<string, string>;
     }
 
     // React 19 moved the JSX namespace off the global scope; several

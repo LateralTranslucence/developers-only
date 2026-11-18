@@ -476,7 +476,13 @@ function devo_form_submit_query( $data ) {
         // Add to field's current_value property
         $form_field['current_value'] = $value;
         $form_fields[ $field_name ]['current_value'] = $value;
-        $json_encode_me[ $form_field['label'] ] = $value;
+        // Keyed by field ID: two fields can share a label (a billing and a
+        // shipping "Name"), and keying by label kept only the last one. The
+        // label is kept for the admin's Data table.
+        $json_encode_me[ $field_name ] = [
+            'label' => $form_field['label'],
+            'value' => $value,
+        ];
         // And to $form_values_array (for storing in the submissions post type)
         $form_values_array[ $field_name ] = $form_field;
         // The confirmation email goes to the first email-type field, and only

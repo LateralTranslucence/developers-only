@@ -83,8 +83,9 @@ class DO_Search {
         $current_query['s']              = isset( $query_params['s'] ) && is_string( $query_params['s'] ) ? sanitize_text_field( $query_params['s'] ) : '';
         if ( isset( $query_params['sort'] ) && is_string( $query_params['sort'] ) ) {
             $current_query['sort'] = $query_params['sort'];
-        } elseif ( count( $sort = (array) devo_get_post_meta( $post_id, $meta_prefix . '_custom_sort_by' . $meta_suffix ) ) && isset( $sort[0] ) ) {
-            $current_query['sort'] = is_object( $sort[0] ) ? $sort[0]->value : $sort[0]['value'];
+        } elseif ( strlen( $default_sort = $this->sort_row_part( current( $this->custom_sort_rows( $post_id, $meta_prefix, $meta_suffix ) ), 'value' ) ) ) {
+            // The panel's first Custom Sort By option
+            $current_query['sort'] = $default_sort;
         } else {
             $current_query['sort'] = 'date_desc';
         }
@@ -118,7 +119,7 @@ class DO_Search {
 
         // UI Settings
         $post_types    = count( $query_post_types ) ? $query_post_types : $post_type;
-        $sort_by_array = (array) devo_get_post_meta( $post_id, $meta_prefix . '_custom_sort_by' . $meta_suffix );
+        $sort_by_array = $this->custom_sort_rows( $post_id, $meta_prefix, $meta_suffix );
         $hide_sort_by  = devo_get_post_meta( $post_id, $meta_prefix . '_hide_sort_by' . $meta_suffix );
         $sort_settings = $this->organize_sort_settings( $sort_by_array );
         $field_settings = $settings['field_settings'];
@@ -180,15 +181,33 @@ class DO_Search {
         return $field_settings;
     }
 
+    /* The panel's Custom Sort By rows. The field is stored as a JSON list of
+     * { value, label } objects; an unset field reads as '', which (array) used
+     * to turn into [ '' ], a "row" that crashed the query (''['value'] is a
+     * TypeError, so an anonymous request got a 500) and hid the default sort
+     * options. Anything that isn't a row is dropped. */
+    private function custom_sort_rows( $post_id, $meta_prefix, $meta_suffix ) {
+        $stored = devo_get_post_meta( $post_id, $meta_prefix . '_custom_sort_by' . $meta_suffix );
+        return array_values( array_filter( is_array( $stored ) ? $stored : [], function( $row ) {
+            return is_array( $row ) || is_object( $row );
+        } ) );
+    }
+
+    // A Custom Sort By row's value or label, as a string ('' when missing)
+    private function sort_row_part( $row, $part ) {
+        $value = is_object( $row ) ? ( $row->{ $part } ?? '' ) : ( is_array( $row ) ? ( $row[ $part ] ?? '' ) : '' );
+        return is_scalar( $value ) ? trim( (string) $value ) : '';
+    }
+
     private function organize_sort_settings( $sort = [] ) {
         $sort_settings = [];
         // If there are sort settings...
         if ( is_array( $sort ) && count( $sort ) ) {
             // ...loop through them
             foreach ( $sort as $setting ) {
-                $value = is_object( $setting ) ? ( $setting->value ?? FALSE ) : ( $setting['value'] ?? FALSE );
-                $label = is_object( $setting ) ? ( $setting->label ?? FALSE ) : ( $setting['label'] ?? FALSE );
-                if ( $value && $label ) {
+                $value = $this->sort_row_part( $setting, 'value' );
+                $label = $this->sort_row_part( $setting, 'label' );
+                if ( strlen( $value ) && strlen( $label ) ) {
                     $sort_settings[ $value ] = $label;
                 }
             }

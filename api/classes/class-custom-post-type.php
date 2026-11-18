@@ -141,7 +141,7 @@ abstract class DO_Custom_Post_Type {
         add_filter( 'post_type_link', [ $this, 'permalinks' ], 10, 3 );
 
         // Listen for the save post hook
-        add_action( 'save_post', [ $this, 'save_post' ] );
+        add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
 
         // Save Initial post data
         add_filter( 'wp_insert_post_data' , function( $data , $postarr ) {
@@ -1289,14 +1289,29 @@ abstract class DO_Custom_Post_Type {
      * Save post
      *
      * */
-    public function save_post() {
-        global $post;
+    public function save_post( $post_id, $post = NULL ) {
+        $post_id = (int) $post_id;
+        $post = $post instanceof WP_Post ? $post : get_post( $post_id );
+        // Work only on the post that save_post fired for, never the global
+        // $post. "Preview Changes" on a published post (classic editor) runs
+        // wp_create_post_autosave(), which fires save_post for the autosave
+        // revision while the global $post, the nonce and every posted field
+        // still belong to the live post: reading the global made a preview
+        // publish its changes. Revisions and autosaves keep no theme meta.
+        if ( ! $post || wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
+            return;
+        }
+        // The posted fields belong to the post on the edit screen. Anything
+        // else saved during the same request (another post inserted by a
+        // hook, say) must not pick them up.
+        if ( ! isset( $_POST['post_ID'] ) || (int) $_POST['post_ID'] !== $post_id ) {
+            return;
+        }
         // verify this came from the our screen and with proper authorization,
         // because save_post can be triggered at other times
-        if ( $post ) {
+        if ( $post->post_type === $this->post_type ) {
             $box_id = $this->meta_box_id( $post->post_type, isset( $_POST['meta_box_title'] ) ? $_POST['meta_box_title'] : '' );
             $nonce_id = $box_id . '_nonce';
-            $post_id = $post->ID;
             if ( $post->post_type != 'page' ) {
                 if ( ! array_key_exists( $nonce_id, $_POST ) ) {
                     return;
@@ -1314,7 +1329,7 @@ abstract class DO_Custom_Post_Type {
                 return $post_id;
             }
             // Save meta fields
-            if ( isset( $_POST ) && isset( $post_id ) && get_post_type( $post_id ) == $this->post_type ) {
+            if ( isset( $_POST ) ) {
                 // Comments status
                 if ( $this->comments ) {
                     if ( isset( $this->comment_status_callback ) && function_exists( $this->comment_status_callback ) ) {
@@ -1375,27 +1390,33 @@ abstract class DO_Custom_Post_Type {
                             continue;
                         }
 
+                        // $_POST is slashed (WordPress adds magic quotes). Unslash
+                        // before validating, so the value is stored as typed:
+                        // "O'Brien", not "O\'Brien".
+                        $posted = isset( $_POST[ $meta_field_key ] ) ? wp_unslash( $_POST[ $meta_field_key ] ) : '';
+
                         // Custom callback
                         if ( strpos( $type, '_callback' ) !== FALSE ) {
                             $callback = $type;
                             // Method
                             if ( $obj && method_exists( $obj, $callback ) ) {
-                                $value = call_user_func( [ $obj, $callback ], $post_id, 'validate', $_POST[ $meta_field_key ], $meta_field_key );
+                                $value = call_user_func( [ $obj, $callback ], $post_id, 'validate', $posted, $meta_field_key );
                             }
                             // Function
                             elseif ( function_exists( $callback ) ) {
-                                $value = call_user_func( $callback , $post_id, 'validate', ( isset( $_POST[ $meta_field_key ] ) ? $_POST[ $meta_field_key ] : '' ), $meta_field_key );
+                                $value = call_user_func( $callback , $post_id, 'validate', $posted, $meta_field_key );
                             }
                         }
                         // Something else
                         else {
-                            $validate = new DO_Form_Field_Validate( $type, ( isset( $_POST[ $meta_field_key ] ) ? $_POST[ $meta_field_key ] : '' ) );
+                            $validate = new DO_Form_Field_Validate( $type, $posted );
                             $value = $validate->value;
                         }
                         
                         // Save the field. wp_slash() because update_post_meta()
-                        // unslashes, and values are stored as validated
-                        // (JSON included) and unslashed again on read.
+                        // unslashes, and the value (JSON included) must be
+                        // stored exactly as validated. Read back unchanged by
+                        // devo_get_post_meta().
                         update_post_meta( $post_id, $meta_field_key, wp_slash( $value ) );
                         $saved_keys[] = $meta_field_key;
                     }
@@ -1408,13 +1429,13 @@ abstract class DO_Custom_Post_Type {
                         $bonus_field_type = is_int( $bonus_field_key ) ? FALSE : $bonus_field_value;
                         if ( isset( $_POST[ $bonus_field_name ] ) ) {
                             if ( $bonus_field_type ) {
-                                $validate = new DO_Form_Field_Validate( $bonus_field_type, $_POST[ $bonus_field_name ] );
+                                $validate = new DO_Form_Field_Validate( $bonus_field_type, wp_unslash( $_POST[ $bonus_field_name ] ) );
                                 $value = $validate->value;
                             } else {
-                                $value = $_POST[ $bonus_field_name ];
+                                $value = wp_unslash( $_POST[ $bonus_field_name ] );
                             }
                         } elseif ( isset( $_POST[ $bonus_field_value ] ) ) {
-                            $validate = new DO_Form_Field_Validate( $bonus_field_type, $_POST[ $bonus_field_value ] );
+                            $validate = new DO_Form_Field_Validate( $bonus_field_type, wp_unslash( $_POST[ $bonus_field_value ] ) );
                             $value = $validate->value;
                         } else {
                             $value = '';
@@ -1461,9 +1482,9 @@ abstract class DO_Custom_Post_Type {
                         remove_action( 'save_post', [ $this, 'save_post' ] );
                         // Update the post with the new content
                         $validate = new DO_Form_Field_Validate( 'wp_editor', $content );
-                        wp_update_post( [ 'ID' => $_POST['post_ID'], 'post_content' => $validate->value ] );
+                        wp_update_post( [ 'ID' => $post_id, 'post_content' => $validate->value ] );
                         // Rehook
-                        add_action( 'save_post', [ $this, 'save_post' ] );
+                        add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
                     }
                 }
 
@@ -1476,9 +1497,9 @@ abstract class DO_Custom_Post_Type {
                         remove_action( 'save_post', [ $this, 'save_post' ] );
                         // Update the post with the new excerpt
                         $validate = new DO_Form_Field_Validate( 'wp_editor', $excerpt );
-                        wp_update_post( [ 'ID' => $_POST['post_ID'], 'post_excerpt' => $validate->value ] );
+                        wp_update_post( [ 'ID' => $post_id, 'post_excerpt' => $validate->value ] );
                         // Rehook
-                        add_action( 'save_post', [ $this, 'save_post' ] );
+                        add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
                     }
                 }
 
@@ -1497,7 +1518,7 @@ abstract class DO_Custom_Post_Type {
                         // Unhook to avoid an infinite loop
                         remove_action( 'save_post', [ $this, 'save_post' ] );
                         $args = [
-                            'ID' => $_POST['post_ID'],
+                            'ID' => $post_id,
                             'post_title' => str_replace( ' , ', ', ', implode( ' ', $title_array ) ),
                         ];
                         if ( ! isset( $this->post_type_post_name ) ) {
@@ -1506,7 +1527,7 @@ abstract class DO_Custom_Post_Type {
                         // Update the post with the new title
                         wp_update_post( $args );
                         // Rehook
-                        add_action( 'save_post', [ $this, 'save_post' ] );
+                        add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
                     }
                 }
                 // Build Slug
@@ -1516,9 +1537,9 @@ abstract class DO_Custom_Post_Type {
                         // Unhook to avoid an infinite loop
                         remove_action( 'save_post', [ $this, 'save_post' ] );
                         // Update the post with the new slug
-                        wp_update_post( [ 'ID' => $_POST['post_ID'], 'post_name' => remove_accents( implode( '-', $slug_array ) ) ] );
+                        wp_update_post( [ 'ID' => $post_id, 'post_name' => remove_accents( implode( '-', $slug_array ) ) ] );
                         // Rehook
-                        add_action( 'save_post', [ $this, 'save_post' ] );
+                        add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
                     }
                 }
                 // Comments status
@@ -1528,27 +1549,27 @@ abstract class DO_Custom_Post_Type {
                     if ( isset( $this->comment_status_callback ) && function_exists( $this->comment_status_callback ) ) {
                         $comment_status = call_user_func( $this->comment_status_callback, $_POST );
                         // Update the post with the new slug
-                        wp_update_post( [ 'ID' => $_POST['post_ID'], 'comment_status' => in_array( $comment_status, [ 'closed', 'open' ] ) ? $comment_status : 'open' ] );
+                        wp_update_post( [ 'ID' => $post_id, 'comment_status' => in_array( $comment_status, [ 'closed', 'open' ] ) ? $comment_status : 'open' ] );
                     } else {
-                        wp_update_post( [ 'ID' => $_POST['post_ID'], 'comment_status' => 'open' ] );
+                        wp_update_post( [ 'ID' => $post_id, 'comment_status' => 'open' ] );
                     }
                     // Rehook
-                    add_action( 'save_post', [ $this, 'save_post' ] );
+                    add_action( 'save_post', [ $this, 'save_post' ], 10, 2 );
                 }
             }
             // AfterSave callback
             if ( isset( $this->aftersave_callback ) ) {
                 // Method
-                if ( is_array( $this->aftersave_callback ) && isset( $this->aftersave_callback[0] ) && isset( $this->aftersave_callback[1] ) && isset( $_POST['post_ID'] ) ) {
+                if ( is_array( $this->aftersave_callback ) && isset( $this->aftersave_callback[0] ) && isset( $this->aftersave_callback[1] ) ) {
                     $obj = $this->aftersave_callback[0];
                     $callback = $this->aftersave_callback[1];
                     if ( method_exists( $obj, $callback ) ) {
-                        call_user_func( [ $obj, $callback ], $_POST['post_ID'] );
+                        call_user_func( [ $obj, $callback ], $post_id );
                     }
                 }
                 // Function
                 elseif ( is_string( $this->aftersave_callback ) && function_exists( $this->aftersave_callback ) ) {
-                    call_user_func( $this->aftersave_callback, $_POST['post_ID'] );
+                    call_user_func( $this->aftersave_callback, $post_id );
                 }
             }
         }
@@ -1589,6 +1610,55 @@ abstract class DO_Custom_Post_Type {
         }
         $keys = $base_keys[ $this->post_type ];
         return isset( $keys[ $meta_key ] ) || isset( $bonus_keys[ $meta_key ] ) || isset( $keys[ preg_replace( '/_\d+$/', '', $meta_key ) ] );
+    }
+
+    /* One-time upgrade, run by devo_upgrade_unslash_meta(). save_post() used
+     * to validate the slashed $_POST and store it as-is ("O\'Brien"), and
+     * devo_get_post_meta() unslashed on every read. Values are now stored as
+     * typed and read as stored, so rewrite the slashed ones as the values they
+     * have always displayed as. See devo_unslash_legacy_meta_value() for what
+     * counts as slashed.
+     *
+     * Only each post type's own fields saved from the edit screen: not
+     * read-only fields (a form submission's data, written unslashed by code),
+     * _private keys, or BAK backups. Returns the number of values rewritten. */
+    public static function unslash_legacy_meta(): int {
+        $updated = 0;
+        foreach ( self::$instances as $instance ) {
+            $updated += $instance->unslash_legacy_meta_for_post_type();
+        }
+        return $updated;
+    }
+
+    private function unslash_legacy_meta_for_post_type(): int {
+        global $wpdb;
+        $read_only_keys = [];
+        foreach ( $this->source_meta_fields as $box_fields ) {
+            foreach ( (array) $box_fields as $label => $settings ) {
+                if ( is_string( $label ) && in_array( devo_get_meta_field_type( $settings ), [ 'read_only', 'read_only_json' ], TRUE ) ) {
+                    $read_only_keys[ devo_meta_field_key( $label, $this->meta_prefix ) ] = TRUE;
+                }
+            }
+        }
+        $rows = $wpdb->get_results( $wpdb->prepare(
+            "SELECT pm.meta_id, pm.meta_key, pm.meta_value FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE p.post_type = %s AND pm.meta_value LIKE %s",
+            $this->post_type,
+            '%' . $wpdb->esc_like( '\\' ) . '%'
+        ) );
+        $updated = 0;
+        foreach ( (array) $rows as $row ) {
+            $meta_key = (string) $row->meta_key;
+            if ( $meta_key === '' || $meta_key[0] === '_' || strpos( $meta_key, 'BAK' ) === 0 || isset( $read_only_keys[ $meta_key ] ) || ! $this->owns_meta_key( $meta_key ) ) {
+                continue;
+            }
+            $unslashed = devo_unslash_legacy_meta_value( $row->meta_value );
+            // Unlike update_post_meta(), update_metadata_by_mid() stores the
+            // value as given, without unslashing it
+            if ( $unslashed !== NULL && update_metadata_by_mid( 'post', (int) $row->meta_id, $unslashed ) ) {
+                $updated++;
+            }
+        }
+        return $updated;
     }
 
     // This post type's own meta keys currently stored on $post_id
@@ -1776,30 +1846,44 @@ abstract class DO_Custom_Post_Type {
             return;
         }
         if ( $post_object->post_type === $this->post_type ) {
-            if ( $this->dynamic_interface ) {
-                $this->dynamic_interface_setup( $post_object );
-            }
-            // Get all meta fields
-            $this->post_type_details->meta_fields = [];
-            if ( $this->meta_fields ) {
-                foreach ( $this->meta_fields as $meta_box_name => $meta_box ) {
-                    preg_match( '/\d+/', $meta_box_name, $matches );
-                    $panel_suffix = count( $matches ) ? current( $matches ) : '';
-                    foreach ( $meta_box as $field_label => $field_details ) {
-                        $field_key = devo_meta_field_key( $field_label, $this->meta_prefix, $panel_suffix );
-                        $this->post_type_details->meta_fields[ $field_key ] = $field_details;
-                    }
-                }
-            }
-            // Get all bonus fields
-            foreach ( $this->bonus_fields as $field_key => $field_details ) {
-                $this->post_type_details->bonus_fields[ $field_key ] = $field_details;
-                $this->post_type_details->meta_fields[ $field_key ] = $field_details;
-            }
             // Add fields
-            $post_object = devo_api_custom_data( $post_object, $this->post_type_details );
+            $post_object = devo_api_custom_data( $post_object, $this->post_type_details_for( $post_object ) );
             $post_object->post_date = $post_object->raw_post_date;
         }
+    }
+
+    /* This post type's details with the field config for one post: its
+     * dynamic-interface fields (a landing page's panels) and bonus fields.
+     *
+     * Returns a copy. The shared $this->post_type_details (also the
+     * $devo_custom_post_types entry) is never changed: a post_browser field
+     * prepares the posts it lists while the post containing it is still being
+     * prepared, so a listed landing page used to overwrite the outer page's
+     * meta_fields, and the outer page's later panels were read with the
+     * listed page's field types. */
+    private function post_type_details_for( $post ) {
+        if ( $this->dynamic_interface ) {
+            $this->dynamic_interface_setup( $post );
+        }
+        $post_type_details = clone $this->post_type_details;
+        $post_type_details->meta_fields = [];
+        if ( $this->meta_fields ) {
+            foreach ( $this->meta_fields as $meta_box_name => $meta_box ) {
+                preg_match( '/\d+/', $meta_box_name, $matches );
+                $panel_suffix = count( $matches ) ? current( $matches ) : '';
+                foreach ( $meta_box as $field_label => $field_details ) {
+                    $field_key = devo_meta_field_key( $field_label, $this->meta_prefix, $panel_suffix );
+                    $post_type_details->meta_fields[ $field_key ] = $field_details;
+                }
+            }
+        }
+        if ( $this->bonus_fields ) {
+            $post_type_details->bonus_fields = $this->bonus_fields;
+            foreach ( $this->bonus_fields as $field_key => $field_details ) {
+                $post_type_details->meta_fields[ $field_key ] = $field_details;
+            }
+        }
+        return $post_type_details;
     }
 
     /*
@@ -1808,33 +1892,14 @@ abstract class DO_Custom_Post_Type {
      * */
     private function rest_api() {
         add_filter( 'rest_prepare_' . $this->post_type, function( $data, $post, $context  ) {
-            if ( $this->dynamic_interface ) {
-                $this->dynamic_interface_setup( $post );
-            }
-            // Get all meta fields
-            $this->post_type_details->meta_fields = [];
-            if ( $this->meta_fields ) {
-                foreach ( $this->meta_fields as $meta_box_name => $meta_box ) {
-                    preg_match( '/\d+/', $meta_box_name, $matches );
-                    $panel_suffix = count( $matches ) ? current( $matches ) : '';
-                    foreach ( $meta_box as $field_label => $field_details ) {
-                        $field_key = devo_meta_field_key( $field_label, $this->meta_prefix, $panel_suffix );
-                        $this->post_type_details->meta_fields[ $field_key ] = $field_details;
-                    }
-                }
-            }
-            // Get all bonus fields
-            foreach ( $this->bonus_fields as $field_key => $field_details ) {
-                $this->post_type_details->bonus_fields[ $field_key ] = $field_details;
-                $this->post_type_details->meta_fields[ $field_key ] = $field_details;
-            }
+            $post_type_details = $this->post_type_details_for( $post );
             // Add the theme's fields on top of core's response. Core's response
             // stays: it already handles password-protected content, and the
             // raw WP_Post that used to replace it included post_password.
             $request = $context instanceof WP_REST_Request ? $context : NULL;
             $data->data = array_merge(
                 is_array( $data->data ) ? $data->data : [],
-                devo_rest_theme_fields( $post, $this->post_type_details, $request )
+                devo_rest_theme_fields( $post, $post_type_details, $request )
             );
             return $data;
         }, 10, 3 );

@@ -189,17 +189,15 @@ class DO_Form_Field_Validate {
 
     private function google_maps_embed( $force_value = FALSE ) {
         $value = $force_value !== FALSE ? $force_value : $this->raw_value;
-        // It's a map!
-        if ( strpos( $value, 'https://www.google.com/maps/') !== FALSE ) {
-            $map_url = str_replace( '<iframe src=\"', '', $value );
-            $map_url = str_replace( '\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\">', '', $map_url );
-            $map_url = str_replace( '/iframe', '', $map_url );
-            return esc_url_raw( $map_url );
+        $value = is_string( $value ) ? trim( $value ) : '';
+        // Google's embed code (<iframe src="...">) or the bare embed URL. The
+        // src is read from the markup, whatever its other attributes; this
+        // used to strip one exact embed snippet, with its quotes still slashed.
+        if ( preg_match( '/<iframe\b[^>]*\ssrc\s*=\s*(["\'])(.*?)\1/is', $value, $matches ) ) {
+            $value = html_entity_decode( trim( $matches[2] ), ENT_QUOTES );
         }
-        // Not a map
-        else {
-            return '';
-        }
+        // It's a map, or it's nothing
+        return strpos( $value, 'https://www.google.com/maps/' ) === 0 ? esc_url_raw( $value ) : '';
     }
 
     private function hidden( $force_value = FALSE ) {

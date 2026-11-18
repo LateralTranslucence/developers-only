@@ -165,14 +165,17 @@ const dynamic_interface = function(settings) {
                 const $panel_full_title = $this.find('.postbox-header').children('h2');
                 const $dynamic_title_field = $this.find('input[name^='+settings.settings.dynamic_meta_box_title_field+']');
                 const dynamic_title = $dynamic_title_field ? $dynamic_title_field.attr('value') : false;
+                // .text(), not .html(): the title is what an editor typed, and
+                // the browser has already decoded the attribute, so a typed
+                // "&lt;img onerror=...&gt;" would otherwise become markup.
                 if ( dynamic_title ) {
-                    $panel_full_title.html( $panel_full_title.text() + ': ' + dynamic_title );
+                    $panel_full_title.text( $panel_full_title.text() + ': ' + dynamic_title );
                 } else {
                     const $fallback_title_field = $this.find('[name^='+settings.settings.nested_field_key+']');
                     const fallback_title_value = $fallback_title_field ? $fallback_title_field.val() : false;
                     const nested_field_options = settings.settings.nested_field_options ? settings.settings.nested_field_options.options : {};
                     if ( nested_field_options[ fallback_title_value ] ) {
-                        $panel_full_title.html( $panel_full_title.text() + ': ' + nested_field_options[ fallback_title_value ].label );
+                        $panel_full_title.text( $panel_full_title.text() + ': ' + nested_field_options[ fallback_title_value ].label );
                     }
                 }
             });

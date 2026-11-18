@@ -34,7 +34,7 @@ This is a **hybrid-headless WordPress theme**. PHP handles the CMS and a custom 
 
 ### How it fits together
 
-`functions.php` reads the Vite manifest at `public/dist/.vite/manifest.json` and enqueues the compiled bundle into every WordPress page (with `$ver = null` — a `?ver=` query on the module script would double-evaluate the entry and mount a second React root). `header.php` opens the document (including `<body>`, `body_class()` and `wp_body_open()`) and `index.php` renders the `<div id="root">`; `devo_js_globals()` injects PHP globals (`window.devoEnv`, `window.homeURL`, `window.relativeHomeURL`, `window.devoCookieConsentText`, `window.devoSiteName`, `window.devoLocale`, `window.devoPrivacyPolicyURL`). React mounts into `#root` and takes over all routing.
+`functions.php` reads the Vite manifest at `public/dist/.vite/manifest.json` and enqueues the compiled bundle into every WordPress page (with `$ver = null` — a `?ver=` query on the module script would double-evaluate the entry and mount a second React root). `header.php` opens the document (including `<body>`, `body_class()` and `wp_body_open()`) and `index.php` renders the `<div id="root">`; `devo_js_globals()` injects PHP globals (`window.devoEnv`, `window.homeURL`, `window.relativeHomeURL`, `window.devoCookieConsentText`, `window.devoSiteName`, `window.devoLocale`, `window.devoPrivacyPolicyURL`, `window.devoRestBases`). React mounts into `#root` and takes over all routing.
 
 The theme ships no analytics. `CookieConsent.tsx` records the visitor's choice in the `devo_cookie_consent` cookie and dispatches a `devo:cookie-consent` DOM event, so an extension can gate its own tags either server-side (read the cookie on `wp_head`) or client-side (listen for the event). Copy for the banner comes from the `devo_cookie_consent_text` filter.
 
@@ -62,7 +62,7 @@ index.tsx (BrowserRouter)
 
 `/iframe/...` routes render `Layout` without `SiteShell` (no header or footer), for content shown inside modals.
 
-`TemplateLoader` calls `getPost(postType, slug)` → `GET /wp-json/wp/v2/{postType}?slug={slug}`. All templates receive the full `Post` object (see `app/utils/types/Post.ts`).
+`TemplateLoader` maps the URL's post type segment to its REST base (`window.devoRestBases`, since a post type's `rest_slug` can differ from its `slug`), then calls `getPost(restBase, slug)` → `GET /wp-json/wp/v2/{restBase}?slug={slug}`. All templates receive the full `Post` object (see `app/utils/types/Post.ts`).
 
 `LandingPage` reads `{meta_prefix}_panel_count` from `post.fields`, then renders that many `<Panel>` components numbered 1–N. `Panel` reads `{meta_prefix}_panel_type_{N}` to decide which panel component to render via `PanelLoader`.
 
@@ -111,7 +111,9 @@ see `extensions/README.md` for the full guide. Summary:
   hook in `set_panel_types()` (`class-landing-page.php`).
 - `extensions/app/components/templates/single/PascalCaseName.tsx` —
   single-post templates, auto-discovered by `TemplateLoader.tsx` the same
-  way; the key must match the post type's REST slug.
+  way; the key must match the post type's REST base (`rest_slug`, else
+  `slug`). The URL segment is the `slug`; `TemplateLoader` maps it to the
+  REST base through `window.devoRestBases`.
 - `extensions/app/styles/extensions-global.scss` — its own Vite entry,
   enqueued on every page immediately after `devo-global.css`.
 

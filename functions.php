@@ -249,6 +249,21 @@ function devo_create_objects() {
 }
 add_action( 'after_setup_theme', 'devo_create_objects', 1 );
 
+/* One-time upgrade: meta values used to be saved from wp-admin still slashed
+ * ("O\'Brien") and unslashed on every read, which also stripped backslashes
+ * from anything stored correctly. Values are now stored as typed and read as
+ * stored, so the slashed ones are rewritten once, to what they displayed as.
+ * See DO_Custom_Post_Type::unslash_legacy_meta(). */
+function devo_upgrade_unslash_meta() {
+    if ( get_option( 'devo_meta_unslashed' ) ) {
+        return;
+    }
+    // Set first, so a slow or failed run isn't retried on every request
+    update_option( 'devo_meta_unslashed', 1, TRUE );
+    DO_Custom_Post_Type::unslash_legacy_meta();
+}
+add_action( 'init', 'devo_upgrade_unslash_meta', 99 );
+
 /*
  *
  * CLEANUP
@@ -336,6 +351,7 @@ function devo_js_globals() {
     $privacy_policy_url = get_privacy_policy_url();
     // JSON for a <script> block: JSON_HEX_TAG so a value can't close it
     $json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES;
+    $rest_bases = devo_rest_bases_by_url_slug();
 ?>
 <script>
     window.devoEnv = "<?php echo esc_js( DO_ENVIRONMENT ) ?>";
@@ -345,8 +361,27 @@ function devo_js_globals() {
     window.devoSiteName = <?php echo wp_json_encode( $site_name, $json_flags ) ?>;
     window.devoLocale = <?php echo wp_json_encode( get_locale(), $json_flags ) ?>;
     window.devoPrivacyPolicyURL = <?php echo wp_json_encode( $privacy_policy_url, $json_flags ) ?>;
+    window.devoRestBases = <?php echo wp_json_encode( (object) $rest_bases, $json_flags ) ?>;
 </script>
 <?php }
+
+/* { URL slug => REST base } for every public post type in the REST API that
+ * has its own URL segment (/{slug}/{post-name}/). The SPA reads the post type
+ * from that segment, but a post type's rest_slug setting can give it a
+ * different REST base (Simple Page: /page/... is /wp/v2/simple-page), so
+ * TemplateLoader looks the base up here (window.devoRestBases). */
+function devo_rest_bases_by_url_slug() {
+    $rest_bases = [];
+    foreach ( get_post_types( [ 'public' => TRUE, 'show_in_rest' => TRUE ], 'objects' ) as $post_type_object ) {
+        $url_slug = is_array( $post_type_object->rewrite ) && isset( $post_type_object->rewrite['slug'] ) ? trim( (string) $post_type_object->rewrite['slug'], '/' ) : '';
+        // Only a single segment can match the SPA's /:postType/:slug route
+        if ( $url_slug === '' || strpos( $url_slug, '/' ) !== FALSE ) {
+            continue;
+        }
+        $rest_bases[ $url_slug ] = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
+    }
+    return $rest_bases;
+}
 add_action( 'wp_head', 'devo_js_globals' );
 add_action( 'admin_head', 'devo_js_globals' );
 
