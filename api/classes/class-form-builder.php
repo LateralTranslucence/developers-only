@@ -345,10 +345,17 @@ class DO_Form_Builder {
 
     /* A range slider's bounds as whole numbers, defaulting to 0-100 in steps
      * of 1. A step below 1 becomes 1, and a max below the min becomes the min,
-     * which is how the browser would read them anyway. */
+     * which is how the browser would read them anyway.
+     *
+     * Each is clamped to +/- RANGE_LIMIT. Near PHP_INT_MIN or PHP_INT_MAX,
+     * field_value_allowed()'s $value - $min overflowed to a float, and the
+     * float modulo printed a deprecation notice. */
+    const RANGE_LIMIT = 1000000000;
+
     public static function range_settings( $min, $max, $step ) {
         $whole = function ( $value, $default ) {
-            return is_scalar( $value ) && preg_match( '/^\s*-?\d+\s*$/', (string) $value ) ? (int) $value : $default;
+            $value = is_scalar( $value ) && preg_match( '/^\s*-?\d+\s*\z/', (string) $value ) ? (int) $value : $default;
+            return max( -self::RANGE_LIMIT, min( self::RANGE_LIMIT, $value ) );
         };
         $min = $whole( $min, 0 );
         $max = max( $min, $whole( $max, 100 ) );
@@ -415,7 +422,9 @@ class DO_Form_Builder {
                 $settings = $form_field['settings'];
                 return is_string( $raw_value ) && in_array( $raw_value, [ $settings['off']['value'], $settings['on']['value'] ], TRUE );
             case 'range_slider':
-                if ( ! is_string( $raw_value ) || ! preg_match( '/^-?\d+$/', $raw_value ) ) {
+                // \z, not $: $ also matches before a final newline, so "5\n"
+                // passed and was stored
+                if ( ! is_string( $raw_value ) || ! preg_match( '/^-?\d+\z/', $raw_value ) ) {
                     return FALSE;
                 }
                 $settings = $form_field['settings'];
