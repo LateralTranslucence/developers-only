@@ -1773,6 +1773,14 @@ abstract class DO_Custom_Post_Type {
     }
 
     public function the_post( $post_object ) {
+        // Core's REST controller calls setup_postdata() for every post it
+        // prepares, which lands here, and then the rest_prepare_{post_type}
+        // filter builds the same data again from scratch. Through
+        // post_browser fields that doubled the work at every nesting level.
+        // In REST, and inside devo_rest_prepare_post(), leave it to the filter.
+        if ( ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || devo_rest_prepare_depth() > 0 ) {
+            return;
+        }
         if ( $post_object->post_type === $this->post_type ) {
             if ( $this->dynamic_interface ) {
                 $this->dynamic_interface_setup( $post_object );
