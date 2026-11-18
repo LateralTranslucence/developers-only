@@ -1791,30 +1791,44 @@ abstract class DO_Custom_Post_Type {
             return;
         }
         if ( $post_object->post_type === $this->post_type ) {
-            if ( $this->dynamic_interface ) {
-                $this->dynamic_interface_setup( $post_object );
-            }
-            // Get all meta fields
-            $this->post_type_details->meta_fields = [];
-            if ( $this->meta_fields ) {
-                foreach ( $this->meta_fields as $meta_box_name => $meta_box ) {
-                    preg_match( '/\d+/', $meta_box_name, $matches );
-                    $panel_suffix = count( $matches ) ? current( $matches ) : '';
-                    foreach ( $meta_box as $field_label => $field_details ) {
-                        $field_key = devo_meta_field_key( $field_label, $this->meta_prefix, $panel_suffix );
-                        $this->post_type_details->meta_fields[ $field_key ] = $field_details;
-                    }
-                }
-            }
-            // Get all bonus fields
-            foreach ( $this->bonus_fields as $field_key => $field_details ) {
-                $this->post_type_details->bonus_fields[ $field_key ] = $field_details;
-                $this->post_type_details->meta_fields[ $field_key ] = $field_details;
-            }
             // Add fields
-            $post_object = devo_api_custom_data( $post_object, $this->post_type_details );
+            $post_object = devo_api_custom_data( $post_object, $this->post_type_details_for( $post_object ) );
             $post_object->post_date = $post_object->raw_post_date;
         }
+    }
+
+    /* This post type's details with the field config for one post: its
+     * dynamic-interface fields (a landing page's panels) and bonus fields.
+     *
+     * Returns a copy. The shared $this->post_type_details (also the
+     * $devo_custom_post_types entry) is never changed: a post_browser field
+     * prepares the posts it lists while the post containing it is still being
+     * prepared, so a listed landing page used to overwrite the outer page's
+     * meta_fields, and the outer page's later panels were read with the
+     * listed page's field types. */
+    private function post_type_details_for( $post ) {
+        if ( $this->dynamic_interface ) {
+            $this->dynamic_interface_setup( $post );
+        }
+        $post_type_details = clone $this->post_type_details;
+        $post_type_details->meta_fields = [];
+        if ( $this->meta_fields ) {
+            foreach ( $this->meta_fields as $meta_box_name => $meta_box ) {
+                preg_match( '/\d+/', $meta_box_name, $matches );
+                $panel_suffix = count( $matches ) ? current( $matches ) : '';
+                foreach ( $meta_box as $field_label => $field_details ) {
+                    $field_key = devo_meta_field_key( $field_label, $this->meta_prefix, $panel_suffix );
+                    $post_type_details->meta_fields[ $field_key ] = $field_details;
+                }
+            }
+        }
+        if ( $this->bonus_fields ) {
+            $post_type_details->bonus_fields = $this->bonus_fields;
+            foreach ( $this->bonus_fields as $field_key => $field_details ) {
+                $post_type_details->meta_fields[ $field_key ] = $field_details;
+            }
+        }
+        return $post_type_details;
     }
 
     /*
@@ -1823,33 +1837,14 @@ abstract class DO_Custom_Post_Type {
      * */
     private function rest_api() {
         add_filter( 'rest_prepare_' . $this->post_type, function( $data, $post, $context  ) {
-            if ( $this->dynamic_interface ) {
-                $this->dynamic_interface_setup( $post );
-            }
-            // Get all meta fields
-            $this->post_type_details->meta_fields = [];
-            if ( $this->meta_fields ) {
-                foreach ( $this->meta_fields as $meta_box_name => $meta_box ) {
-                    preg_match( '/\d+/', $meta_box_name, $matches );
-                    $panel_suffix = count( $matches ) ? current( $matches ) : '';
-                    foreach ( $meta_box as $field_label => $field_details ) {
-                        $field_key = devo_meta_field_key( $field_label, $this->meta_prefix, $panel_suffix );
-                        $this->post_type_details->meta_fields[ $field_key ] = $field_details;
-                    }
-                }
-            }
-            // Get all bonus fields
-            foreach ( $this->bonus_fields as $field_key => $field_details ) {
-                $this->post_type_details->bonus_fields[ $field_key ] = $field_details;
-                $this->post_type_details->meta_fields[ $field_key ] = $field_details;
-            }
+            $post_type_details = $this->post_type_details_for( $post );
             // Add the theme's fields on top of core's response. Core's response
             // stays: it already handles password-protected content, and the
             // raw WP_Post that used to replace it included post_password.
             $request = $context instanceof WP_REST_Request ? $context : NULL;
             $data->data = array_merge(
                 is_array( $data->data ) ? $data->data : [],
-                devo_rest_theme_fields( $post, $this->post_type_details, $request )
+                devo_rest_theme_fields( $post, $post_type_details, $request )
             );
             return $data;
         }, 10, 3 );
