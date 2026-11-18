@@ -797,7 +797,6 @@ class DO_Form_Field_Display {
         $is_select_multiple = $this->type === 'select_multiple';
         $this->field_options = isset( $this->field_options['options'] ) ? $this->field_options['options'] : $this->field_options;
         $output = '';
-        //devo_var_dump($this->field_options);
         if ( is_array( $this->field_options ) && count( $this->field_options ) ) {
             if ( $is_select_multiple ) {
                 $output .= '<span class="footnote">' . esc_html__( 'Hold cmd or ctrl to select multiple', 'developers_only' ) . '</span><br>';

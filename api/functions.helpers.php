@@ -990,7 +990,6 @@ function devo_field_options( $field_options ) {
     else {
         $options = $field_options;
     }
-    //devo_var_dump($options);
     return $options;
 }
 
@@ -2164,19 +2163,6 @@ function devo_utc_to_timezone( $timestamp = FALSE, $timezone = FALSE, $format = 
     $date_obj->setTimeZone( $timezone_obj );
 
     return $date_obj->format( $format );
-}
-
-// Wraps a php var_dump in <pre> tags so it is formatted. Hidden on production.
-function devo_var_dump( $var, $backtrace = FALSE, $stealth = TRUE ) {
-    $allowed = in_array( DO_ENVIRONMENT, [ 'local', 'dev' ] ) || ( is_user_logged_in() && current_user_can( 'manage_options' ) );
-	echo '<pre' . ( $stealth && ! $allowed ? ' style="display:none;"' : '' ) . '>';
-    $key = array_search( __FUNCTION__ , array_column( debug_backtrace(), 'function' ) );
-	var_dump( [ 'var' => $var, 'location' => 'line ' . debug_backtrace()[ $key ]['line'] . ' ' . debug_backtrace()[ $key ]['file'] ] );
-    if ( $backtrace ) { 
-        debug_print_backtrace();
-    }
-	echo '</pre>';
-	return;
 }
 
 function devo_video_embed_url( $url = FALSE ) {

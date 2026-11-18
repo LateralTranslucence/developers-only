@@ -526,7 +526,6 @@ abstract class DO_Custom_Post_Type {
 
     /* Registers the post type */
     public function register_post_type() {
-        //devo_var_dump('register_post_type');
 
         // Capitilize the words and make it plural
         $plural = devo_pluralize( $this->post_type_display_name );
@@ -1314,7 +1313,6 @@ abstract class DO_Custom_Post_Type {
             if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
                 return $post_id;
             }
-            //devo_var_dump($_POST);exit;
             // Save meta fields
             if ( isset( $_POST ) && isset( $post_id ) && get_post_type( $post_id ) == $this->post_type ) {
                 // Comments status
@@ -1404,7 +1402,6 @@ abstract class DO_Custom_Post_Type {
                 }
 
                 // Bonus Fields
-                //devo_var_dump($this->bonus_fields);exit;
                 if ( isset( $this->bonus_fields ) && count( $this->bonus_fields ) ) {
                     foreach ( $this->bonus_fields as $bonus_field_key => $bonus_field_value ) {
                         $bonus_field_name = is_int( $bonus_field_key ) ? $bonus_field_value : $bonus_field_key;
@@ -1491,7 +1488,6 @@ abstract class DO_Custom_Post_Type {
                     delete_post_meta( $post_id, $stale_key );
                 }
 
-                //exit; // For devo_var_dump in DO_Form_Field_Validate
 
                 // Custom post_title/post_name
                 // Build Title
@@ -1610,8 +1606,6 @@ abstract class DO_Custom_Post_Type {
     private function backup_meta( $post_id, $owned_keys ) {
         global $wpdb;
         $post_id = (int) $post_id;
-        // Leftovers from the old prefix-wide scheme
-        $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key LIKE %s", $post_id, $wpdb->esc_like( '_BAK' ) . '%' ) );
         if ( ! count( $owned_keys ) ) {
             wp_cache_delete( $post_id, 'post_meta' );
             return;
@@ -1805,7 +1799,6 @@ abstract class DO_Custom_Post_Type {
             // Add fields
             $post_object = devo_api_custom_data( $post_object, $this->post_type_details );
             $post_object->post_date = $post_object->raw_post_date;
-            //devo_var_dump($post_object);
         }
     }
 
@@ -1885,7 +1878,6 @@ abstract class DO_Custom_Post_Type {
     }
 
     private function build_post_name_array( $POST ) {
-        //devo_var_dump($this->post_type_post_name);exit;
         $slug_array = [];
         foreach ( $this->post_type_post_name as $slug_part ) {
             if ( isset( $this->all_meta_fields[ $slug_part ] ) || count( devo_array_keys_exists( devo_meta_field_key( $slug_part, $this->meta_prefix ), $this->bonus_fields ) ) ) {
