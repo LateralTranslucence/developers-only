@@ -28,8 +28,8 @@ header#header {
                 position: relative;
 
                 &.hasChildren {
-                    // Discloses the submenu for keyboard and touch; hover
-                    // still opens it too.
+                    // Discloses the submenu for keyboard and touch; on
+                    // devices with a real hover, hovering opens it too.
                     > button.dropdownToggle {
                         display: inline-block;
                         width: 1.5em;
@@ -59,9 +59,17 @@ header#header {
                             list-style: none;
                         }
                     }
-                    &:hover > menu.subMenu,
                     &.open > menu.subMenu {
                         display: flex;
+                    }
+                    // Hover opens it only where hover is real. Touch browsers
+                    // keep :hover on the last tapped element, so without this
+                    // a second tap on the toggle set aria-expanded="false"
+                    // but left the submenu showing.
+                    @media (hover: hover) {
+                        &:hover > menu.subMenu {
+                            display: flex;
+                        }
                     }
                 }
 
