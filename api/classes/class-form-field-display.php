@@ -741,7 +741,10 @@ class DO_Form_Field_Display {
         // Read-only values can come from anonymous visitors (a form
         // submission's stored form ID), so every path out is escaped.
         $value = is_scalar( $this->value ) ? (string) $this->value : wp_json_encode( $this->value );
-        $binary = $this->value === '1' || $this->value === '0' || $this->value === TRUE || $this->value === FALSE;
+        // Only a real boolean (a manual field's value) reads as True/False. The
+        // strings "1" and "0" are just as likely an ID, such as a submission's
+        // form ID.
+        $binary = is_bool( $this->value );
         $email = is_email( $value );
         $link = strpos( $value, 'http' ) === 0;
         $output = '<textarea name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" style="display: none">' . esc_textarea( $value ) . '</textarea>';
