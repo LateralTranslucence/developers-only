@@ -7,8 +7,22 @@ import { PanelProps } from '@/utils/types/PanelProps';
 import { BackgroundProps } from '@/utils/types/BackgroundProps';
 import { HeadingProps } from '@/utils/types/HeadingProps';
 import { CustomAttributes } from '@/utils/types/CustomAttributes';
+import ErrorBoundary from '@/components/shared/ErrorBoundary';
 
-const Panel: React.FC<PanelProps> = ( { 
+// What a panel that failed to render leaves behind: nothing for visitors, and
+// a note outside production so the gap is noticed. The error is in the console.
+const PanelError: React.FC<{ panelNumber?: number }> = ( { panelNumber } ) => {
+    if ( window.devoEnv === 'prod' ) {
+        return null;
+    }
+    return (
+        <div className="error-boundary error-boundary--panel" role="alert">
+            <p className="error-boundary__message">Panel { panelNumber ?? '' } failed to render. See the browser console.</p>
+        </div>
+    );
+};
+
+const PanelContent: React.FC<PanelProps> = ( { 
     post, 
     index = 0, 
     panelNumber, 
@@ -98,4 +112,16 @@ const Panel: React.FC<PanelProps> = ( {
         return null;
     }
 };
+
+// One panel of a landing page, in its own error boundary: a panel with bad
+// data, or an extension panel that throws (or has no default export), drops
+// out on its own instead of replacing the whole page.
+const Panel: React.FC<PanelProps> = ( props ): JSX.Element => {
+    return (
+        <ErrorBoundary fallback={ <PanelError panelNumber={ props.panelNumber } /> }>
+            <PanelContent { ...props } />
+        </ErrorBoundary>
+    );
+};
+
 export default Panel;
