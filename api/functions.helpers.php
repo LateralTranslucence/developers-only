@@ -69,18 +69,61 @@ function devo_absolute_url( $relative_path ) {
     return $origin . '/' . ltrim( (string) $relative_path, '/' );
 }
 
+/* How many devo_rest_prepare_post() calls are in progress. A post_browser
+ * field prepares the posts it lists, which can list posts of their own, so
+ * this is the nesting level. Pass +1/-1 to enter/leave a level. */
+function devo_rest_prepare_depth( $change = 0 ) {
+    static $depth = 0;
+    $depth = max( 0, $depth + (int) $change );
+    return $depth;
+}
+
+/* Per-request memo for the theme's REST data. The same post is often listed
+ * many times on one page (twelve landing pages that each list the same
+ * twelve), and each listing used to be prepared from scratch.
+ *
+ * Keyed by the nesting level as well as the post, because a post's nested
+ * post_browser data is cut short past three levels, so the same post prepared
+ * at different depths differs. devo_rest_memo_flush() empties it when any
+ * post or its meta changes. */
+function &devo_rest_memo() {
+    static $memo = [ 'custom_data' => [], 'prepared' => [] ];
+    return $memo;
+}
+function devo_rest_memo_flush() {
+    $memo = &devo_rest_memo();
+    $memo = [ 'custom_data' => [], 'prepared' => [] ];
+}
+foreach ( [ 'added_post_meta', 'updated_post_meta', 'deleted_post_meta', 'clean_post_cache' ] as $devo_memo_hook ) {
+    add_action( $devo_memo_hook, 'devo_rest_memo_flush', 10, 0 );
+}
+unset( $devo_memo_hook );
+
 /* Adds the theme's data to a post object: `fields` (typed meta), permalink,
  * formatted date, thumbnail, seo_* values and schema.
  *
  * Mutates and returns the object it is given, so pass a clone when the
  * original WP_Post (which WordPress caches) must stay untouched. seo_* values
  * are plain text and NOT escaped: the React side escapes them, and PHP
- * templates must escape them for their own context. */
+ * templates must escape them for their own context.
+ *
+ * Computed once per post (and nesting level) per request; see
+ * devo_rest_memo(). */
 function devo_api_custom_data( $post, $post_type_details = FALSE ) {
     if ( $post ) {
         if ( $post_type_details === FALSE ) {
             $post_type_details = devo_get_post_type_details( $post->post_type );
         }
+        $meta_fields_for_key = isset( $post_type_details->meta_fields ) && is_array( $post_type_details->meta_fields ) ? array_keys( $post_type_details->meta_fields ) : [];
+        $memo_key = isset( $post->ID ) ? (int) $post->ID . '|' . devo_rest_prepare_depth() . '|' . md5( $post->post_type . '|' . implode( ',', $meta_fields_for_key ) ) : '';
+        $memo = &devo_rest_memo();
+        if ( $memo_key && isset( $memo['custom_data'][ $memo_key ] ) ) {
+            foreach ( $memo['custom_data'][ $memo_key ] as $property => $value ) {
+                $post->{ $property } = $value;
+            }
+            return $post;
+        }
+        $original_post_date = $post->post_date;
         $post->fields = [];
         $private_fields = isset( $post_type_details->private_fields ) && is_array( $post_type_details->private_fields ) ? $post_type_details->private_fields : [];
         $meta_fields = isset( $post_type_details->meta_fields ) && is_array( $post_type_details->meta_fields ) ? $post_type_details->meta_fields : [];
@@ -115,6 +158,12 @@ function devo_api_custom_data( $post, $post_type_details = FALSE ) {
             $post->{ $seo_key } = $seo_value;
         }
         $post->is_featured = (bool) devo_get_post_meta( $post->ID, 'featured_post', TRUE );
+        // Only memoise what came from an untouched post: one that has been
+        // through here already had its date and excerpt formatted. A hit
+        // copies these back, so the excerpt is never autop'd twice.
+        if ( $memo_key && is_string( $original_post_date ) ) {
+            $memo['custom_data'][ $memo_key ] = get_object_vars( $post );
+        }
     }
     return $post;
 }
@@ -219,9 +268,11 @@ function devo_rest_theme_fields( $post, $post_type_details = FALSE, $request = N
  * WP_Post objects - post_password included.
  *
  * Returns NULL for anything an anonymous visitor couldn't view (drafts,
- * private posts, non-public post types). */
+ * private posts, non-public post types).
+ *
+ * Memoised per post and nesting level for the request (see devo_rest_memo()),
+ * unless a password is involved. */
 function devo_rest_prepare_post( $post, $request = NULL ) {
-    static $depth = 0;
     // get_post( 0 ) / get_post( NULL ) would return the global post
     if ( ! $post || ( ! is_object( $post ) && ! ( is_numeric( $post ) && (int) $post > 0 ) ) ) {
         return NULL;
@@ -231,10 +282,22 @@ function devo_rest_prepare_post( $post, $request = NULL ) {
         return NULL;
     }
     // A post_browser field can point back at the post that contains it
-    if ( $depth > 2 ) {
+    if ( devo_rest_prepare_depth() > 2 ) {
         return [ 'ID' => (int) $post->ID, 'post_title' => $post->post_title, 'post_type' => $post->post_type, 'permalink' => '/' . trim( devo_get_relative_permalink( $post->ID ), '/' ) . '/' ];
     }
-    $depth++;
+    $password = $request instanceof WP_REST_Request && is_string( $request['password'] ) ? $request['password'] : NULL;
+    $memo = &devo_rest_memo();
+    $memo_key = $password === NULL ? (int) $post->ID . '|' . devo_rest_prepare_depth() : '';
+    if ( $memo_key && array_key_exists( $memo_key, $memo['prepared'] ) ) {
+        return $memo['prepared'][ $memo_key ];
+    }
+    // Core's prepare_item_for_response() makes this post the global $post
+    // (setup_postdata()) and leaves it there. When this runs for a
+    // post_browser field, the post that contains the field is still being
+    // prepared and has yet to render its content, so its shortcodes would see
+    // this post instead. Put the previous one back afterwards.
+    $previous_post = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : NULL;
+    devo_rest_prepare_depth( 1 );
     try {
         $post_type_object = get_post_type_object( $post->post_type );
         $controller = $post_type_object ? $post_type_object->get_rest_controller() : NULL;
@@ -242,8 +305,8 @@ function devo_rest_prepare_post( $post, $request = NULL ) {
             $rest_base = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post->post_type;
             $item_request = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $post->ID );
             $item_request->set_param( 'context', 'view' );
-            if ( $request instanceof WP_REST_Request && is_string( $request['password'] ) ) {
-                $item_request->set_param( 'password', $request['password'] );
+            if ( $password !== NULL ) {
+                $item_request->set_param( 'password', $password );
             }
             $response = $controller->prepare_item_for_response( $post, $item_request );
             $data = rest_get_server()->response_to_data( $response, FALSE );
@@ -252,12 +315,24 @@ function devo_rest_prepare_post( $post, $request = NULL ) {
             if ( ! isset( $data['fields'] ) ) {
                 $data = array_merge( $data, devo_rest_theme_fields( $post, FALSE, $item_request ) );
             }
-            return $data;
+        } else {
+            // Public, but not in REST: the theme's fields only
+            $data = devo_rest_theme_fields( $post, FALSE, $request );
         }
-        // Public, but not in REST: the theme's fields only
-        return devo_rest_theme_fields( $post, FALSE, $request );
+        if ( $memo_key ) {
+            $memo['prepared'][ $memo_key ] = $data;
+        }
+        return $data;
     } finally {
-        $depth--;
+        // Restore while still nested, so DO_Custom_Post_Type::the_post()
+        // (which skips nested prepares) doesn't rebuild the outer post's data
+        if ( $previous_post instanceof WP_Post ) {
+            $GLOBALS['post'] = $previous_post;
+            setup_postdata( $previous_post );
+        } else {
+            $GLOBALS['post'] = $previous_post;
+        }
+        devo_rest_prepare_depth( -1 );
     }
 }
 
@@ -458,7 +533,7 @@ function devo_array_median( $raw_array ) {
     }
     sort( $array );
     $count = count( $array ); //total numbers in array
-    $middle_val = floor( ( $count - 1 ) / 2 ); // find the middle value, or the lowest middle value
+    $middle_val = (int) floor( ( $count - 1 ) / 2 ); // find the middle value, or the lowest middle value; (int) because floor() returns a float, which isn't an array key
     if ( $count % 2 ) { // odd number, middle is the median
         $median = $array[ $middle_val ];
     } else { // even number, calculate avg of 2 medians
@@ -915,7 +990,6 @@ function devo_field_options( $field_options ) {
     else {
         $options = $field_options;
     }
-    //devo_var_dump($options);
     return $options;
 }
 
@@ -1936,7 +2010,14 @@ function devo_rewrite_generator( $wp_rewrite, $criteria_count, $root, $post_type
 	}
 }
 
-// Get the site ID from the site path
+/**
+ * Get the site ID from the site path.
+ *
+ * @param string|false $name A site's stylesheet ('global' for the main site),
+ *                           or FALSE for all of them.
+ * @return int|false|array<string, int> The site's ID, FALSE if there's no such
+ *                                      site, or every site's ID by name.
+ */
 function devo_site_id( $name = FALSE ) {
     $sites_raw = get_sites();
     $sites = [];
@@ -2089,19 +2170,6 @@ function devo_utc_to_timezone( $timestamp = FALSE, $timezone = FALSE, $format = 
     $date_obj->setTimeZone( $timezone_obj );
 
     return $date_obj->format( $format );
-}
-
-// Wraps a php var_dump in <pre> tags so it is formatted. Hidden on production.
-function devo_var_dump( $var, $backtrace = FALSE, $stealth = TRUE ) {
-    $allowed = in_array( DO_ENVIRONMENT, [ 'local', 'dev' ] ) || ( is_user_logged_in() && current_user_can( 'manage_options' ) );
-	echo '<pre' . ( $stealth && ! $allowed ? ' style="display:none;"' : '' ) . '>';
-    $key = array_search( __FUNCTION__ , array_column( debug_backtrace(), 'function' ) );
-	var_dump( [ 'var' => $var, 'location' => 'line ' . debug_backtrace()[ $key ]['line'] . ' ' . debug_backtrace()[ $key ]['file'] ] );
-    if ( $backtrace ) { 
-        debug_print_backtrace();
-    }
-	echo '</pre>';
-	return;
 }
 
 function devo_video_embed_url( $url = FALSE ) {

@@ -1,13 +1,7 @@
 import React, { useEffect } from 'react';
 import { siteName } from '@/globalVariables';
-import { getPostTitle } from '@/utils/helpers';
+import { getPostTitle, htmlToText } from '@/utils/helpers';
 import { Post } from '@/utils/types/Post';
-
-// Plain text from a string that may contain markup or entities (a raw post
-// title, or core's title.rendered)
-const htmlToText = ( html: string ): string => {
-    return new DOMParser().parseFromString( html, 'text/html' ).body.textContent ?? '';
-};
 
 /*
  * The page's SEO tags. seo_* values arrive from the REST API as raw text

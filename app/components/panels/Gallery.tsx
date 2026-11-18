@@ -2,7 +2,7 @@ import React, { JSX, useId } from 'react';
 import CTAs from '@/components/shared/CTAs';
 import MediaLoader from '@/components/shared/MediaLoader';
 import Modal from '@/components/shared/Modal';
-import { getArrayField } from '@/utils/helpers';
+import { getArrayField, htmlToText } from '@/utils/helpers';
 import { PanelProps } from '@/utils/types/PanelProps';
 import { CTASettings } from '@/utils/types/CTASettings';
 import { Media, MediaItem } from '@/utils/types/Media';
@@ -36,16 +36,17 @@ const Gallery: React.FC<PanelProps> = ( {
                     { media.map( ( mediaItem: GalleryItem, index: number ) => {
                         if ( mediaItem.media && Object.keys( mediaItem.media ).length > 0 ) {
                             const modalID = `${ galleryID }-lightbox-${ index }`;
+                            const itemTitle = htmlToText( mediaItem.title ?? '' );
                             const fullImage = ( mediaItem.media.full as MediaItem | undefined )?.url ?? ( mediaItem.media.url as string | undefined ) ?? '';
                             return (
                                 <li key={ index }>
                                     <button type="button" className="panel-gallery__trigger" onClick={ () => openLightbox( modalID ) }>
                                         <MediaLoader media={ mediaItem.media } size={ 'square_600' } />
-                                        <span className="screenReader">{ mediaItem.title ? mediaItem.title : 'Open image' }</span>
+                                        <span className="screenReader">{ itemTitle ? itemTitle : 'Open image' }</span>
                                     </button>
                                     { /* The full-size image loads only when the lightbox opens */ }
                                     <Modal id={ modalID } className="gallery-lightbox" heading={ mediaItem.title ? { tag: 'h3', title: mediaItem.title } : undefined } renderWhenOpen>
-                                        <img src={ fullImage } alt={ mediaItem.title ?? '' } />
+                                        <img src={ fullImage } alt={ itemTitle } />
                                     </Modal>
                                 </li>
                             );

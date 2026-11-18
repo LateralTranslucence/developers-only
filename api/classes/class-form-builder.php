@@ -163,7 +163,11 @@ class DO_Form_Builder {
             $fields[ $field_name ] = [
                 'hidden' => $field_hidden,
                 'field_type' => $field_type,
-                'label' => $field_label,
+                // Labels are stored as sanitised HTML ("R&amp;D") but only ever
+                // shown as text: React text nodes, and the alert email, which
+                // escapes them. The field name above still derives from the
+                // stored label, so existing names don't change.
+                'label' => devo_plain_text( $field_label ),
                 'label_location' => $label_location,
                 'name' => $field_name,
                 'required' => $field_required,
@@ -189,7 +193,7 @@ class DO_Form_Builder {
         $fields['devo-form-submit'] = [
             'hidden' => FALSE,
             'field_type' => 'button',
-            'label' => strlen( $form_button_label = devo_get_post_meta( $post_id, 'form_submit_button_text' ) ) ? $form_button_label : 'Submit',
+            'label' => strlen( $form_button_label = devo_plain_text( devo_get_post_meta( $post_id, 'form_submit_button_text' ) ) ) ? $form_button_label : 'Submit',
             'label_location' => $label_location,
             'name' => 'devo-form-submit',
             'required' => FALSE,
@@ -229,7 +233,7 @@ class DO_Form_Builder {
                 if ( ! isset( $form_fields[ $fieldset_title ] ) ) {
                     $fieldset = [
                         'item_type' => 'fieldset',
-                        'label' => $fieldset_title,
+                        'label' => devo_plain_text( $fieldset_title ),
                         'fields' => [],
                     ];
                     foreach ( $fieldsets[ $fieldset_title ] as $fieldset_field_name ) {
@@ -250,7 +254,7 @@ class DO_Form_Builder {
     private static function format_field_options( $field_options_raw ) {
         $field_options = [];
         foreach ( $field_options_raw as $field_option ) {
-            $label = isset( $field_option->label ) ? $field_option->label : '';
+            $label = isset( $field_option->label ) ? devo_plain_text( $field_option->label ) : '';
             $value = isset( $field_option->value ) ? $field_option->value : '';
             $description = isset( $field_option->description ) ? $field_option->description : '';
             $field_options[] = [

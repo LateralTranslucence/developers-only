@@ -133,6 +133,26 @@ const Search: React.FC<PanelProps> = ( {
     const [ query, setQuery ] = useState<Record<string, string>>( searchKeyword ? { s: searchKeyword } : {} );
     const [ results, setResults ] = useState<SearchResponse>( emptySearchResponse );
     const [ hasFetched, setHasFetched ] = useState( false );
+    // The last request failed: say so, rather than "nothing matched"
+    const [ failed, setFailed ] = useState( false );
+
+    // Layout keys the page by pathname, so a link from /search/?s=foo to
+    // /search/?s=bar keeps this panel mounted. Start a new query from the
+    // URL's keyword when it changes (adjusting state during render, as React
+    // recommends, rather than in an effect).
+    const [ urlKeyword, setURLKeyword ] = useState( searchKeyword );
+    if ( searchKeyword !== urlKeyword ) {
+        setURLKeyword( searchKeyword );
+        setQuery( searchKeyword ? { s: searchKeyword } : {} );
+    }
+    // The keyword field (forms/Search.tsx) is uncontrolled, so its
+    // defaultValue won't follow; set it directly
+    useEffect( () => {
+        const keywordField = formRef.current?.querySelector<HTMLInputElement>( 'input[type="search"]' );
+        if ( keywordField ) {
+            keywordField.value = searchKeyword;
+        }
+    }, [ searchKeyword ] );
 
     useEffect( () => {
         // A newer query aborts the request for the previous one, so results
@@ -141,10 +161,12 @@ const Search: React.FC<PanelProps> = ( {
         getSearch( { postID, metaPrefix: panelPrefix, metaSuffix: panelSuffix, query }, { signal: controller.signal } )
             .then( ( data ) => {
                 setResults( normalizeSearchResponse( data.json ) );
+                setFailed( false );
                 setHasFetched( true );
             } )
             .catch( ( error: unknown ) => {
                 if ( ! isAbortError( error ) ) {
+                    setFailed( true );
                     setHasFetched( true );
                 }
             } );
@@ -197,7 +219,9 @@ const Search: React.FC<PanelProps> = ( {
                     <SearchResultsStatement results={ results } updateCriteria={ updateCriteria } />
                     <SearchSortBy results={ results } updateCriteria={ updateCriteria } />
                 </div>
-                { results.posts.length > 0 ?
+                { failed ?
+                    <div id="search-results-wrapper"><p className="search__error" role="alert">Sorry, the search couldn't be completed. Please try again.</p></div>
+                : results.posts.length > 0 ?
                     <div id="search-results-wrapper">
                         <ul className={ 'search__results blocks ' + ( templateType !== 'list' ? 'blocks--post blocks--' + convertNumberToWords( panelPerRow ) : '' ) + ( panelPostsModal ? ' blocks--modals' : '' ) + ' blocks--' + templateType }>
                             { results.posts.map( ( resultPost: Post, index: number ) => (

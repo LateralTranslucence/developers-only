@@ -8,7 +8,6 @@ function devo_button_shortcode( $attr, $content ) {
     if ( ! is_assoc_array( $attr ) ) {
         $attr_temp = [];
         foreach ( $attr as $index => $attribute ) {
-            //devo_var_dump($attribute);
             [ $key, $value ] = explode( '=', $attribute );
             $attr_temp[ $key ] = trim( $value, '"' );
         }

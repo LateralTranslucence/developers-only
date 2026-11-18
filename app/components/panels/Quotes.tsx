@@ -1,5 +1,5 @@
 import React, { JSX } from 'react';
-import { getArrayField, parse } from '@/utils/helpers';
+import { getArrayField, htmlToText, parse } from '@/utils/helpers';
 import { PanelProps } from '@/utils/types/PanelProps';
 import { Quote } from '@/utils/types/Quote';
 import '@/styles/components/blocks.scss';
@@ -14,7 +14,7 @@ const QuoteList: React.FC<{ items: Array<Quote> }> = ( { items } ): JSX.Element 
                         <div className="quote">
                             { parse( item.quote ) }
                         </div>
-                        <p className="attribution">{ item.attribution }</p>
+                        <p className="attribution">{ htmlToText( item.attribution ) }</p>
                     </li>
                 );
             } ) }

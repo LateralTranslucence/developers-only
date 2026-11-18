@@ -330,13 +330,21 @@ function devo_js_globals() {
     // an extension can supply it from wherever it keeps site settings.
     $cookie_consent_text = apply_filters( 'devo_cookie_consent_text', '' );
     $cookie_consent_text = is_string( $cookie_consent_text ) ? $cookie_consent_text : '';
+    // The site name is stored HTML-escaped ("R&amp;D"); React renders it as text
+    $site_name = devo_plain_text( get_bloginfo( 'name' ) );
+    // Settings > Privacy. '' when no page is set or it isn't published.
+    $privacy_policy_url = get_privacy_policy_url();
+    // JSON for a <script> block: JSON_HEX_TAG so a value can't close it
+    $json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES;
 ?>
 <script>
     window.devoEnv = "<?php echo esc_js( DO_ENVIRONMENT ) ?>";
     window.homeURL = "<?php echo esc_url( $home_url ) ?>";
     window.relativeHomeURL = "<?php echo esc_js( $relative_home_url ) ?>";
-    window.devoCookieConsentText = <?php echo wp_json_encode( $cookie_consent_text ) ?>;
-    window.menus = [];
+    window.devoCookieConsentText = <?php echo wp_json_encode( $cookie_consent_text, $json_flags ) ?>;
+    window.devoSiteName = <?php echo wp_json_encode( $site_name, $json_flags ) ?>;
+    window.devoLocale = <?php echo wp_json_encode( get_locale(), $json_flags ) ?>;
+    window.devoPrivacyPolicyURL = <?php echo wp_json_encode( $privacy_policy_url, $json_flags ) ?>;
 </script>
 <?php }
 add_action( 'wp_head', 'devo_js_globals' );
@@ -563,9 +571,12 @@ function devo_add_file_types_to_uploads( $file_types, $user = NULL ) {
 	$new_filetypes['webp'] = 'image/webp';
     $new_filetypes['vtt'] = 'text/vtt';
     // An SVG is a document that can carry script, so only users who may
-    // already publish unfiltered HTML can upload one.
-    $user = $user ? $user : wp_get_current_user();
-    if ( $user && user_can( $user, 'unfiltered_html' ) ) {
+    // already publish unfiltered HTML can upload one. On multisite, or with
+    // DISALLOW_UNFILTERED_HTML, that leaves site admins unable to upload
+    // icons; the devo_allow_svg_uploads filter can grant it (see README).
+    // upload_mimes passes a user ID, a WP_User, or nothing
+    $user = $user ? ( $user instanceof WP_User ? $user : get_userdata( (int) $user ) ) : wp_get_current_user();
+    if ( $user instanceof WP_User && $user->exists() && apply_filters( 'devo_allow_svg_uploads', user_can( $user, 'unfiltered_html' ), $user ) ) {
         $new_filetypes['svg'] = 'image/svg+xml';
     }
 	$file_types = array_merge( $file_types, $new_filetypes );
@@ -586,7 +597,8 @@ function devo_allow_tags( $allowed_post_tags, $context = 'post' ) {
         'id' => TRUE,
         'style' => TRUE,
     ] );
-    if ( current_user_can( 'unfiltered_html' ) ) {
+    // Filterable for the same reason as devo_allow_svg_uploads
+    if ( apply_filters( 'devo_allow_iframes', current_user_can( 'unfiltered_html' ) ) ) {
         $allowed_post_tags['iframe'] = [
             'src' => TRUE,
             'width' => TRUE,

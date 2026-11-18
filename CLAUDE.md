@@ -15,6 +15,10 @@ Node `^20.19.0 || >=22.12.0` is required (Vite 8 and ESLint 10); `.nvmrc` pins
 24 LTS, so run `nvm use` first. On older Node, `npm install` fails with
 EBADENGINE (`.npmrc` sets `engine-strict`).
 
+The theme itself needs WordPress 6.4+ and PHP 8.1+ (the `Requires` headers in
+`style.css`). The PHP uses 8.1 features such as `new` in parameter defaults and
+`array_is_list()`, so don't lower that floor without removing them.
+
 There are no test commands. The static checks are TypeScript (`tsc -b`, run by
 `npm run build`) and ESLint (`npm run lint`).
 
@@ -30,7 +34,7 @@ This is a **hybrid-headless WordPress theme**. PHP handles the CMS and a custom 
 
 ### How it fits together
 
-`functions.php` reads the Vite manifest at `public/dist/.vite/manifest.json` and enqueues the compiled bundle into every WordPress page (with `$ver = null` — a `?ver=` query on the module script would double-evaluate the entry and mount a second React root). `header.php` opens the document (including `<body>`, `body_class()` and `wp_body_open()`) and `index.php` renders the `<div id="root">`; `devo_js_globals()` injects PHP globals (`window.devoEnv`, `window.homeURL`, `window.relativeHomeURL`, `window.devoCookieConsentText`). React mounts into `#root` and takes over all routing.
+`functions.php` reads the Vite manifest at `public/dist/.vite/manifest.json` and enqueues the compiled bundle into every WordPress page (with `$ver = null` — a `?ver=` query on the module script would double-evaluate the entry and mount a second React root). `header.php` opens the document (including `<body>`, `body_class()` and `wp_body_open()`) and `index.php` renders the `<div id="root">`; `devo_js_globals()` injects PHP globals (`window.devoEnv`, `window.homeURL`, `window.relativeHomeURL`, `window.devoCookieConsentText`, `window.devoSiteName`, `window.devoLocale`, `window.devoPrivacyPolicyURL`). React mounts into `#root` and takes over all routing.
 
 The theme ships no analytics. `CookieConsent.tsx` records the visitor's choice in the `devo_cookie_consent` cookie and dispatches a `devo:cookie-consent` DOM event, so an extension can gate its own tags either server-side (read the cookie on `wp_head`) or client-side (listen for the event). Copy for the banner comes from the `devo_cookie_consent_text` filter.
 

@@ -14,7 +14,7 @@ function add_nav_menu_custom_fields_rest_api() {
                 return devo_get_post_meta( $object['id'], '_menu_mega_menu' );
             },
             'update_callback' => function( $value, $object ) {
-                return update_post_meta( $object->ID, '_menu_mega_menu', $value );
+                return update_post_meta( $object->ID, '_menu_mega_menu', wp_slash( $value ) );
             },
         ],
     );
@@ -27,7 +27,7 @@ function add_nav_menu_custom_fields_rest_api() {
                 return devo_get_post_meta( $object['id'], '_menu_icon' );
             },
             'update_callback' => function( $value, $object ) {
-                return update_post_meta( $object->ID, '_menu_icon', $value );
+                return update_post_meta( $object->ID, '_menu_icon', wp_slash( $value ) );
             },
         ],
     );
@@ -40,7 +40,7 @@ function add_nav_menu_custom_fields_rest_api() {
                 return devo_get_post_meta( $object['id'], '_menu_media_icon' );
             },
             'update_callback' => function( $value, $object ) {
-                return update_post_meta( $object->ID, '_menu_media_icon', $value );
+                return update_post_meta( $object->ID, '_menu_media_icon', wp_slash( $value ) );
             },
         ],
     );
@@ -507,15 +507,19 @@ function devo_form_submit_query( $data ) {
     ];
     $submission_id = wp_insert_post( $create_submission_args );
     if ( $submission_id && ! is_wp_error( $submission_id ) ) {
-        update_post_meta( $submission_id, 'submission_email', $email_address ? $email_address : '' );
-        update_post_meta( $submission_id, 'submission_form_id', $form_id );
-        update_post_meta( $submission_id, 'submission_data', wp_json_encode( $json_encode_me ) );
+        // update_post_meta() unslashes, so slash first or the JSON's own
+        // escapes (é, \") are stripped and the stored value breaks.
+        update_post_meta( $submission_id, 'submission_email', wp_slash( $email_address ? $email_address : '' ) );
+        update_post_meta( $submission_id, 'submission_form_id', wp_slash( $form_id ) );
+        update_post_meta( $submission_id, 'submission_data', wp_slash( wp_json_encode( $json_encode_me ) ) );
     }
 
     // Submission Email Alert (internal)
     $form_name = devo_get_post_meta( $form_post_id, 'form_form_name' );
-    $form_name = is_string( $form_name ) ? $form_name : '';
-    $subject = devo_get_post_meta( $form_post_id, 'form_email_subject' );
+    // Both are stored as sanitised HTML ("R&amp;D"); the subject header is
+    // plain text.
+    $form_name = devo_plain_text( $form_name );
+    $subject = devo_plain_text( devo_get_post_meta( $form_post_id, 'form_email_subject' ) );
     $submission_email_subject = is_string( $subject ) && strlen( $subject ) ? $subject : sprintf( /* translators: %s: form name. */ __( 'Submission from %s form', 'developers_only' ), $form_name );
     // Submitted values go into an HTML email, so every one is escaped.
     $submission_email_content = '';

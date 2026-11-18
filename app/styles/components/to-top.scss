@@ -1,6 +1,6 @@
 @use '../abstracts' as *;
 
-// Pinned to the viewport, revealed by useScrollReveal adding --visible.
+// Pinned to the viewport; BackToTopButton adds --visible once the page has scrolled.
 button.back-to-top {
     display: flex;
     align-items: center;

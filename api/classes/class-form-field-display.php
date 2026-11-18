@@ -17,6 +17,7 @@ class DO_Form_Field_Display {
     private $limit;
     public $output;
     private $previous_type;
+    private $raw_meta_value = NULL;
     private $raw_type;
     private $settings;
     private $show_field_key;
@@ -62,6 +63,9 @@ class DO_Form_Field_Display {
         // Get value from meta field
         else if ( is_numeric( $this->value_source ) ) {
             $this->value = devo_get_post_meta( $this->value_source, $this->field_key );
+            // devo_get_post_meta() JSON-decodes, so free-text fields need the
+            // string as stored too; see string_value()
+            $this->raw_meta_value = get_post_meta( $this->value_source, $this->field_key, TRUE );
         }
         // Get value from option
         else if ( strpos( $this->value_source, '[' ) !== FALSE ) {
@@ -793,7 +797,6 @@ class DO_Form_Field_Display {
         $is_select_multiple = $this->type === 'select_multiple';
         $this->field_options = isset( $this->field_options['options'] ) ? $this->field_options['options'] : $this->field_options;
         $output = '';
-        //devo_var_dump($this->field_options);
         if ( is_array( $this->field_options ) && count( $this->field_options ) ) {
             if ( $is_select_multiple ) {
                 $output .= '<span class="footnote">' . esc_html__( 'Hold cmd or ctrl to select multiple', 'developers_only' ) . '</span><br>';
@@ -848,14 +851,35 @@ class DO_Form_Field_Display {
         return $stats_field->output;
     }
 
+    /* A free-text field's value as the string that was stored.
+     *
+     * devo_get_post_meta() JSON-decodes whatever it reads, so "2024", "true"
+     * or a JSON snippet typed into a text, textarea, html or code field came
+     * back as a number, a boolean or an object. The textarea then rendered
+     * empty and a text input showed "1" for "true", and the next save wrote
+     * that back over the real value. */
+    private function string_value() {
+        if ( is_string( $this->value ) ) {
+            return $this->value;
+        }
+        if ( $this->force_value === FALSE && is_string( $this->raw_meta_value ) ) {
+            // Unslashed as devo_get_post_meta() unslashes a string
+            return stripslashes( $this->raw_meta_value );
+        }
+        if ( is_int( $this->value ) || is_float( $this->value ) ) {
+            return (string) $this->value;
+        }
+        return '';
+    }
+
     private function text() {
-        $output = '<input class="widefat' . ( $this->disabled ? ' devo-disabled' : '' ) . '" type="text" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" value="' . esc_attr( $this->value ) . '" size="60"' . ( $this->disabled ? ' disabled="disabled"' : '' ) . ' placeholder="' . esc_attr( $this->label ) . '">';
+        $output = '<input class="widefat' . ( $this->disabled ? ' devo-disabled' : '' ) . '" type="text" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" value="' . esc_attr( $this->string_value() ) . '" size="60"' . ( $this->disabled ? ' disabled="disabled"' : '' ) . ' placeholder="' . esc_attr( $this->label ) . '">';
 
         return $output;
     }
     
     private function textarea() {
-        $output = '<textarea class="widefat type-' . esc_attr( $this->type ) . '" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" size="60" rows="5"' . ( $this->label ? ' placeholder="' . esc_attr( $this->label ) . '"' : '' ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>' . esc_textarea( is_string( $this->value ) ? stripslashes( $this->value ) : '' ) . '</textarea>';
+        $output = '<textarea class="widefat type-' . esc_attr( $this->type ) . '" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" size="60" rows="5"' . ( $this->label ? ' placeholder="' . esc_attr( $this->label ) . '"' : '' ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>' . esc_textarea( stripslashes( $this->string_value() ) ) . '</textarea>';
 
         return $output;
     }

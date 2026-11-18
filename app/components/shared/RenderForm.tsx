@@ -30,6 +30,8 @@ const RenderForm: React.FC<{ formID: number; panelID: string }> = ( { formID, pa
     // Keyed by form ID, so a form loaded for a previous ID is never shown
     const [ loaded, setLoaded ] = useState<{ formID: number; form: Form } | null>( null );
     const [ submitError, setSubmitError ] = useState<boolean>( false );
+    // The form ID whose load failed, so a later ID starts clean
+    const [ loadFailedFor, setLoadFailedFor ] = useState<number | null>( null );
     const submittingRef = useRef<boolean>( false );
     const submitControllerRef = useRef<AbortController | null>( null );
     const form: Form | undefined = loaded?.formID === formID ? loaded.form : undefined;
@@ -38,7 +40,11 @@ const RenderForm: React.FC<{ formID: number; panelID: string }> = ( { formID, pa
         const controller = new AbortController();
         getForm( formID, { signal: controller.signal } )
             .then( ( data ) => setLoaded( { formID, form: data.json } ) )
-            .catch( () => {} );
+            .catch( ( error: unknown ) => {
+                if ( ! isAbortError( error ) ) {
+                    setLoadFailedFor( formID );
+                }
+            } );
         return () => controller.abort();
     }, [ formID ] );
 
@@ -95,7 +101,8 @@ const RenderForm: React.FC<{ formID: number; panelID: string }> = ( { formID, pa
     };
 
     if ( ! form ) {
-        return null;
+        // Nothing while it loads; a message, not a silent gap, if it can't
+        return loadFailedFor === formID ? <p className="form__notice" role="alert">Sorry, this form couldn't be loaded. Please reload the page to try again.</p> : null;
     }
 
     const formSubmitted: boolean = form.submitted;

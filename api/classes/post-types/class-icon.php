@@ -50,14 +50,18 @@ class DO_Icon extends DO_Custom_Post_Type {
 
         update_post_meta( $attachment_id, 'icon', TRUE );
         update_post_meta( $attachment_id, 'icon_label', $POST['icon_label'] );
+        // $POST is still slashed. update_post_meta() unslashes for itself, but
+        // $wpdb->update() writes what it's given, so "O'Brien" would be saved
+        // as "O\'Brien".
         $wpdb->update(
             $wpdb->posts,
             [
-                'post_title'   => $POST['icon_label'],
-                'post_content' => $POST['icon_keywords'],
+                'post_title'   => wp_unslash( $POST['icon_label'] ),
+                'post_content' => wp_unslash( $POST['icon_keywords'] ),
             ],
             [ 'ID' => $attachment_id ],
         );
+        clean_post_cache( $attachment_id );
 
         $POST['icon_preview'] = $POST['icon_file'];
         return $POST;
