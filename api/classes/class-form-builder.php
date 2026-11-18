@@ -127,6 +127,9 @@ class DO_Form_Builder {
             'current_value' => $post_id,
         ];
 
+        // Added after the numbered fields (see below)
+        $reserved_names = [ 'devo-privacy-policy' => TRUE, 'devo-form-submit' => TRUE ];
+
         // Get the rest of the fields
         for ( $i = 1; $i <= $form_fields_count; $i++ ) {
             $field_hidden = (bool) devo_get_post_meta( $post_id, 'form_hide_field_' . $i );
@@ -163,9 +166,12 @@ class DO_Form_Builder {
             // Two fields with the same label and no ID would get the same
             // name, and the second replaced the first. Number the repeat
             // instead (name-2), so the first keeps the name it always had.
-            if ( isset( $fields[ $field_name ] ) ) {
+            // The privacy notice and submit button are added after this loop,
+            // so their names are reserved up front; a field called
+            // "devo-privacy-policy" used to be overwritten by the notice.
+            if ( isset( $fields[ $field_name ] ) || isset( $reserved_names[ $field_name ] ) ) {
                 $base_name = $field_name;
-                for ( $n = 2; isset( $fields[ $field_name ] ); $n++ ) {
+                for ( $n = 2; isset( $fields[ $field_name ] ) || isset( $reserved_names[ $field_name ] ); $n++ ) {
                     $field_name = $base_name . '-' . $n;
                 }
             }
