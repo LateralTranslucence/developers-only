@@ -35,39 +35,66 @@ jQuery(document).ready(function($) {
 
 /* Dynamic Interface */
 
+/*
+ * A field rendered with the 'disabled' setting carries the class devo-disabled:
+ * on the control itself (text, color, range, select), or on a <div> wrapping a
+ * group of checkboxes, radios, a scale or an image select, whose inputs sit a
+ * level or more down. The browser doesn't submit a disabled control, so each
+ * value it would have sent is copied into a hidden input, keeping the stored
+ * value on save. "Enable" removes the copies and re-enables the field.
+ *
+ * The range slider's +/- buttons use the same class for their own at-min/at-max
+ * state, so buttons are skipped; they hold no value and have no name.
+ */
+const devo_disabled_controls = 'input, select, textarea';
+
+// The hidden copies of what a disabled field would submit
+const devo_disabled_copies = function($field) {
+    const copies = [];
+    const $controls = $field.is(devo_disabled_controls) ? $field : $field.find(devo_disabled_controls);
+    // Only disabled controls: one that isn't (an option list long enough to be
+    // laid out in columns renders its inputs enabled) submits itself.
+    $controls.filter(':disabled').each(function() {
+        const $control = jQuery(this);
+        const name = $control.attr('name');
+        if (!name || ($control.is(':checkbox, :radio') && !$control.prop('checked'))) {
+            return;
+        }
+        // .val(), not .attr('value'): a <select> has no value attribute. A
+        // select-multiple gives an array; post one input per value, as the
+        // enabled field would.
+        const value = $control.val();
+        (Array.isArray(value) ? value : [value ?? '']).forEach(function(v) {
+            copies.push(jQuery('<input type="hidden">').attr('name', name).val(v)[0]);
+        });
+    });
+    return jQuery(copies);
+};
+
 const devo_disabled = function() {
-    jQuery('.devo-disabled').each(function(i) {
-        const $this = jQuery(this);
-        const $children = ! $this.is('select') ? $this.children() : [];
-        let value;
-        let name;
-    	if ($children.length) {
-    		const vals = [];
-    		$children.each(function(i) {
-    			if(jQuery(this).is(':checked')) {
-    				vals.push(jQuery(this).val());
-    			}
-    		});
-    		value = vals.join(';');
-    		name = $this.attr('name').replace('[]', '');
-        } else {
-    		// .val(), not .attr('value'): a <select> has no value attribute,
-    		// so .attr() gave undefined and the hidden input posted "undefined".
-    		value = $this.val();
-    		name = $this.attr('name');
-    	}
-    	// A disabled select-multiple (name ending "[]") gives an array; post one
-    	// input per value, as the enabled field would.
-    	const values = Array.isArray(value) ? value : [value ?? ''];
-    	values.forEach(function(v) {
-    		$this.before(jQuery('<input type="hidden">').attr('name', name).val(v));
-    	});
-    	$this.after('<span class="devo-enable">Enable</span>');
+    jQuery('.devo-disabled').not('button').each(function() {
+        const $field = jQuery(this);
+        if ($field.data('devo-disabled-copies')) {
+            return;
+        }
+        const $copies = devo_disabled_copies($field);
+        $field.before($copies);
+        $field.data('devo-disabled-copies', $copies);
+        $field.after(jQuery('<span class="devo-enable">Enable</span>').data('devo-field', $field));
     });
     jQuery(document).on('click', '.devo-enable', function(e) {
-        const $this = jQuery(e.currentTarget);
-        $this.prev().removeAttr('disabled').children().removeAttr('disabled');
-    	$this.remove();
+        const $enable = jQuery(e.currentTarget);
+        const $field = $enable.data('devo-field') || $enable.prev();
+        // The enabled field submits itself now. Left in place, the copies would
+        // add to an array field's values (so unticking did nothing) and could
+        // outlast a cleared one.
+        const $copies = $field.data('devo-disabled-copies');
+        if ($copies) {
+            $copies.remove();
+        }
+        $field.removeData('devo-disabled-copies').removeClass('devo-disabled');
+        $field.find(devo_disabled_controls).addBack(devo_disabled_controls).prop('disabled', false);
+        $enable.remove();
     });
 };
 
