@@ -16,7 +16,8 @@ are now read back exactly as stored, and only JSON arrays, objects and strings
 So in the `fields` object of a post's REST response, every field type without
 its own API-display method in `DO_Form_Field_API_Display` now comes back as a
 **string**, not a number or boolean. That covers `int`, `number`, `select`,
-`varchar` and `form` fields, and the `_menu_*` custom fields on menu items.
+`varchar` and `form` fields. The same goes for the `_menu_*` fields on
+`nav_menu_item` REST objects: `_menu_mega_menu` is now `"1"`, not `1`.
 Field types with a display method (`binary`, `date`, `media`, `ctas`,
 `post_browser` and the rest) are unchanged.
 
