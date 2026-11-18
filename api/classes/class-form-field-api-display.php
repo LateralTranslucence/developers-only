@@ -5,7 +5,16 @@ class DO_Form_Field_API_Display {
     public $output;
     private $post_id;
     private $post_type_details;
+    /* What the private type methods get when there is no value to format and
+     * they should read the field's own meta. It used to be FALSE, so a stored
+     * JSON false inside a multi field (a sub-value force_field() passes down)
+     * read the parent field's raw meta instead. Nothing stored can equal it. */
+    private const NO_VALUE = "\0devo:no-value\0";
+
+    // $force_value: the value to format. FALSE (the default) reads the
+    // field's meta, as before.
     function __construct( $type, $field_key, $post_id, $post_type_details, $force_value = FALSE ) {
+        $force_value = $force_value === FALSE ? self::NO_VALUE : $force_value;
         $this->field_key = $field_key;
         $this->post_id = $post_id;
         $this->post_type_details = $post_type_details;
@@ -19,8 +28,8 @@ class DO_Form_Field_API_Display {
         }
     }
 
-    private function address( $force_value = FALSE ) {
-        $raw_address = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function address( $force_value = self::NO_VALUE ) {
+        $raw_address = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $address = is_array( $raw_address ) ? $raw_address : [];
         $data = [];
         if ( count( $address ) ) {
@@ -44,8 +53,8 @@ class DO_Form_Field_API_Display {
      * the raw meta is { color: '#rrggbb', media: '<url>' }. Without this method
      * the value fell through to the constructor's generic branch and the media
      * arrived as a bare URL string, which the front end cannot size or type. */
-    private function background( $force_value = FALSE ) {
-        $value = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function background( $force_value = self::NO_VALUE ) {
+        $value = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $color = isset( $value->color ) && is_string( $value->color ) ? trim( $value->color ) : '';
         $media_value = isset( $value->media ) && is_string( $value->media ) ? trim( $value->media ) : '';
         // media() returns [] for an empty value; hand the front end null instead
@@ -59,20 +68,20 @@ class DO_Form_Field_API_Display {
     }
 
     // Same shape; kept so the background_hero field type resolves here too.
-    private function background_hero( $force_value = FALSE ) {
+    private function background_hero( $force_value = self::NO_VALUE ) {
         return $this->background( $force_value );
     }
 
-    private function binary( $force_value = FALSE ) {
-        return $force_value !== FALSE ? (bool) $force_value : (bool) devo_get_post_meta( $this->post_id, $this->field_key );
+    private function binary( $force_value = self::NO_VALUE ) {
+        return $force_value !== self::NO_VALUE ? (bool) $force_value : (bool) devo_get_post_meta( $this->post_id, $this->field_key );
     }
     
-    private function binary_select( $force_value = FALSE ) {
-        return $this->binary( $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key ) );
+    private function binary_select( $force_value = self::NO_VALUE ) {
+        return $this->binary( $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key ) );
     }
 
-    private function ctas( $force_value = FALSE ) {
-        $raw_ctas = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function ctas( $force_value = self::NO_VALUE ) {
+        $raw_ctas = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $ctas = is_array( $raw_ctas ) ? $raw_ctas : [];
         $data = [];
         foreach ( $ctas as $cta_details ) {
@@ -87,8 +96,8 @@ class DO_Form_Field_API_Display {
         return $data;
     }
 
-    private function date( $force_value = FALSE ) {
-        $raw_date = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function date( $force_value = self::NO_VALUE ) {
+        $raw_date = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $date = [];
         if ( strlen( $raw_date ) ) {
             $date = [
@@ -103,8 +112,8 @@ class DO_Form_Field_API_Display {
         return $date;
     }
 
-    private function date_time( $force_value = FALSE ) {
-        $raw_date = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function date_time( $force_value = self::NO_VALUE ) {
+        $raw_date = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $date = [];
         if ( strlen( $raw_date ) ) {
             $date = [
@@ -120,8 +129,8 @@ class DO_Form_Field_API_Display {
         return $date;
     }
 
-    private function date_time_timezone( $force_value = FALSE ) {
-        $raw_date = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function date_time_timezone( $force_value = self::NO_VALUE ) {
+        $raw_date = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $date = is_array( $raw_date ) ? $raw_date : [];
         $timestamp = isset( $date['date_time'] ) ? (int) $date['date_time'] : 0;
         $timezone = isset( $date['timezone'] ) ? $date['timezone'] : '';
@@ -142,8 +151,8 @@ class DO_Form_Field_API_Display {
         return $data;
     }
 
-    private function gallery( $force_value = FALSE ) {
-        $raw_gallery = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function gallery( $force_value = self::NO_VALUE ) {
+        $raw_gallery = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $gallery = is_array( $raw_gallery ) ? $raw_gallery : [];
         $data = [];
         foreach ( $gallery as $media_elements ) {
@@ -158,24 +167,24 @@ class DO_Form_Field_API_Display {
         return $data;
     }
 
-    private function html( $force_value = FALSE ) {
+    private function html( $force_value = self::NO_VALUE ) {
         // Same formatting as wp_editor
-        return $this->wp_editor( $force_value !== FALSE ? $force_value : devo_get_post_meta_string( $this->post_id, $this->field_key ) );
+        return $this->wp_editor( $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta_string( $this->post_id, $this->field_key ) );
     }
 
-    private function icon( $force_value = FALSE ) {
-        return $this->media( $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key ) );
+    private function icon( $force_value = self::NO_VALUE ) {
+        return $this->media( $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key ) );
     }
 
-    private function image_link( $force_value = FALSE ) {
-        $value = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function image_link( $force_value = self::NO_VALUE ) {
+        $value = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         // Same formatting as wp_editor
         return $this->multi( $value );
     }
 
     // Provide all thumbnails
-    private function media( $force_value = FALSE ) {
-        $media = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function media( $force_value = self::NO_VALUE ) {
+        $media = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $data = [];
         // Get all the thumbnails
         if ( $media ) {
@@ -256,14 +265,14 @@ class DO_Form_Field_API_Display {
         return $data;
     }
 
-    private function multi( $force_value = FALSE ) {
-        $raw_multi_field = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function multi( $force_value = self::NO_VALUE ) {
+        $raw_multi_field = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $multi_array_field = $this->multi_array( [ $raw_multi_field ] );
         return current( $multi_array_field );
     }
     
-    private function multi_array( $force_value = FALSE, $multi_field_fields_raw = FALSE ) {
-        $raw_multi_array_field = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function multi_array( $force_value = self::NO_VALUE, $multi_field_fields_raw = FALSE ) {
+        $raw_multi_array_field = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $multi_array_field = is_array( $raw_multi_array_field ) ? $raw_multi_array_field : [];
         $meta_fields = $this->post_type_details->meta_fields;
         $meta_prefix = $this->post_type_details->meta_prefix;
@@ -299,12 +308,12 @@ class DO_Form_Field_API_Display {
         return $data;
     }
 
-    private function per_row( $force_value = FALSE ) {
-        return strlen( $per_row = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key ) ) ? (int) $per_row : '';
+    private function per_row( $force_value = self::NO_VALUE ) {
+        return strlen( $per_row = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key ) ) ? (int) $per_row : '';
     }
 
-    private function post_browser( $force_value = FALSE ) {
-        $raw_post_ids = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function post_browser( $force_value = self::NO_VALUE ) {
+        $raw_post_ids = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $post_ids = $raw_post_ids && is_array( $raw_post_ids ) ? $raw_post_ids : [];
         $data = [];
         $limit = isset( $this->post_type_details->meta_fields[ $this->field_key ]['settings']['limit'] ) ? $this->post_type_details->meta_fields[ $this->field_key ]['settings']['limit'] : FALSE;
@@ -326,8 +335,8 @@ class DO_Form_Field_API_Display {
         return $data;
     }
 
-    private function stats( $force_value = FALSE ) {
-        $raw_stats = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function stats( $force_value = self::NO_VALUE ) {
+        $raw_stats = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $stats = is_array( $raw_stats ) ? $raw_stats : [];
         $data = [];
         foreach ( $stats as $stat_elements ) {
@@ -356,20 +365,20 @@ class DO_Form_Field_API_Display {
     // Free text, read as stored: "2.10" or "[1]" typed into a text field
     // stays that string (see devo_get_post_meta()).
     // A sub-field's value (inside a multi) passes through as before.
-    private function text( $force_value = FALSE ) {
-        if ( $force_value !== FALSE ) {
+    private function text( $force_value = self::NO_VALUE ) {
+        if ( $force_value !== self::NO_VALUE ) {
             return $force_value;
         }
         return do_shortcode( devo_get_post_meta_string( $this->post_id, $this->field_key ) );
     }
 
-    private function textarea( $force_value = FALSE ) {
+    private function textarea( $force_value = self::NO_VALUE ) {
         // Same formatting as wp_editor
-        return $this->wp_editor( $force_value !== FALSE ? $force_value : devo_get_post_meta_string( $this->post_id, $this->field_key ) );
+        return $this->wp_editor( $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta_string( $this->post_id, $this->field_key ) );
     }
 
-    private function videos( $force_value = FALSE ) {
-        $raw_videos = $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
+    private function videos( $force_value = self::NO_VALUE ) {
+        $raw_videos = $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key );
         $videos = is_array( $raw_videos ) ? $raw_videos : [];
         $data = [];
         foreach ( $videos as $video_elements ) {
@@ -382,12 +391,15 @@ class DO_Form_Field_API_Display {
         return $data;
     }
 
-    private function wp_editor( $force_value = FALSE ) {
+    private function wp_editor( $force_value = self::NO_VALUE ) {
         // Wrap in devo_autop
-        return devo_autop( $force_value !== FALSE ? $force_value : devo_get_post_meta_string( $this->post_id, $this->field_key ) );
+        return devo_autop( $force_value !== self::NO_VALUE ? $force_value : devo_get_post_meta_string( $this->post_id, $this->field_key ) );
     }
 
-    private function wp_editor_limited( $force_value = FALSE ) {
+    // The admin editor runs with wpautop on, which strips <p> tags on save, so
+    // REST output needs autop just as wp_editor's does. (It used to fall
+    // through to the raw value and lost its paragraphs.)
+    private function wp_editor_limited( $force_value = self::NO_VALUE ) {
         return $this->wp_editor( $force_value );
     }
 
