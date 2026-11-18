@@ -3,10 +3,16 @@ import { useEffect, useRef, useState } from 'react';
 import { submitForm, getForm, isAbortError } from '@/utils/api';
 import { isSafeURL, parse } from '@/utils/helpers';
 import FormFieldLoader from '@/loaders/FormFieldLoader';
-import { Form, FormField } from '@/utils/types/Form';
+import { Form, FormField, getFieldStringValue } from '@/utils/types/Form';
 import '@/styles/components/forms.scss';
 
-const FormWrapper: React.FC<{ field: FormField, error: boolean }> = ( { field, error } ): JSX.Element => {
+const FormWrapper: React.FC<{ field: FormField, error: boolean }> = ( { field, error } ): JSX.Element | null => {
+    // The form builder's Hide Field. Not rendered; the server never makes
+    // such a field required. A value it does have still goes with the form.
+    if ( field.hidden ) {
+        const value: string = getFieldStringValue( field.current_value );
+        return value !== '' ? <input type="hidden" name={ field.name } defaultValue={ value } /> : null;
+    }
     if ( field.field_type !== 'hidden' ) {
         return(
             <div className={ 'form-field form-field--' + field.field_type }>
@@ -39,10 +45,20 @@ const fieldLabels = ( items: Record<string, FormField> ): Record<string, string>
     return labels;
 };
 
-// The first input of a field, found by name: a checkbox group's inputs have
-// their own ids, but all share the field's name
+// The control to focus for a field: the one whose id is the field's name
+// (every field's input, and the first radio or switch of the others), else
+// the first visible input with the field's name (a checkbox group's boxes
+// have their own ids). Never a hidden input: a toggle's "off" value shares
+// its name, and can't take focus.
 const fieldInput = ( form: HTMLFormElement | null, name: string ): HTMLElement | null => {
-    return form?.querySelector<HTMLElement>( `[name="${ CSS.escape( name ) }"]` ) ?? null;
+    if ( ! form ) {
+        return null;
+    }
+    const byId: HTMLElement | null = form.querySelector<HTMLElement>( `#${ CSS.escape( name ) }` );
+    if ( byId && ! ( byId instanceof HTMLInputElement && byId.type === 'hidden' ) ) {
+        return byId;
+    }
+    return form.querySelector<HTMLElement>( `[name="${ CSS.escape( name ) }"]:not([type="hidden"])` );
 };
 
 const RenderForm: React.FC<{ formID: number; panelID: string }> = ( { formID, panelID = '' } ): JSX.Element | null => {

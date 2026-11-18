@@ -289,7 +289,8 @@ class DO_Form_Builder {
         foreach ( $field_options_raw as $field_option ) {
             $label = isset( $field_option->label ) ? devo_plain_text( $field_option->label ) : '';
             $value = isset( $field_option->value ) ? $field_option->value : '';
-            $description = isset( $field_option->description ) ? $field_option->description : '';
+            // Shown as text, like the label (Button Select options have one)
+            $description = isset( $field_option->description ) ? devo_plain_text( $field_option->description ) : '';
             $field_options[] = [
                 'label' => $label,
                 'value' => $value,

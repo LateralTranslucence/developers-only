@@ -1,6 +1,6 @@
 import React from 'react';
 import FieldError from '@/components/forms/FieldError';
-import { fieldAriaProps } from '@/components/forms/fieldAria';
+import { fieldAriaProps, fieldLabelClass } from '@/components/forms/fieldAria';
 import { getFieldOptionsArray, getFieldStringValue } from '@/utils/types/Form';
 import { FormFieldProps } from '@/utils/types/FormFieldProps';
 
@@ -11,7 +11,7 @@ const Checkbox: React.FC<FormFieldProps> = ( { field, error = false } ) => {
     const required: boolean = field.required;
     return (
         <fieldset className="form-field__group">
-            <legend>
+            <legend className={ fieldLabelClass( field ) }>
                 { field.label }
                 { required ?
                     <span className="form-field__required">*</span>
