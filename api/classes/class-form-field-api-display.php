@@ -160,7 +160,7 @@ class DO_Form_Field_API_Display {
 
     private function html( $force_value = FALSE ) {
         // Same formatting as wp_editor
-        return $this->wp_editor( $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key ) );
+        return $this->wp_editor( $force_value !== FALSE ? $force_value : devo_get_post_meta_string( $this->post_id, $this->field_key ) );
     }
 
     private function icon( $force_value = FALSE ) {
@@ -353,9 +353,19 @@ class DO_Form_Field_API_Display {
         return $data;
     }
 
+    // Free text, read as stored: "2.10" or "[1]" typed into a text field
+    // stays that string (see devo_get_post_meta()).
+    // A sub-field's value (inside a multi) passes through as before.
+    private function text( $force_value = FALSE ) {
+        if ( $force_value !== FALSE ) {
+            return $force_value;
+        }
+        return do_shortcode( devo_get_post_meta_string( $this->post_id, $this->field_key ) );
+    }
+
     private function textarea( $force_value = FALSE ) {
         // Same formatting as wp_editor
-        return $this->wp_editor( $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key ) );
+        return $this->wp_editor( $force_value !== FALSE ? $force_value : devo_get_post_meta_string( $this->post_id, $this->field_key ) );
     }
 
     private function videos( $force_value = FALSE ) {
@@ -374,7 +384,11 @@ class DO_Form_Field_API_Display {
 
     private function wp_editor( $force_value = FALSE ) {
         // Wrap in devo_autop
-        return devo_autop( $force_value !== FALSE ? $force_value : devo_get_post_meta( $this->post_id, $this->field_key ) );
+        return devo_autop( $force_value !== FALSE ? $force_value : devo_get_post_meta_string( $this->post_id, $this->field_key ) );
+    }
+
+    private function wp_editor_limited( $force_value = FALSE ) {
+        return $this->wp_editor( $force_value );
     }
 
     /*

@@ -1390,27 +1390,33 @@ abstract class DO_Custom_Post_Type {
                             continue;
                         }
 
+                        // $_POST is slashed (WordPress adds magic quotes). Unslash
+                        // before validating, so the value is stored as typed:
+                        // "O'Brien", not "O\'Brien".
+                        $posted = isset( $_POST[ $meta_field_key ] ) ? wp_unslash( $_POST[ $meta_field_key ] ) : '';
+
                         // Custom callback
                         if ( strpos( $type, '_callback' ) !== FALSE ) {
                             $callback = $type;
                             // Method
                             if ( $obj && method_exists( $obj, $callback ) ) {
-                                $value = call_user_func( [ $obj, $callback ], $post_id, 'validate', $_POST[ $meta_field_key ], $meta_field_key );
+                                $value = call_user_func( [ $obj, $callback ], $post_id, 'validate', $posted, $meta_field_key );
                             }
                             // Function
                             elseif ( function_exists( $callback ) ) {
-                                $value = call_user_func( $callback , $post_id, 'validate', ( isset( $_POST[ $meta_field_key ] ) ? $_POST[ $meta_field_key ] : '' ), $meta_field_key );
+                                $value = call_user_func( $callback , $post_id, 'validate', $posted, $meta_field_key );
                             }
                         }
                         // Something else
                         else {
-                            $validate = new DO_Form_Field_Validate( $type, ( isset( $_POST[ $meta_field_key ] ) ? $_POST[ $meta_field_key ] : '' ) );
+                            $validate = new DO_Form_Field_Validate( $type, $posted );
                             $value = $validate->value;
                         }
                         
                         // Save the field. wp_slash() because update_post_meta()
-                        // unslashes, and values are stored as validated
-                        // (JSON included) and unslashed again on read.
+                        // unslashes, and the value (JSON included) must be
+                        // stored exactly as validated. Read back unchanged by
+                        // devo_get_post_meta().
                         update_post_meta( $post_id, $meta_field_key, wp_slash( $value ) );
                         $saved_keys[] = $meta_field_key;
                     }
@@ -1423,13 +1429,13 @@ abstract class DO_Custom_Post_Type {
                         $bonus_field_type = is_int( $bonus_field_key ) ? FALSE : $bonus_field_value;
                         if ( isset( $_POST[ $bonus_field_name ] ) ) {
                             if ( $bonus_field_type ) {
-                                $validate = new DO_Form_Field_Validate( $bonus_field_type, $_POST[ $bonus_field_name ] );
+                                $validate = new DO_Form_Field_Validate( $bonus_field_type, wp_unslash( $_POST[ $bonus_field_name ] ) );
                                 $value = $validate->value;
                             } else {
-                                $value = $_POST[ $bonus_field_name ];
+                                $value = wp_unslash( $_POST[ $bonus_field_name ] );
                             }
                         } elseif ( isset( $_POST[ $bonus_field_value ] ) ) {
-                            $validate = new DO_Form_Field_Validate( $bonus_field_type, $_POST[ $bonus_field_value ] );
+                            $validate = new DO_Form_Field_Validate( $bonus_field_type, wp_unslash( $_POST[ $bonus_field_value ] ) );
                             $value = $validate->value;
                         } else {
                             $value = '';
@@ -1604,6 +1610,55 @@ abstract class DO_Custom_Post_Type {
         }
         $keys = $base_keys[ $this->post_type ];
         return isset( $keys[ $meta_key ] ) || isset( $bonus_keys[ $meta_key ] ) || isset( $keys[ preg_replace( '/_\d+$/', '', $meta_key ) ] );
+    }
+
+    /* One-time upgrade, run by devo_upgrade_unslash_meta(). save_post() used
+     * to validate the slashed $_POST and store it as-is ("O\'Brien"), and
+     * devo_get_post_meta() unslashed on every read. Values are now stored as
+     * typed and read as stored, so rewrite the slashed ones as the values they
+     * have always displayed as. See devo_unslash_legacy_meta_value() for what
+     * counts as slashed.
+     *
+     * Only each post type's own fields saved from the edit screen: not
+     * read-only fields (a form submission's data, written unslashed by code),
+     * _private keys, or BAK backups. Returns the number of values rewritten. */
+    public static function unslash_legacy_meta(): int {
+        $updated = 0;
+        foreach ( self::$instances as $instance ) {
+            $updated += $instance->unslash_legacy_meta_for_post_type();
+        }
+        return $updated;
+    }
+
+    private function unslash_legacy_meta_for_post_type(): int {
+        global $wpdb;
+        $read_only_keys = [];
+        foreach ( $this->source_meta_fields as $box_fields ) {
+            foreach ( (array) $box_fields as $label => $settings ) {
+                if ( is_string( $label ) && in_array( devo_get_meta_field_type( $settings ), [ 'read_only', 'read_only_json' ], TRUE ) ) {
+                    $read_only_keys[ devo_meta_field_key( $label, $this->meta_prefix ) ] = TRUE;
+                }
+            }
+        }
+        $rows = $wpdb->get_results( $wpdb->prepare(
+            "SELECT pm.meta_id, pm.meta_key, pm.meta_value FROM {$wpdb->postmeta} pm INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id WHERE p.post_type = %s AND pm.meta_value LIKE %s",
+            $this->post_type,
+            '%' . $wpdb->esc_like( '\\' ) . '%'
+        ) );
+        $updated = 0;
+        foreach ( (array) $rows as $row ) {
+            $meta_key = (string) $row->meta_key;
+            if ( $meta_key === '' || $meta_key[0] === '_' || strpos( $meta_key, 'BAK' ) === 0 || isset( $read_only_keys[ $meta_key ] ) || ! $this->owns_meta_key( $meta_key ) ) {
+                continue;
+            }
+            $unslashed = devo_unslash_legacy_meta_value( $row->meta_value );
+            // Unlike update_post_meta(), update_metadata_by_mid() stores the
+            // value as given, without unslashing it
+            if ( $unslashed !== NULL && update_metadata_by_mid( 'post', (int) $row->meta_id, $unslashed ) ) {
+                $updated++;
+            }
+        }
+        return $updated;
     }
 
     // This post type's own meta keys currently stored on $post_id

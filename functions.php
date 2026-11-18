@@ -249,6 +249,21 @@ function devo_create_objects() {
 }
 add_action( 'after_setup_theme', 'devo_create_objects', 1 );
 
+/* One-time upgrade: meta values used to be saved from wp-admin still slashed
+ * ("O\'Brien") and unslashed on every read, which also stripped backslashes
+ * from anything stored correctly. Values are now stored as typed and read as
+ * stored, so the slashed ones are rewritten once, to what they displayed as.
+ * See DO_Custom_Post_Type::unslash_legacy_meta(). */
+function devo_upgrade_unslash_meta() {
+    if ( get_option( 'devo_meta_unslashed' ) ) {
+        return;
+    }
+    // Set first, so a slow or failed run isn't retried on every request
+    update_option( 'devo_meta_unslashed', 1, TRUE );
+    DO_Custom_Post_Type::unslash_legacy_meta();
+}
+add_action( 'init', 'devo_upgrade_unslash_meta', 99 );
+
 /*
  *
  * CLEANUP

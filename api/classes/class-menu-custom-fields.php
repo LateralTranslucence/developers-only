@@ -79,9 +79,11 @@ class DO_Menu_Custom_Fields {
             if ( isset( $_POST[ $key ][ $item_id ] ) ) {
                 $raw_type = $field['type'];
                 $type = is_a( $raw_type, 'DO_CPT_Form_Field' ) ? $raw_type->field_type : $raw_type;
-                $validator = new DO_Form_Field_Validate( $type, $_POST[ $key ][ $item_id ] );
-                // Slashed, like DO_Custom_Post_Type::save_post(): the value
-                // can be JSON, and update_post_meta() unslashes.
+                // Unslashed before validating and slashed for storage, like
+                // DO_Custom_Post_Type::save_post(): $_POST carries WordPress's
+                // magic quotes, the value can be JSON, and update_post_meta()
+                // unslashes.
+                $validator = new DO_Form_Field_Validate( $type, wp_unslash( $_POST[ $key ][ $item_id ] ) );
                 update_post_meta( $item_id, $key, wp_slash( $validator->value ) );
             }
             else {

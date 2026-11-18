@@ -853,18 +853,17 @@ class DO_Form_Field_Display {
 
     /* A free-text field's value as the string that was stored.
      *
-     * devo_get_post_meta() JSON-decodes whatever it reads, so "2024", "true"
-     * or a JSON snippet typed into a text, textarea, html or code field came
-     * back as a number, a boolean or an object. The textarea then rendered
-     * empty and a text input showed "1" for "true", and the next save wrote
-     * that back over the real value. */
+     * devo_get_post_meta() decodes values that look like JSON, so a JSON
+     * snippet typed into a text, textarea, html or code field would come back
+     * as an array or object, render empty, and be wiped by the next save. The
+     * stored string is used whenever there is one. Nothing is unslashed: values
+     * are stored as typed, and stripping here lost a backslash on every save. */
     private function string_value() {
+        if ( $this->force_value === FALSE && is_string( $this->raw_meta_value ) && $this->raw_meta_value !== '' ) {
+            return $this->raw_meta_value;
+        }
         if ( is_string( $this->value ) ) {
             return $this->value;
-        }
-        if ( $this->force_value === FALSE && is_string( $this->raw_meta_value ) ) {
-            // Unslashed as devo_get_post_meta() unslashes a string
-            return stripslashes( $this->raw_meta_value );
         }
         if ( is_int( $this->value ) || is_float( $this->value ) ) {
             return (string) $this->value;
@@ -879,7 +878,7 @@ class DO_Form_Field_Display {
     }
     
     private function textarea() {
-        $output = '<textarea class="widefat type-' . esc_attr( $this->type ) . '" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" size="60" rows="5"' . ( $this->label ? ' placeholder="' . esc_attr( $this->label ) . '"' : '' ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>' . esc_textarea( stripslashes( $this->string_value() ) ) . '</textarea>';
+        $output = '<textarea class="widefat type-' . esc_attr( $this->type ) . '" name="' . esc_attr( $this->field_name ) . '" id="' . esc_attr( $this->field_id ) . '" size="60" rows="5"' . ( $this->label ? ' placeholder="' . esc_attr( $this->label ) . '"' : '' ) . ( $this->disabled ? ' disabled="disabled"' : '' ) . '>' . esc_textarea( $this->string_value() ) . '</textarea>';
 
         return $output;
     }
@@ -910,7 +909,7 @@ class DO_Form_Field_Display {
     } 
     
     private function wp_editor() {
-        $output = wp_editor( $this->value, $this->field_id, [ 'textarea_name' => $this->field_name, 'media_buttons' => ( $this->type === 'wp_editor' ), 'teeny' => ( $this->type === 'wp_editor_limited' ), 'wpautop' => TRUE ] );
+        $output = wp_editor( $this->string_value(), $this->field_id, [ 'textarea_name' => $this->field_name, 'media_buttons' => ( $this->type === 'wp_editor' ), 'teeny' => ( $this->type === 'wp_editor_limited' ), 'wpautop' => TRUE ] );
 
         return $output;
     }

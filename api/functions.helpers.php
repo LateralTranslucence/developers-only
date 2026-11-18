@@ -1303,22 +1303,104 @@ function devo_get_meta_field_type( $settings ) {
 // 	}
 // }
 
-// Un-serialize meta value
+/* A meta value as the theme uses it. Structured fields are stored as JSON
+ * (arrays, objects, and the odd JSON string), so those are decoded; anything
+ * else comes back exactly as stored. With no $meta_key, all of the post's
+ * fields (not _private or BAK backup keys).
+ *
+ * Values are stored unslashed (writers wp_slash() what they hand to
+ * update_post_meta()), so nothing is unslashed here: that used to drop every
+ * backslash a visitor or editor typed. And JSON scalars aren't decoded: "2.10",
+ * "1e3" and "true" in a text field came back as 2.1, 1000 and "1".
+ *
+ * Free-text fields (text, textarea, html, wp_editor) should be read with
+ * devo_get_post_meta_string(), so text that happens to look like a JSON array
+ * stays text. */
 function devo_get_post_meta( $post_id, $meta_key = '' ) {
     if ( strlen( $meta_key ) ) {
-        $meta_value_raw = get_post_meta( $post_id, $meta_key, TRUE );
-        return is_json( $meta_value_raw ) ? devo_strip_slashes( json_decode( $meta_value_raw ) ) : devo_strip_slashes( $meta_value_raw );
-    } else {
-        $meta_values = [];
-        $meta_values_raw = get_post_meta( $post_id );
-        foreach ( $meta_values_raw as $meta_key => $meta_value ) {
-            if ( strpos( $meta_key, 'BAK' ) === FALSE && strpos( $meta_key, '_' ) !== 0 ) {
-                $meta_value = devo_get_post_meta( $post_id, $meta_key );
-                $meta_values[ $meta_key ] = is_json( $meta_value ) ? json_decode( $meta_value ) : $meta_value;
-            }
-        }
-        return devo_strip_slashes( $meta_values );
+        return devo_decode_meta_value( get_post_meta( $post_id, $meta_key, TRUE ) );
     }
+    $meta_values = [];
+    $meta_values_raw = get_post_meta( $post_id );
+    foreach ( is_array( $meta_values_raw ) ? $meta_values_raw : [] as $key => $values ) {
+        if ( strpos( $key, 'BAK' ) === FALSE && strpos( $key, '_' ) !== 0 ) {
+            $meta_values[ $key ] = devo_get_post_meta( $post_id, $key );
+        }
+    }
+    return $meta_values;
+}
+
+// A free-text field's value exactly as stored, never JSON-decoded
+function devo_get_post_meta_string( $post_id, $meta_key ) {
+    $value = get_post_meta( $post_id, $meta_key, TRUE );
+    return is_scalar( $value ) ? (string) $value : '';
+}
+
+/* For the one-time upgrade in devo_upgrade_unslash_meta(): a value that
+ * save_post() stored while it still validated the slashed $_POST ("O\'Brien",
+ * or JSON whose strings were slashed), as the value it has always displayed as
+ * ("O'Brien"). NULL when the value should be left alone.
+ *
+ * addslashes() only ever puts a backslash before ', ", \ or NUL, so a value
+ * (or, for JSON, any string inside it) with any other backslash was stored as
+ * typed - an imported page, a form submission, C:\path - and is left as it is. */
+function devo_unslash_legacy_meta_value( $value ) {
+    if ( ! is_string( $value ) || strpos( $value, '\\' ) === FALSE ) {
+        return NULL;
+    }
+    $slashed_shape = function( $string ) {
+        return (bool) preg_match( '/^(?:[^\\\\]|\\\\[\'"\\\\0])*$/s', $string );
+    };
+    $decoded = devo_decode_meta_value( $value );
+    if ( $decoded === $value ) {
+        return $slashed_shape( $value ) ? stripslashes( $value ) : NULL;
+    }
+    // JSON: unslash the strings inside it, if every one of them is slashed
+    $shaped = TRUE;
+    $changed = FALSE;
+    $unslash = function( $node ) use ( &$unslash, &$shaped, &$changed, $slashed_shape ) {
+        if ( is_string( $node ) ) {
+            if ( strpos( $node, '\\' ) === FALSE ) {
+                return $node;
+            }
+            $shaped = $shaped && $slashed_shape( $node );
+            $changed = TRUE;
+            return stripslashes( $node );
+        }
+        if ( is_array( $node ) || is_object( $node ) ) {
+            $is_object = is_object( $node );
+            $result = $is_object ? new stdClass() : [];
+            foreach ( $node as $key => $child ) {
+                $unslashed_key = $unslash( (string) $key );
+                if ( $is_object ) {
+                    $result->{ $unslashed_key } = $unslash( $child );
+                } else {
+                    $result[ $key ] = $unslash( $child );
+                }
+            }
+            return $result;
+        }
+        return $node;
+    };
+    $unslashed = $unslash( $decoded );
+    if ( ! $changed || ! $shaped ) {
+        return NULL;
+    }
+    $encoded = wp_json_encode( $unslashed );
+    return is_string( $encoded ) ? $encoded : NULL;
+}
+
+// Decodes a stored meta value that is a JSON array, object or string
+function devo_decode_meta_value( $value ) {
+    if ( ! is_string( $value ) ) {
+        return $value;
+    }
+    $trimmed = trim( $value );
+    $first = substr( $trimmed, 0, 1 );
+    if ( ! in_array( $first, [ '[', '{', '"' ], TRUE ) || ! is_json( $trimmed ) ) {
+        return $value;
+    }
+    return json_decode( $trimmed );
 }
 
 function devo_get_relative_permalink( $post_id ) {
